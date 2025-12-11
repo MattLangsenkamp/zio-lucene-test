@@ -1,0 +1,8 @@
+{
+    "value": [
+        "ref:v0:41cb06d5:/home/mattlang/Documents/projects/zio-lucene/build.mill",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene/mill-build/src"
+    ],
+    "valueHash": 733058043,
+    "inputsHash": 1209217738
+}

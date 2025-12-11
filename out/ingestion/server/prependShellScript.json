@@ -1,0 +1,5 @@
+{
+    "value": "@ 2>/dev/null # 2>nul & echo off & goto BOF\r\n:\nif [ -z \"$JAVA_HOME\" ] ; then\n  JAVACMD=\"java\"\nelse\n  JAVACMD=\"$JAVA_HOME/bin/java\"\nfi\n\nexec \"$JAVACMD\"  $JAVA_OPTS -cp \"$0\" 'app.ingestion.server.Server' \"$@\"\n\nexit\n\r\n:BOF\r\nsetlocal\r\n@echo off\r\nsetlocal EnableDelayedExpansion\r\nset \"JAVACMD=java.exe\"\r\nif not \"%JAVA_HOME%\"==\"\" set \"JAVACMD=%JAVA_HOME%\\bin\\java.exe\"\r\n\r\n\"%JAVACMD%\"  %JAVA_OPTS% -cp \"%~dpnx0\" \"app.ingestion.server.Server\" %*\r\n\r\nendlocal\r\n\r\nendlocal\r\nexit /B %errorlevel%\r\n",
+    "valueHash": -2105260494,
+    "inputsHash": -1321241754
+}

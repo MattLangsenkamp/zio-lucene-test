@@ -1,0 +1,8 @@
+{
+    "value": [
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene/ingestion/api/resources",
+        "ref:v0:0c99dc4d:/home/mattlang/Documents/projects/zio-lucene/out/ingestion/api/compile.dest/classes"
+    ],
+    "valueHash": -558752726,
+    "inputsHash": 1144187835
+}

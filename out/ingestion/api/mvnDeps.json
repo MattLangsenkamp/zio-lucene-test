@@ -1,0 +1,10 @@
+{
+    "value": [
+        "com.softwaremill.sttp.tapir::tapir-core:1.11.10",
+        "com.softwaremill.sttp.model::core:1.7.11",
+        "com.softwaremill.sttp.shared::core:1.3.21",
+        "com.softwaremill.sttp.shared::ws:1.3.21"
+    ],
+    "valueHash": -1902274765,
+    "inputsHash": -214066905
+}

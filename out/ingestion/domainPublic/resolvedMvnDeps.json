@@ -1,0 +1,8 @@
+{
+    "value": [
+        "qref:v1:bb8a40e5:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.7/scala3-library_3-3.3.7.jar",
+        "qref:v1:af4b3a3d:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+    ],
+    "valueHash": 1544791077,
+    "inputsHash": 1507821666
+}

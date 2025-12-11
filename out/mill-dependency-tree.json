@@ -1,0 +1,382 @@
+{
+  "ingestion.server.docker.build": {
+    "ingestion.server.docker.executable": {},
+    "ingestion.server.docker.dockerfile": {
+      "ingestion.server.docker.baseImage": {},
+      "ingestion.server.docker.envVars": {},
+      "ingestion.server.docker.volumes": {},
+      "ingestion.server.docker.user": {},
+      "ingestion.server.docker.labels": {},
+      "ingestion.server.docker.exposedUdpPorts": {},
+      "ingestion.server.docker.run": {},
+      "ingestion.server.docker.jvmOptions": {},
+      "ingestion.server.docker.exposedPorts": {}
+    },
+    "ingestion.server.docker.platform": {},
+    "ingestion.server.docker.dockerEnv": {},
+    "ingestion.server.docker.pullAndHash": {
+      "ingestion.server.docker.pullBaseImage": {}
+    },
+    "ingestion.server.assembly": {
+      "ingestion.server.upstreamAssembly": {
+        "ingestion.server.upstreamLocalAssemblyClasspath": {
+          "ingestion.server.transitiveLocalClasspath": {
+            "ingestion.domainPrivate.localClasspath": {
+              "ingestion.domainPrivate.localRunClasspath": {
+                "ingestion.domainPrivate.resources": {},
+                "ingestion.domainPrivate.localRunClasspath.super.RunModule": {}
+              },
+              "ingestion.domainPrivate.localCompileClasspath": {
+                "ingestion.domainPrivate.compileResources": {},
+                "ingestion.domainPrivate.unmanagedClasspath": {}
+              }
+            },
+            "ingestion.api.localClasspath": {
+              "ingestion.api.localRunClasspath": {
+                "ingestion.api.localRunClasspath.super.RunModule": {},
+                "ingestion.api.resources": {}
+              },
+              "ingestion.api.localCompileClasspath": {
+                "ingestion.api.compileResources": {},
+                "ingestion.api.unmanagedClasspath": {}
+              }
+            },
+            "ingestion.services.localClasspath": {
+              "ingestion.services.localRunClasspath": {
+                "ingestion.services.resources": {},
+                "ingestion.services.localRunClasspath.super.RunModule": {}
+              },
+              "ingestion.services.localCompileClasspath": {
+                "ingestion.services.compileResources": {},
+                "ingestion.services.unmanagedClasspath": {}
+              }
+            },
+            "ingestion.domainPublic.localClasspath": {
+              "ingestion.domainPublic.localCompileClasspath": {
+                "ingestion.domainPublic.unmanagedClasspath": {},
+                "ingestion.domainPublic.compileResources": {}
+              },
+              "ingestion.domainPublic.localRunClasspath": {
+                "ingestion.domainPublic.resources": {},
+                "ingestion.domainPublic.localRunClasspath.super.RunModule": {}
+              }
+            }
+          }
+        },
+        "ingestion.server.resolvedIvyAssembly": {
+          "ingestion.server.upstreamIvyAssemblyClasspath": {
+            "ingestion.server.resolvedRunMvnDeps": {
+              "ingestion.domainPrivate.repositories": {},
+              "ingestion.domainPublic.repositories": {},
+              "ingestion.domainPrivate.platformSuffix": {},
+              "ingestion.server.mvnDeps": {},
+              "ingestion.services.platformSuffix": {},
+              "ingestion.services.scalaVersion": {},
+              "ingestion.services.repositories": {},
+              "ingestion.server.transitiveCoursierProjects": {
+                "ingestion.domainPublic.compileMvnDeps": {},
+                "ingestion.domainPublic.transitiveCoursierProjects": {},
+                "ingestion.domainPrivate.compileMvnDeps": {},
+                "ingestion.api.mandatoryMvnDeps": {
+                  "ingestion.api.mandatoryMvnDeps.super.javalib.JavaModule": {},
+                  "ingestion.api.scalaLibraryMvnDeps": {}
+                },
+                "ingestion.domainPrivate.depManagement": {},
+                "ingestion.services.runMvnDeps": {},
+                "ingestion.api.depManagement": {},
+                "ingestion.services.depManagement": {},
+                "ingestion.services.compileMvnDeps": {},
+                "ingestion.api.bomMvnDeps": {},
+                "ingestion.domainPublic.mandatoryMvnDeps": {
+                  "ingestion.domainPublic.mandatoryMvnDeps.super.javalib.JavaModule": {},
+                  "ingestion.domainPublic.scalaLibraryMvnDeps": {}
+                },
+                "ingestion.services.mandatoryMvnDeps": {
+                  "ingestion.services.mandatoryMvnDeps.super.javalib.JavaModule": {},
+                  "ingestion.services.scalaLibraryMvnDeps": {}
+                },
+                "ingestion.domainPublic.runMvnDeps": {},
+                "ingestion.domainPrivate.bomMvnDeps": {},
+                "ingestion.domainPublic.bomMvnDeps": {},
+                "ingestion.api.transitiveCoursierProjects": {},
+                "ingestion.services.bomMvnDeps": {},
+                "ingestion.api.runMvnDeps": {},
+                "ingestion.domainPrivate.runMvnDeps": {},
+                "ingestion.services.transitiveCoursierProjects": {},
+                "ingestion.domainPublic.depManagement": {},
+                "ingestion.domainPrivate.mandatoryMvnDeps": {
+                  "ingestion.domainPrivate.mandatoryMvnDeps.super.javalib.JavaModule": {},
+                  "ingestion.domainPrivate.scalaLibraryMvnDeps": {}
+                },
+                "ingestion.api.compileMvnDeps": {},
+                "ingestion.domainPrivate.transitiveCoursierProjects": {}
+              },
+              "ingestion.domainPublic.mvnDeps": {},
+              "ingestion.server.bomMvnDeps": {},
+              "ingestion.server.runMvnDeps": {},
+              "ingestion.api.mvnDeps": {},
+              "ingestion.server.artifactTypes": {},
+              "ingestion.api.platformSuffix": {},
+              "ingestion.server.depManagement": {},
+              "ingestion.server.checkGradleModules": {},
+              "ingestion.server.compileMvnDeps": {},
+              "ingestion.domainPrivate.mvnDeps": {},
+              "ingestion.api.scalaVersion": {},
+              "ingestion.server.platformSuffix": {},
+              "ingestion.api.repositories": {},
+              "ingestion.server.repositories": {},
+              "ingestion.server.mandatoryMvnDeps": {
+                "ingestion.server.mandatoryMvnDeps.super.javalib.JavaModule": {}
+              },
+              "ingestion.domainPublic.scalaVersion": {},
+              "ingestion.domainPrivate.scalaVersion": {},
+              "ingestion.services.mvnDeps": {},
+              "ingestion.domainPublic.platformSuffix": {}
+            }
+          }
+        }
+      },
+      "ingestion.server.manifest": {
+        "ingestion.server.manifest.super.javalib.AssemblyModule": {
+          "ingestion.server.manifest0": {}
+        },
+        "ingestion.server.scalaVersion": {}
+      },
+      "ingestion.server.localClasspath": {
+        "ingestion.server.localRunClasspath": {
+          "ingestion.server.compile": {
+            "ingestion.server.mandatoryJavacOptions": {},
+            "ingestion.server.scalaCompilerBridge": {},
+            "ingestion.server.upstreamCompileOutput": {
+              "ingestion.domainPrivate.compile": {
+                "ingestion.domainPrivate.javacOptions": {},
+                "ingestion.domainPrivate.allScalacOptions": {
+                  "ingestion.domainPrivate.mandatoryScalacOptions": {},
+                  "ingestion.domainPrivate.scalacOptions": {},
+                  "ingestion.domainPrivate.enablePluginScalacOptions": {}
+                },
+                "ingestion.domainPrivate.mandatoryJavacOptions": {},
+                "ingestion.domainPrivate.scalaOrganization": {},
+                "ingestion.domainPrivate.javaHome": {
+                  "ingestion.domainPrivate.jvmIndexVersion": {},
+                  "ingestion.domainPrivate.jvmId": {}
+                },
+                "ingestion.domainPrivate.compileClasspath": {
+                  "ingestion.domainPrivate.resolvedMvnDeps": {
+                    "ingestion.domainPrivate.artifactTypes": {}
+                  }
+                },
+                "ingestion.domainPrivate.zincReportCachedProblems": {},
+                "ingestion.domainPrivate.scalaCompilerClasspath": {
+                  "ingestion.domainPrivate.checkGradleModules": {}
+                },
+                "ingestion.domainPrivate.allSourceFiles": {
+                  "ingestion.domainPrivate.allSources": {
+                    "ingestion.domainPrivate.sources": {},
+                    "ingestion.domainPrivate.generatedSources": {}
+                  }
+                },
+                "ingestion.domainPrivate.scalacPluginClasspath": {
+                  "ingestion.domainPrivate.scalacPluginMvnDeps": {}
+                },
+                "ingestion.domainPrivate.zincAuxiliaryClassFileExtensions": {
+                  "ingestion.domainPrivate.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                },
+                "ingestion.domainPrivate.scalaCompilerBridge": {},
+                "ingestion.domainPrivate.zincIncrementalCompilation": {},
+                "ingestion.domainPrivate.upstreamCompileOutput": {}
+              },
+              "ingestion.api.compile": {
+                "ingestion.api.zincIncrementalCompilation": {},
+                "ingestion.api.scalaOrganization": {},
+                "ingestion.api.scalacPluginClasspath": {
+                  "ingestion.api.scalacPluginMvnDeps": {}
+                },
+                "ingestion.api.scalaCompilerBridge": {},
+                "ingestion.api.zincAuxiliaryClassFileExtensions": {
+                  "ingestion.api.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                },
+                "ingestion.api.javaHome": {
+                  "ingestion.api.jvmId": {},
+                  "ingestion.api.jvmIndexVersion": {}
+                },
+                "ingestion.api.compileClasspath": {
+                  "ingestion.api.resolvedMvnDeps": {
+                    "ingestion.api.artifactTypes": {}
+                  }
+                },
+                "ingestion.api.zincReportCachedProblems": {},
+                "ingestion.api.scalaCompilerClasspath": {
+                  "ingestion.api.checkGradleModules": {}
+                },
+                "ingestion.api.allScalacOptions": {
+                  "ingestion.api.mandatoryScalacOptions": {},
+                  "ingestion.api.enablePluginScalacOptions": {},
+                  "ingestion.api.scalacOptions": {}
+                },
+                "ingestion.api.upstreamCompileOutput": {},
+                "ingestion.api.mandatoryJavacOptions": {},
+                "ingestion.api.javacOptions": {},
+                "ingestion.api.allSourceFiles": {
+                  "ingestion.api.allSources": {
+                    "ingestion.api.sources": {},
+                    "ingestion.api.generatedSources": {}
+                  }
+                }
+              },
+              "ingestion.domainPublic.compile": {
+                "ingestion.domainPublic.scalaCompilerBridge": {},
+                "ingestion.domainPublic.zincAuxiliaryClassFileExtensions": {
+                  "ingestion.domainPublic.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                },
+                "ingestion.domainPublic.scalaCompilerClasspath": {
+                  "ingestion.domainPublic.checkGradleModules": {}
+                },
+                "ingestion.domainPublic.javacOptions": {},
+                "ingestion.domainPublic.mandatoryJavacOptions": {},
+                "ingestion.domainPublic.zincIncrementalCompilation": {},
+                "ingestion.domainPublic.zincReportCachedProblems": {},
+                "ingestion.domainPublic.scalacPluginClasspath": {
+                  "ingestion.domainPublic.scalacPluginMvnDeps": {}
+                },
+                "ingestion.domainPublic.compileClasspath": {
+                  "ingestion.domainPublic.resolvedMvnDeps": {
+                    "ingestion.domainPublic.artifactTypes": {}
+                  }
+                },
+                "ingestion.domainPublic.allSourceFiles": {
+                  "ingestion.domainPublic.allSources": {
+                    "ingestion.domainPublic.sources": {},
+                    "ingestion.domainPublic.generatedSources": {}
+                  }
+                },
+                "ingestion.domainPublic.scalaOrganization": {},
+                "ingestion.domainPublic.allScalacOptions": {
+                  "ingestion.domainPublic.mandatoryScalacOptions": {},
+                  "ingestion.domainPublic.enablePluginScalacOptions": {},
+                  "ingestion.domainPublic.scalacOptions": {}
+                },
+                "ingestion.domainPublic.javaHome": {
+                  "ingestion.domainPublic.jvmId": {},
+                  "ingestion.domainPublic.jvmIndexVersion": {}
+                },
+                "ingestion.domainPublic.upstreamCompileOutput": {}
+              },
+              "ingestion.services.compile": {
+                "ingestion.services.scalaCompilerBridge": {},
+                "ingestion.services.zincAuxiliaryClassFileExtensions": {
+                  "ingestion.services.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                },
+                "ingestion.services.upstreamCompileOutput": {},
+                "ingestion.services.mandatoryJavacOptions": {},
+                "ingestion.services.scalaCompilerClasspath": {},
+                "ingestion.services.javacOptions": {},
+                "ingestion.services.zincReportCachedProblems": {},
+                "ingestion.services.zincIncrementalCompilation": {},
+                "ingestion.services.javaHome": {
+                  "ingestion.services.jvmIndexVersion": {},
+                  "ingestion.services.jvmId": {}
+                },
+                "ingestion.services.compileClasspath": {
+                  "ingestion.services.resolvedMvnDeps": {
+                    "ingestion.services.artifactTypes": {}
+                  }
+                },
+                "ingestion.services.scalacPluginClasspath": {
+                  "ingestion.services.scalacPluginMvnDeps": {},
+                  "ingestion.services.checkGradleModules": {}
+                },
+                "ingestion.services.scalaOrganization": {},
+                "ingestion.services.allSourceFiles": {
+                  "ingestion.services.allSources": {
+                    "ingestion.services.sources": {},
+                    "ingestion.services.generatedSources": {}
+                  }
+                },
+                "ingestion.services.allScalacOptions": {
+                  "ingestion.services.mandatoryScalacOptions": {},
+                  "ingestion.services.scalacOptions": {},
+                  "ingestion.services.enablePluginScalacOptions": {}
+                }
+              }
+            },
+            "ingestion.server.zincAuxiliaryClassFileExtensions": {
+              "ingestion.server.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+            },
+            "ingestion.server.javaHome": {
+              "ingestion.server.jvmId": {},
+              "ingestion.server.jvmIndexVersion": {}
+            },
+            "ingestion.server.scalaOrganization": {},
+            "ingestion.server.zincIncrementalCompilation": {},
+            "ingestion.server.allScalacOptions": {
+              "ingestion.server.enablePluginScalacOptions": {},
+              "ingestion.server.scalacOptions": {},
+              "ingestion.server.mandatoryScalacOptions": {}
+            },
+            "ingestion.server.allSourceFiles": {
+              "ingestion.server.allSources": {
+                "ingestion.server.generatedSources": {},
+                "ingestion.server.sources": {}
+              }
+            },
+            "ingestion.server.compileClasspath": {
+              "ingestion.server.resolvedMvnDeps": {}
+            },
+            "mill.javalib.JvmWorkerModule/internalWorker": {
+              "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {},
+              "mill.javalib.JvmWorkerModule/checkGradleModules": {},
+              "mill.javalib.JvmWorkerModule/classpath": {},
+              "mill.javalib.JvmWorkerModule/zincLogDebug": {},
+              "mill.javalib.JvmWorkerModule/repositories": {}
+            },
+            "ingestion.server.scalacPluginClasspath": {
+              "ingestion.server.scalacPluginMvnDeps": {}
+            },
+            "ingestion.server.javacOptions": {},
+            "ingestion.server.zincReportCachedProblems": {},
+            "ingestion.server.scalaCompilerClasspath": {
+              "ingestion.server.scalaLibraryMvnDeps": {}
+            }
+          },
+          "ingestion.server.localRunClasspath.super.RunModule": {},
+          "ingestion.server.resources": {}
+        },
+        "ingestion.server.localCompileClasspath": {
+          "ingestion.server.compileResources": {},
+          "ingestion.server.unmanagedClasspath": {}
+        }
+      },
+      "ingestion.server.prependShellScript": {
+        "ingestion.server.prependShellScript0": {
+          "ingestion.server.finalMainClassOpt": {
+            "ingestion.server.allLocalMainClasses": {
+              "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorker": {
+                "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClassloader": {
+                  "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClasspath": {
+                    "mill.javalib.classgraph.ClassgraphWorkerModule/repositories": {},
+                    "mill.javalib.classgraph.ClassgraphWorkerModule/checkGradleModules": {}
+                  }
+                }
+              }
+            },
+            "ingestion.server.mainClass": {}
+          },
+          "ingestion.server.forkArgs": {},
+          "ingestion.server.forkShellArgs": {},
+          "ingestion.server.forkCmdArgs": {}
+        }
+      },
+      "mill.javalib.AssemblyModule/jarjarabramsWorker": {
+        "mill.javalib.AssemblyModule/jarjarabramsWorkerClassloader": {
+          "mill.javalib.AssemblyModule/jarjarabramsWorkerClasspath": {
+            "mill.javalib.AssemblyModule/checkGradleModules": {},
+            "mill.javalib.CoursierConfigModule/coursierEnv": {},
+            "mill.javalib.AssemblyModule/repositories": {}
+          }
+        }
+      }
+    },
+    "ingestion.server.docker.tags": {}
+  }
+}

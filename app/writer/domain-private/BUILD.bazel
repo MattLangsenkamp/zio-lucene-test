@@ -1,6 +1,0 @@
-load("//:defs.bzl", "zio_scala_library")
-
-zio_scala_library(
-    name = "domain-private",
-    visibility = ["//app/writer:__subpackages__"],
-)

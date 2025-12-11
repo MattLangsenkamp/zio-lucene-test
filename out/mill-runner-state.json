@@ -1,0 +1,49 @@
+{
+    "workerCache": {
+        "mill.javalib.AssemblyModule/jarjarabramsWorker": {
+            "identityHashCode": 400612157,
+            "inputHash": 563593542
+        },
+        "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClassloader": {
+            "identityHashCode": 1935582245,
+            "inputHash": 1596971065
+        },
+        "mill.javalib.JvmWorkerModule/internalWorker": {
+            "identityHashCode": 404014720,
+            "inputHash": 1445136472
+        },
+        "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {
+            "identityHashCode": 2106818574,
+            "inputHash": 1828137740
+        },
+        "mill.javalib.AssemblyModule/jarjarabramsWorkerClassloader": {
+            "identityHashCode": 1824232882,
+            "inputHash": -1089809960
+        },
+        "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorker": {
+            "identityHashCode": 1782741900,
+            "inputHash": 857269208
+        }
+    },
+    "evalWatched": [
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/api/compile-resources",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/server/src",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/domainPrivate/compile-resources",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/server/resources",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/services/src",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/domainPublic/compile-resources",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/domainPrivate/src",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/domainPublic/src",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/services/compile-resources",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/domainPrivate/resources",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/api/resources",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/api/src",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/server/compile-resources",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/services/resources",
+        "/home/mattlang/Documents/projects/zio-lucene/ingestion/domainPublic/resources"
+    ],
+    "moduleWatched": [],
+    "classLoaderIdentity": null,
+    "runClasspath": [],
+    "runClasspathHash": 473519988
+}

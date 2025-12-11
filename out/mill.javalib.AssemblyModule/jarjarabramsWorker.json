@@ -1,0 +1,9 @@
+{
+    "value": {
+        "worker": "mill.javalib.AssemblyModule/jarjarabramsWorker",
+        "toString": "mill.javalib.AssemblyModule$$$Lambda/0x00007fc515fa9ce0@44c543df",
+        "inputsHash": 437366375
+    },
+    "valueHash": 437366375,
+    "inputsHash": 437366375
+}

@@ -1,0 +1,13 @@
+{
+    "value": {
+        "main": {
+            "Manifest-Version": "1.0",
+            "Created-By": "Mill 1.1.0-RC3",
+            "Tool": "Mill-1.1.0-RC3",
+            "Main-Class": "app.ingestion.server.Server"
+        },
+        "groups": {}
+    },
+    "valueHash": -529419205,
+    "inputsHash": -64894535
+}

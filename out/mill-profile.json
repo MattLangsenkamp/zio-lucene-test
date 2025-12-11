@@ -1,0 +1,2898 @@
+[
+  {
+    "label": "mill.javalib.CoursierConfigModule/coursierEnv",
+    "millis": 8,
+    "valueHashChanged": true,
+    "inputsHash": 2071089392
+  },
+  {
+    "label": "ingestion.server.docker.dockerEnv",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1566399751
+  },
+  {
+    "label": "ingestion.server.mandatoryJavacOptions",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 263662080
+  },
+  {
+    "label": "ingestion.domainPublic.javacOptions",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1187264952
+  },
+  {
+    "label": "mill.javalib.JvmWorkerModule/checkGradleModules",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -736381115
+  },
+  {
+    "label": "mill.javalib.classgraph.ClassgraphWorkerModule/repositories",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -736381115
+  },
+  {
+    "label": "ingestion.domainPublic.mandatoryJavacOptions",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 637620611
+  },
+  {
+    "label": "ingestion.server.scalaVersion",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -685445899
+  },
+  {
+    "label": "ingestion.server.resources",
+    "millis": 8,
+    "valueHashChanged": true,
+    "inputsHash": -1010461972
+  },
+  {
+    "label": "ingestion.server.mainClass",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -966945157
+  },
+  {
+    "label": "ingestion.domainPublic.generatedSources",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2068019445
+  },
+  {
+    "label": "ingestion.domainPublic.mandatoryMvnDeps.super.javalib.JavaModule",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.server.javacOptions",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 552770819
+  },
+  {
+    "label": "ingestion.server.localRunClasspath.super.RunModule",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1944909327
+  },
+  {
+    "label": "ingestion.domainPublic.upstreamCompileOutput",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 694575801
+  },
+  {
+    "label": "mill.javalib.classgraph.ClassgraphWorkerModule/checkGradleModules",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -736381115
+  },
+  {
+    "label": "ingestion.domainPublic.scalaVersion",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1858996538
+  },
+  {
+    "label": "mill.javalib.JvmWorkerModule/zincLogDebug",
+    "millis": 8,
+    "valueHashChanged": true,
+    "inputsHash": -959658776
+  },
+  {
+    "label": "ingestion.domainPublic.depManagement",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -625029802
+  },
+  {
+    "label": "mill.javalib.JvmWorkerModule/repositories",
+    "millis": 9,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -736381115
+  },
+  {
+    "label": "ingestion.domainPublic.compileMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 478653925
+  },
+  {
+    "label": "ingestion.domainPublic.repositories",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2137265805
+  },
+  {
+    "label": "ingestion.domainPublic.sources",
+    "millis": 9,
+    "valueHashChanged": true,
+    "inputsHash": 1340165356
+  },
+  {
+    "label": "ingestion.domainPublic.artifactTypes",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1807333534
+  },
+  {
+    "label": "ingestion.domainPrivate.scalaVersion",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1063480206
+  },
+  {
+    "label": "ingestion.domainPublic.runMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 682174538
+  },
+  {
+    "label": "ingestion.domainPublic.compileResources",
+    "millis": 1,
+    "valueHashChanged": true,
+    "inputsHash": -930500887
+  },
+  {
+    "label": "ingestion.domainPrivate.javacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1187264952
+  },
+  {
+    "label": "ingestion.domainPublic.jvmId",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2100471549
+  },
+  {
+    "label": "ingestion.domainPublic.mandatoryScalacOptions",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1777811074
+  },
+  {
+    "label": "ingestion.domainPublic.platformSuffix",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1511239548
+  },
+  {
+    "label": "ingestion.domainPublic.transitiveCoursierProjects",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1166879569
+  },
+  {
+    "label": "ingestion.domainPrivate.sources",
+    "millis": 0,
+    "valueHashChanged": true,
+    "inputsHash": -2086519626
+  },
+  {
+    "label": "ingestion.domainPublic.zincReportCachedProblems",
+    "millis": 1,
+    "valueHashChanged": true,
+    "inputsHash": -1003624229
+  },
+  {
+    "label": "ingestion.domainPublic.checkGradleModules",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1563300277
+  },
+  {
+    "label": "ingestion.domainPublic.bomMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1198066884
+  },
+  {
+    "label": "ingestion.domainPublic.mvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -476115519
+  },
+  {
+    "label": "ingestion.domainPrivate.mandatoryJavacOptions",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 637620611
+  },
+  {
+    "label": "ingestion.domainPrivate.platformSuffix",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1511239548
+  },
+  {
+    "label": "ingestion.domainPrivate.mandatoryMvnDeps.super.javalib.JavaModule",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.domainPublic.scalaCompilerBridge",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 143465244
+  },
+  {
+    "label": "ingestion.domainPublic.unmanagedClasspath",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1738396719
+  },
+  {
+    "label": "ingestion.domainPublic.scalacOptions",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1241564469
+  },
+  {
+    "label": "ingestion.domainPublic.scalacPluginMvnDeps",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1715212714
+  },
+  {
+    "label": "ingestion.domainPublic.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.domainPrivate.generatedSources",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2068019445
+  },
+  {
+    "label": "ingestion.domainPrivate.repositories",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2137265805
+  },
+  {
+    "label": "ingestion.domainPublic.jvmIndexVersion",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 517148447
+  },
+  {
+    "label": "ingestion.domainPrivate.artifactTypes",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1807333534
+  },
+  {
+    "label": "ingestion.domainPrivate.depManagement",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -625029802
+  },
+  {
+    "label": "ingestion.domainPrivate.scalacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1241564469
+  },
+  {
+    "label": "ingestion.domainPrivate.checkGradleModules",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1563300277
+  },
+  {
+    "label": "ingestion.domainPrivate.compileMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 478653925
+  },
+  {
+    "label": "ingestion.domainPrivate.mvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -476115519
+  },
+  {
+    "label": "ingestion.domainPrivate.bomMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1198066884
+  },
+  {
+    "label": "ingestion.api.scalaVersion",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1946546381
+  },
+  {
+    "label": "ingestion.api.javacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1187264952
+  },
+  {
+    "label": "ingestion.api.generatedSources",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2068019445
+  },
+  {
+    "label": "ingestion.api.mandatoryJavacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 637620611
+  },
+  {
+    "label": "ingestion.api.bomMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1198066884
+  },
+  {
+    "label": "ingestion.api.sources",
+    "millis": 0,
+    "valueHashChanged": true,
+    "inputsHash": -1292500788
+  },
+  {
+    "label": "ingestion.api.platformSuffix",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1511239548
+  },
+  {
+    "label": "ingestion.api.compileMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 478653925
+  },
+  {
+    "label": "ingestion.domainPrivate.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.domainPrivate.unmanagedClasspath",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1738396719
+  },
+  {
+    "label": "ingestion.domainPrivate.runMvnDeps",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 682174538
+  },
+  {
+    "label": "ingestion.domainPrivate.jvmId",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2100471549
+  },
+  {
+    "label": "ingestion.domainPrivate.scalaCompilerBridge",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 143465244
+  },
+  {
+    "label": "ingestion.domainPrivate.mandatoryScalacOptions",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1777811074
+  },
+  {
+    "label": "ingestion.domainPrivate.compileResources",
+    "millis": 2,
+    "valueHashChanged": true,
+    "inputsHash": -803511029
+  },
+  {
+    "label": "ingestion.domainPrivate.jvmIndexVersion",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 517148447
+  },
+  {
+    "label": "ingestion.api.mandatoryMvnDeps.super.javalib.JavaModule",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.api.checkGradleModules",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1563300277
+  },
+  {
+    "label": "ingestion.api.runMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 682174538
+  },
+  {
+    "label": "ingestion.api.unmanagedClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1738396719
+  },
+  {
+    "label": "ingestion.domainPrivate.scalacPluginMvnDeps",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1715212714
+  },
+  {
+    "label": "ingestion.api.depManagement",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -625029802
+  },
+  {
+    "label": "ingestion.api.mandatoryScalacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1777811074
+  },
+  {
+    "label": "ingestion.api.scalacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1241564469
+  },
+  {
+    "label": "ingestion.domainPrivate.zincReportCachedProblems",
+    "millis": 2,
+    "valueHashChanged": true,
+    "inputsHash": -1518096460
+  },
+  {
+    "label": "ingestion.services.mandatoryJavacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 637620611
+  },
+  {
+    "label": "ingestion.services.generatedSources",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2068019445
+  },
+  {
+    "label": "ingestion.services.mandatoryMvnDeps.super.javalib.JavaModule",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.services.javacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1187264952
+  },
+  {
+    "label": "ingestion.services.depManagement",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -625029802
+  },
+  {
+    "label": "ingestion.api.artifactTypes",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1807333534
+  },
+  {
+    "label": "ingestion.services.platformSuffix",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1511239548
+  },
+  {
+    "label": "ingestion.api.scalacPluginMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1715212714
+  },
+  {
+    "label": "ingestion.services.bomMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1198066884
+  },
+  {
+    "label": "ingestion.api.jvmIndexVersion",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 517148447
+  },
+  {
+    "label": "ingestion.services.compileMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 478653925
+  },
+  {
+    "label": "ingestion.services.scalaVersion",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -332389937
+  },
+  {
+    "label": "ingestion.services.runMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 682174538
+  },
+  {
+    "label": "ingestion.api.jvmId",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2100471549
+  },
+  {
+    "label": "ingestion.api.repositories",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2137265805
+  },
+  {
+    "label": "ingestion.services.repositories",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2137265805
+  },
+  {
+    "label": "ingestion.api.scalaCompilerBridge",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 143465244
+  },
+  {
+    "label": "ingestion.api.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.services.sources",
+    "millis": 1,
+    "valueHashChanged": true,
+    "inputsHash": 1559398901
+  },
+  {
+    "label": "ingestion.services.unmanagedClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1738396719
+  },
+  {
+    "label": "ingestion.api.compileResources",
+    "millis": 2,
+    "valueHashChanged": true,
+    "inputsHash": 469117439
+  },
+  {
+    "label": "ingestion.server.generatedSources",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1973672269
+  },
+  {
+    "label": "ingestion.api.mvnDeps",
+    "millis": 3,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -214066905
+  },
+  {
+    "label": "ingestion.services.checkGradleModules",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1563300277
+  },
+  {
+    "label": "ingestion.services.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.api.zincReportCachedProblems",
+    "millis": 2,
+    "valueHashChanged": true,
+    "inputsHash": -694604401
+  },
+  {
+    "label": "ingestion.server.sources",
+    "millis": 0,
+    "valueHashChanged": true,
+    "inputsHash": 648274702
+  },
+  {
+    "label": "ingestion.services.mandatoryScalacOptions",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1777811074
+  },
+  {
+    "label": "ingestion.server.compileMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2131343989
+  },
+  {
+    "label": "ingestion.services.scalaCompilerBridge",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 143465244
+  },
+  {
+    "label": "ingestion.services.artifactTypes",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1807333534
+  },
+  {
+    "label": "ingestion.server.bomMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1060920662
+  },
+  {
+    "label": "ingestion.server.checkGradleModules",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -988820771
+  },
+  {
+    "label": "ingestion.services.compileResources",
+    "millis": 1,
+    "valueHashChanged": true,
+    "inputsHash": 1541094204
+  },
+  {
+    "label": "ingestion.services.scalacOptions",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1241564469
+  },
+  {
+    "label": "ingestion.server.platformSuffix",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1187647131
+  },
+  {
+    "label": "ingestion.services.mvnDeps",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -65186134
+  },
+  {
+    "label": "ingestion.services.zincReportCachedProblems",
+    "millis": 1,
+    "valueHashChanged": true,
+    "inputsHash": -1345022267
+  },
+  {
+    "label": "ingestion.services.scalacPluginMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1715212714
+  },
+  {
+    "label": "ingestion.services.jvmIndexVersion",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 517148447
+  },
+  {
+    "label": "ingestion.server.mandatoryMvnDeps.super.javalib.JavaModule",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1944909327
+  },
+  {
+    "label": "ingestion.server.runMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 589431613
+  },
+  {
+    "label": "ingestion.server.unmanagedClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 834762914
+  },
+  {
+    "label": "ingestion.services.jvmId",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -2100471549
+  },
+  {
+    "label": "ingestion.domainPublic.localRunClasspath.super.RunModule",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.server.artifactTypes",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 2944519
+  },
+  {
+    "label": "ingestion.server.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1944909327
+  },
+  {
+    "label": "ingestion.server.jvmId",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1898784445
+  },
+  {
+    "label": "ingestion.server.depManagement",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1835551476
+  },
+  {
+    "label": "ingestion.server.repositories",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1386588054
+  },
+  {
+    "label": "ingestion.domainPrivate.localRunClasspath.super.RunModule",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.server.scalacOptions",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1027306071
+  },
+  {
+    "label": "ingestion.api.localRunClasspath.super.RunModule",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "ingestion.domainPublic.resources",
+    "millis": 1,
+    "valueHashChanged": true,
+    "inputsHash": -910881935
+  },
+  {
+    "label": "ingestion.server.zincReportCachedProblems",
+    "millis": 1,
+    "valueHashChanged": true,
+    "inputsHash": 334653935
+  },
+  {
+    "label": "ingestion.server.forkCmdArgs",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -258110904
+  },
+  {
+    "label": "ingestion.server.forkArgs",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1802731027
+  },
+  {
+    "label": "ingestion.server.scalaCompilerBridge",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 112985438
+  },
+  {
+    "label": "ingestion.api.resources",
+    "millis": 0,
+    "valueHashChanged": true,
+    "inputsHash": -534339423
+  },
+  {
+    "label": "ingestion.services.localRunClasspath.super.RunModule",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1558081293
+  },
+  {
+    "label": "mill.javalib.AssemblyModule/repositories",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -736381115
+  },
+  {
+    "label": "ingestion.server.docker.labels",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1371886895
+  },
+  {
+    "label": "ingestion.services.resources",
+    "millis": 0,
+    "valueHashChanged": true,
+    "inputsHash": -1307572801
+  },
+  {
+    "label": "ingestion.server.mandatoryScalacOptions",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1068858454
+  },
+  {
+    "label": "ingestion.server.forkShellArgs",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1336614429
+  },
+  {
+    "label": "ingestion.domainPrivate.resources",
+    "millis": 1,
+    "valueHashChanged": true,
+    "inputsHash": 985883493
+  },
+  {
+    "label": "ingestion.server.compileResources",
+    "millis": 2,
+    "valueHashChanged": true,
+    "inputsHash": 1423575883
+  },
+  {
+    "label": "ingestion.server.docker.volumes",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1768416276
+  },
+  {
+    "label": "ingestion.server.jvmIndexVersion",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 823841540
+  },
+  {
+    "label": "ingestion.server.mvnDeps",
+    "millis": 3,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -731353853
+  },
+  {
+    "label": "ingestion.server.docker.user",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1668650007
+  },
+  {
+    "label": "ingestion.server.docker.executable",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1273014028
+  },
+  {
+    "label": "mill.javalib.AssemblyModule/checkGradleModules",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -736381115
+  },
+  {
+    "label": "ingestion.server.docker.platform",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1435400309
+  },
+  {
+    "label": "ingestion.server.docker.tags",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1179997122
+  },
+  {
+    "label": "ingestion.server.docker.exposedPorts",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 1054447240
+  },
+  {
+    "label": "ingestion.server.docker.baseImage",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -576913168
+  },
+  {
+    "label": "ingestion.server.scalacPluginMvnDeps",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 663138971
+  },
+  {
+    "label": "ingestion.server.docker.exposedUdpPorts",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": 736257166
+  },
+  {
+    "label": "ingestion.server.docker.envVars",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1769572776
+  },
+  {
+    "label": "ingestion.server.docker.run",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1688272457
+  },
+  {
+    "label": "ingestion.server.docker.jvmOptions",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "inputsHash": -1392763715
+  },
+  {
+    "label": "ingestion.server.scalaOrganization",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.scalaVersion"
+    ],
+    "inputsHash": 1084223250
+  },
+  {
+    "label": "ingestion.domainPrivate.scalaOrganization",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.scalaVersion"
+    ],
+    "inputsHash": 1366207572
+  },
+  {
+    "label": "ingestion.services.scalaOrganization",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.scalaVersion"
+    ],
+    "inputsHash": 1366207572
+  },
+  {
+    "label": "ingestion.api.scalaOrganization",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.scalaVersion"
+    ],
+    "inputsHash": 1366207572
+  },
+  {
+    "label": "ingestion.domainPublic.scalaOrganization",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.scalaVersion"
+    ],
+    "inputsHash": 1366207572
+  },
+  {
+    "label": "ingestion.api.allSources",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.sources",
+      "ingestion.api.generatedSources"
+    ],
+    "inputsHash": -670760373
+  },
+  {
+    "label": "ingestion.server.docker.pullBaseImage",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.docker.baseImage"
+    ],
+    "inputsHash": -142081773
+  },
+  {
+    "label": "ingestion.domainPublic.zincAuxiliaryClassFileExtensions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+      "ingestion.domainPublic.scalaVersion"
+    ],
+    "inputsHash": -1140300596
+  },
+  {
+    "label": "ingestion.api.localCompileClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.compileResources",
+      "ingestion.api.unmanagedClasspath"
+    ],
+    "inputsHash": -169223250
+  },
+  {
+    "label": "ingestion.api.zincAuxiliaryClassFileExtensions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+      "ingestion.api.scalaVersion"
+    ],
+    "inputsHash": -1140300596
+  },
+  {
+    "label": "ingestion.services.zincAuxiliaryClassFileExtensions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+      "ingestion.services.scalaVersion"
+    ],
+    "inputsHash": -1140300596
+  },
+  {
+    "label": "ingestion.domainPublic.allSources",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.sources",
+      "ingestion.domainPublic.generatedSources"
+    ],
+    "inputsHash": -2129696328
+  },
+  {
+    "label": "ingestion.domainPrivate.allSources",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.sources",
+      "ingestion.domainPrivate.generatedSources"
+    ],
+    "inputsHash": -191892810
+  },
+  {
+    "label": "ingestion.services.allSources",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.sources",
+      "ingestion.services.generatedSources"
+    ],
+    "inputsHash": 937927055
+  },
+  {
+    "label": "ingestion.services.localCompileClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.compileResources",
+      "ingestion.services.unmanagedClasspath"
+    ],
+    "inputsHash": 785603022
+  },
+  {
+    "label": "ingestion.domainPrivate.zincAuxiliaryClassFileExtensions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+      "ingestion.domainPrivate.scalaVersion"
+    ],
+    "inputsHash": -1140300596
+  },
+  {
+    "label": "ingestion.server.localCompileClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.compileResources",
+      "ingestion.server.unmanagedClasspath"
+    ],
+    "inputsHash": -2066446791
+  },
+  {
+    "label": "ingestion.server.zincAuxiliaryClassFileExtensions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule",
+      "ingestion.server.scalaVersion"
+    ],
+    "inputsHash": 816288831
+  },
+  {
+    "label": "ingestion.domainPrivate.localCompileClasspath",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.compileResources",
+      "ingestion.domainPrivate.unmanagedClasspath"
+    ],
+    "inputsHash": 1259649885
+  },
+  {
+    "label": "ingestion.domainPublic.localCompileClasspath",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.compileResources",
+      "ingestion.domainPublic.unmanagedClasspath"
+    ],
+    "inputsHash": -1546638673
+  },
+  {
+    "label": "ingestion.server.allSources",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.sources",
+      "ingestion.server.generatedSources"
+    ],
+    "inputsHash": -1434659776
+  },
+  {
+    "label": "ingestion.domainPublic.javaHome",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.jvmId",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPublic.jvmIndexVersion"
+    ],
+    "inputsHash": 1883518869
+  },
+  {
+    "label": "ingestion.domainPrivate.scalaLibraryMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.scalaOrganization",
+      "ingestion.domainPrivate.scalaVersion"
+    ],
+    "inputsHash": -235510192
+  },
+  {
+    "label": "ingestion.services.javaHome",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.services.jvmId",
+      "ingestion.services.jvmIndexVersion"
+    ],
+    "inputsHash": 1883518869
+  },
+  {
+    "label": "ingestion.server.javaHome",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.server.jvmIndexVersion",
+      "ingestion.server.jvmId"
+    ],
+    "inputsHash": 1844055121
+  },
+  {
+    "label": "ingestion.api.scalaLibraryMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.scalaOrganization",
+      "ingestion.api.scalaVersion"
+    ],
+    "inputsHash": -235510192
+  },
+  {
+    "label": "ingestion.server.scalaLibraryMvnDeps",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.scalaOrganization",
+      "ingestion.server.scalaVersion"
+    ],
+    "inputsHash": -902455496
+  },
+  {
+    "label": "ingestion.services.scalaLibraryMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.scalaOrganization",
+      "ingestion.services.scalaVersion"
+    ],
+    "inputsHash": -235510192
+  },
+  {
+    "label": "ingestion.api.javaHome",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.jvmIndexVersion",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.api.jvmId"
+    ],
+    "inputsHash": 1883518869
+  },
+  {
+    "label": "ingestion.domainPrivate.javaHome",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.jvmIndexVersion",
+      "ingestion.domainPrivate.jvmId",
+      "mill.javalib.CoursierConfigModule/coursierEnv"
+    ],
+    "inputsHash": 1883518869
+  },
+  {
+    "label": "ingestion.domainPublic.scalaLibraryMvnDeps",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.scalaOrganization",
+      "ingestion.domainPublic.scalaVersion"
+    ],
+    "inputsHash": -235510192
+  },
+  {
+    "label": "ingestion.domainPrivate.mandatoryMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.mandatoryMvnDeps.super.javalib.JavaModule",
+      "ingestion.domainPrivate.scalaLibraryMvnDeps"
+    ],
+    "inputsHash": -591857784
+  },
+  {
+    "label": "ingestion.server.allSourceFiles",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.allSources"
+    ],
+    "inputsHash": -1589355316
+  },
+  {
+    "label": "ingestion.api.allSourceFiles",
+    "millis": 4,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.allSources"
+    ],
+    "inputsHash": 1160330642
+  },
+  {
+    "label": "ingestion.api.mandatoryMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.mandatoryMvnDeps.super.javalib.JavaModule",
+      "ingestion.api.scalaLibraryMvnDeps"
+    ],
+    "inputsHash": -591857784
+  },
+  {
+    "label": "ingestion.domainPrivate.allSourceFiles",
+    "millis": 4,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.allSources"
+    ],
+    "inputsHash": -484194103
+  },
+  {
+    "label": "ingestion.services.mandatoryMvnDeps",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.mandatoryMvnDeps.super.javalib.JavaModule",
+      "ingestion.services.scalaLibraryMvnDeps"
+    ],
+    "inputsHash": -591857784
+  },
+  {
+    "label": "ingestion.server.mandatoryMvnDeps",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.mandatoryMvnDeps.super.javalib.JavaModule",
+      "ingestion.server.scalaLibraryMvnDeps"
+    ],
+    "inputsHash": -1734102991
+  },
+  {
+    "label": "ingestion.domainPublic.allSourceFiles",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.allSources"
+    ],
+    "inputsHash": 95759197
+  },
+  {
+    "label": "ingestion.domainPublic.mandatoryMvnDeps",
+    "millis": 4,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.mandatoryMvnDeps.super.javalib.JavaModule",
+      "ingestion.domainPublic.scalaLibraryMvnDeps"
+    ],
+    "inputsHash": -591857784
+  },
+  {
+    "label": "ingestion.domainPrivate.zincIncrementalCompilation",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.allSourceFiles"
+    ],
+    "inputsHash": -775583333
+  },
+  {
+    "label": "ingestion.api.scalacPluginClasspath",
+    "millis": 7,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "ingestion.api.repositories",
+      "ingestion.api.platformSuffix",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.api.scalaOrganization",
+      "ingestion.api.scalaVersion",
+      "ingestion.api.scalacPluginMvnDeps",
+      "ingestion.api.checkGradleModules"
+    ],
+    "inputsHash": 1695249080
+  },
+  {
+    "label": "ingestion.server.zincIncrementalCompilation",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.allSourceFiles"
+    ],
+    "inputsHash": -657127726
+  },
+  {
+    "label": "ingestion.domainPublic.zincIncrementalCompilation",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.allSourceFiles"
+    ],
+    "inputsHash": -1659654274
+  },
+  {
+    "label": "ingestion.domainPublic.scalacPluginClasspath",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPublic.scalacPluginMvnDeps",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.domainPublic.scalaOrganization",
+      "ingestion.domainPublic.checkGradleModules"
+    ],
+    "inputsHash": -589789875
+  },
+  {
+    "label": "ingestion.api.zincIncrementalCompilation",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.allSourceFiles"
+    ],
+    "inputsHash": 804143749
+  },
+  {
+    "label": "ingestion.services.allSourceFiles",
+    "millis": 10,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.allSources"
+    ],
+    "inputsHash": -817964135
+  },
+  {
+    "label": "ingestion.domainPrivate.scalacPluginClasspath",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPrivate.scalaOrganization",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.domainPrivate.platformSuffix",
+      "ingestion.domainPrivate.checkGradleModules",
+      "ingestion.domainPrivate.scalacPluginMvnDeps",
+      "ingestion.domainPrivate.repositories"
+    ],
+    "inputsHash": 1695249080
+  },
+  {
+    "label": "ingestion.domainPrivate.enablePluginScalacOptions",
+    "millis": 9,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPrivate.scalaOrganization",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.domainPrivate.platformSuffix",
+      "ingestion.domainPrivate.checkGradleModules",
+      "ingestion.domainPrivate.scalacPluginMvnDeps",
+      "ingestion.domainPrivate.repositories"
+    ],
+    "inputsHash": -2144464268
+  },
+  {
+    "label": "ingestion.services.zincIncrementalCompilation",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.allSourceFiles"
+    ],
+    "inputsHash": -158703154
+  },
+  {
+    "label": "ingestion.server.enablePluginScalacOptions",
+    "millis": 9,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "ingestion.server.repositories",
+      "ingestion.api.repositories",
+      "ingestion.server.checkGradleModules",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.server.scalaOrganization",
+      "ingestion.server.platformSuffix",
+      "ingestion.server.scalaVersion",
+      "ingestion.services.repositories",
+      "ingestion.server.scalacPluginMvnDeps",
+      "ingestion.domainPrivate.repositories"
+    ],
+    "inputsHash": -1589666588
+  },
+  {
+    "label": "ingestion.domainPrivate.allScalacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.mandatoryScalacOptions",
+      "ingestion.domainPrivate.enablePluginScalacOptions",
+      "ingestion.domainPrivate.scalacOptions"
+    ],
+    "inputsHash": -852291317
+  },
+  {
+    "label": "ingestion.services.enablePluginScalacOptions",
+    "millis": 8,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.scalacPluginMvnDeps",
+      "ingestion.domainPublic.repositories",
+      "ingestion.api.repositories",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.services.scalaVersion",
+      "ingestion.services.scalaOrganization",
+      "ingestion.domainPrivate.repositories",
+      "ingestion.services.checkGradleModules",
+      "ingestion.services.platformSuffix",
+      "ingestion.services.repositories"
+    ],
+    "inputsHash": 864099920
+  },
+  {
+    "label": "ingestion.server.allScalacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.mandatoryScalacOptions",
+      "ingestion.server.enablePluginScalacOptions",
+      "ingestion.server.scalacOptions"
+    ],
+    "inputsHash": 1518164457
+  },
+  {
+    "label": "ingestion.api.enablePluginScalacOptions",
+    "millis": 11,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "ingestion.api.repositories",
+      "ingestion.api.platformSuffix",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.api.scalaOrganization",
+      "ingestion.api.scalaVersion",
+      "ingestion.api.scalacPluginMvnDeps",
+      "ingestion.api.checkGradleModules"
+    ],
+    "inputsHash": -2144464268
+  },
+  {
+    "label": "ingestion.services.scalacPluginClasspath",
+    "millis": 11,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.scalacPluginMvnDeps",
+      "ingestion.domainPublic.repositories",
+      "ingestion.api.repositories",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.services.scalaVersion",
+      "ingestion.services.scalaOrganization",
+      "ingestion.domainPrivate.repositories",
+      "ingestion.services.checkGradleModules",
+      "ingestion.services.platformSuffix",
+      "ingestion.services.repositories"
+    ],
+    "inputsHash": 408845972
+  },
+  {
+    "label": "ingestion.api.allScalacOptions",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.mandatoryScalacOptions",
+      "ingestion.api.enablePluginScalacOptions",
+      "ingestion.api.scalacOptions"
+    ],
+    "inputsHash": -852291317
+  },
+  {
+    "label": "ingestion.server.scalacPluginClasspath",
+    "millis": 12,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "ingestion.server.repositories",
+      "ingestion.api.repositories",
+      "ingestion.server.checkGradleModules",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.server.scalaOrganization",
+      "ingestion.server.platformSuffix",
+      "ingestion.server.scalaVersion",
+      "ingestion.services.repositories",
+      "ingestion.server.scalacPluginMvnDeps",
+      "ingestion.domainPrivate.repositories"
+    ],
+    "inputsHash": -758784444
+  },
+  {
+    "label": "ingestion.domainPublic.enablePluginScalacOptions",
+    "millis": 13,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPublic.scalacPluginMvnDeps",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.domainPublic.scalaOrganization",
+      "ingestion.domainPublic.checkGradleModules"
+    ],
+    "inputsHash": -134535927
+  },
+  {
+    "label": "ingestion.services.allScalacOptions",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.mandatoryScalacOptions",
+      "ingestion.services.enablePluginScalacOptions",
+      "ingestion.services.scalacOptions"
+    ],
+    "inputsHash": -852291317
+  },
+  {
+    "label": "ingestion.domainPublic.allScalacOptions",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.mandatoryScalacOptions",
+      "ingestion.domainPublic.enablePluginScalacOptions",
+      "ingestion.domainPublic.scalacOptions"
+    ],
+    "inputsHash": -852291317
+  },
+  {
+    "label": "ingestion.domainPrivate.transitiveCoursierProjects",
+    "millis": 6,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.mvnDeps",
+      "ingestion.domainPublic.mandatoryMvnDeps",
+      "ingestion.domainPublic.transitiveCoursierProjects",
+      "ingestion.domainPublic.compileMvnDeps",
+      "ingestion.domainPublic.bomMvnDeps",
+      "ingestion.domainPublic.depManagement",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.domainPublic.runMvnDeps",
+      "ingestion.domainPublic.platformSuffix"
+    ],
+    "inputsHash": 432749373
+  },
+  {
+    "label": "ingestion.api.transitiveCoursierProjects",
+    "millis": 7,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.mvnDeps",
+      "ingestion.domainPublic.mandatoryMvnDeps",
+      "ingestion.domainPublic.transitiveCoursierProjects",
+      "ingestion.domainPublic.compileMvnDeps",
+      "ingestion.domainPublic.bomMvnDeps",
+      "ingestion.domainPublic.depManagement",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.domainPublic.runMvnDeps",
+      "ingestion.domainPublic.platformSuffix"
+    ],
+    "inputsHash": 432749373
+  },
+  {
+    "label": "ingestion.services.transitiveCoursierProjects",
+    "millis": 12,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.mandatoryMvnDeps",
+      "ingestion.api.runMvnDeps",
+      "ingestion.domainPrivate.mvnDeps",
+      "ingestion.domainPrivate.runMvnDeps",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.domainPublic.bomMvnDeps",
+      "ingestion.api.transitiveCoursierProjects",
+      "ingestion.api.mvnDeps",
+      "ingestion.domainPrivate.bomMvnDeps",
+      "ingestion.domainPrivate.compileMvnDeps",
+      "ingestion.api.compileMvnDeps",
+      "ingestion.domainPrivate.transitiveCoursierProjects",
+      "ingestion.domainPublic.mvnDeps",
+      "ingestion.api.platformSuffix",
+      "ingestion.domainPublic.transitiveCoursierProjects",
+      "ingestion.domainPrivate.mandatoryMvnDeps",
+      "ingestion.domainPublic.compileMvnDeps",
+      "ingestion.api.mandatoryMvnDeps",
+      "ingestion.api.bomMvnDeps",
+      "ingestion.domainPrivate.platformSuffix",
+      "ingestion.domainPublic.depManagement",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.domainPublic.runMvnDeps",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.domainPrivate.depManagement",
+      "ingestion.api.depManagement",
+      "ingestion.api.scalaVersion"
+    ],
+    "inputsHash": -240961484
+  },
+  {
+    "label": "ingestion.server.transitiveCoursierProjects",
+    "millis": 21,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.depManagement",
+      "ingestion.domainPublic.mandatoryMvnDeps",
+      "ingestion.api.runMvnDeps",
+      "ingestion.domainPrivate.runMvnDeps",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.services.platformSuffix",
+      "ingestion.api.transitiveCoursierProjects",
+      "ingestion.api.mvnDeps",
+      "ingestion.services.runMvnDeps",
+      "ingestion.services.mvnDeps",
+      "ingestion.domainPrivate.compileMvnDeps",
+      "ingestion.api.compileMvnDeps",
+      "ingestion.domainPrivate.transitiveCoursierProjects",
+      "ingestion.domainPublic.mvnDeps",
+      "ingestion.api.platformSuffix",
+      "ingestion.domainPublic.transitiveCoursierProjects",
+      "ingestion.services.mandatoryMvnDeps",
+      "ingestion.domainPrivate.mvnDeps",
+      "ingestion.domainPrivate.mandatoryMvnDeps",
+      "ingestion.domainPublic.compileMvnDeps",
+      "ingestion.api.mandatoryMvnDeps",
+      "ingestion.api.bomMvnDeps",
+      "ingestion.domainPrivate.platformSuffix",
+      "ingestion.services.transitiveCoursierProjects",
+      "ingestion.domainPublic.bomMvnDeps",
+      "ingestion.services.scalaVersion",
+      "ingestion.domainPublic.depManagement",
+      "ingestion.services.bomMvnDeps",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.services.compileMvnDeps",
+      "ingestion.domainPrivate.bomMvnDeps",
+      "ingestion.domainPublic.runMvnDeps",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.domainPrivate.depManagement",
+      "ingestion.api.depManagement",
+      "ingestion.api.scalaVersion"
+    ],
+    "inputsHash": 299663447
+  },
+  {
+    "label": "ingestion.server.docker.pullAndHash",
+    "millis": 64,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.docker.dockerEnv",
+      "ingestion.server.docker.executable",
+      "ingestion.server.docker.baseImage",
+      "ingestion.server.docker.pullBaseImage"
+    ],
+    "inputsHash": -1702836389
+  },
+  {
+    "label": "ingestion.domainPublic.resolvedMvnDeps",
+    "millis": 73,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.artifactTypes",
+      "ingestion.domainPublic.mandatoryMvnDeps",
+      "ingestion.domainPublic.transitiveCoursierProjects",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPublic.compileMvnDeps",
+      "ingestion.domainPublic.bomMvnDeps",
+      "ingestion.domainPublic.scalaOrganization",
+      "ingestion.domainPublic.checkGradleModules",
+      "ingestion.domainPublic.repositories",
+      "ingestion.domainPublic.mvnDeps",
+      "ingestion.domainPublic.depManagement",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.domainPublic.runMvnDeps",
+      "ingestion.domainPublic.platformSuffix"
+    ],
+    "inputsHash": 1507821666
+  },
+  {
+    "label": "ingestion.domainPublic.compileClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.resolvedMvnDeps",
+      "ingestion.domainPublic.localCompileClasspath"
+    ],
+    "inputsHash": 1256928535
+  },
+  {
+    "label": "ingestion.domainPrivate.resolvedMvnDeps",
+    "millis": 83,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.artifactTypes",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.domainPrivate.mandatoryMvnDeps",
+      "ingestion.domainPrivate.platformSuffix",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.domainPrivate.bomMvnDeps",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.domainPrivate.depManagement",
+      "ingestion.domainPrivate.repositories",
+      "ingestion.domainPrivate.compileMvnDeps",
+      "ingestion.domainPrivate.checkGradleModules",
+      "ingestion.domainPublic.repositories",
+      "ingestion.domainPrivate.transitiveCoursierProjects",
+      "ingestion.domainPublic.mvnDeps",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPrivate.mvnDeps",
+      "ingestion.domainPrivate.runMvnDeps",
+      "ingestion.domainPrivate.scalaOrganization"
+    ],
+    "inputsHash": 822602921
+  },
+  {
+    "label": "ingestion.api.resolvedMvnDeps",
+    "millis": 89,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.repositories",
+      "ingestion.api.platformSuffix",
+      "ingestion.api.runMvnDeps",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.api.mandatoryMvnDeps",
+      "ingestion.api.scalaOrganization",
+      "ingestion.api.bomMvnDeps",
+      "ingestion.api.transitiveCoursierProjects",
+      "ingestion.api.mvnDeps",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.api.checkGradleModules",
+      "ingestion.api.compileMvnDeps",
+      "ingestion.domainPublic.repositories",
+      "ingestion.domainPublic.mvnDeps",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.api.artifactTypes",
+      "ingestion.api.depManagement",
+      "ingestion.api.scalaVersion"
+    ],
+    "inputsHash": 2102864751
+  },
+  {
+    "label": "ingestion.services.scalaCompilerClasspath",
+    "millis": 119,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "ingestion.api.repositories",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.services.scalaLibraryMvnDeps",
+      "ingestion.services.scalaVersion",
+      "ingestion.services.scalaOrganization",
+      "ingestion.domainPrivate.repositories",
+      "ingestion.services.checkGradleModules",
+      "ingestion.services.platformSuffix",
+      "ingestion.services.repositories"
+    ],
+    "inputsHash": -1477400143
+  },
+  {
+    "label": "ingestion.domainPrivate.scalaCompilerClasspath",
+    "millis": 125,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPrivate.scalaOrganization",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.domainPrivate.platformSuffix",
+      "ingestion.domainPrivate.scalaLibraryMvnDeps",
+      "ingestion.domainPrivate.repositories",
+      "ingestion.domainPrivate.checkGradleModules"
+    ],
+    "inputsHash": -1490941669
+  },
+  {
+    "label": "ingestion.server.scalaCompilerClasspath",
+    "millis": 119,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.scalaLibraryMvnDeps",
+      "ingestion.domainPublic.repositories",
+      "ingestion.server.repositories",
+      "ingestion.api.repositories",
+      "ingestion.server.checkGradleModules",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.server.scalaOrganization",
+      "ingestion.server.platformSuffix",
+      "ingestion.server.scalaVersion",
+      "ingestion.services.repositories",
+      "ingestion.domainPrivate.repositories"
+    ],
+    "inputsHash": -1636620036
+  },
+  {
+    "label": "ingestion.domainPublic.scalaCompilerClasspath",
+    "millis": 121,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "ingestion.domainPublic.scalaLibraryMvnDeps",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.domainPublic.scalaOrganization",
+      "ingestion.domainPublic.checkGradleModules"
+    ],
+    "inputsHash": 995271604
+  },
+  {
+    "label": "ingestion.api.scalaCompilerClasspath",
+    "millis": 123,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.repositories",
+      "ingestion.api.repositories",
+      "ingestion.api.platformSuffix",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.api.scalaLibraryMvnDeps",
+      "ingestion.api.scalaOrganization",
+      "ingestion.api.scalaVersion",
+      "ingestion.api.checkGradleModules"
+    ],
+    "inputsHash": -1490941669
+  },
+  {
+    "label": "ingestion.services.resolvedMvnDeps",
+    "millis": 105,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.depManagement",
+      "ingestion.api.repositories",
+      "ingestion.api.platformSuffix",
+      "ingestion.services.scalaVersion",
+      "ingestion.api.mvnDeps",
+      "ingestion.services.runMvnDeps",
+      "ingestion.services.compileMvnDeps",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.services.checkGradleModules",
+      "ingestion.domainPublic.repositories",
+      "ingestion.domainPublic.mvnDeps",
+      "ingestion.services.mandatoryMvnDeps",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPrivate.mvnDeps",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.services.artifactTypes",
+      "ingestion.services.platformSuffix",
+      "ingestion.services.repositories",
+      "ingestion.domainPrivate.platformSuffix",
+      "ingestion.services.transitiveCoursierProjects",
+      "ingestion.services.bomMvnDeps",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.services.scalaOrganization",
+      "ingestion.api.scalaVersion",
+      "ingestion.services.mvnDeps",
+      "ingestion.domainPrivate.repositories"
+    ],
+    "inputsHash": 326186727
+  },
+  {
+    "label": "ingestion.server.resolvedMvnDeps",
+    "millis": 193,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.repositories",
+      "ingestion.api.repositories",
+      "ingestion.api.platformSuffix",
+      "ingestion.server.checkGradleModules",
+      "ingestion.server.scalaOrganization",
+      "ingestion.server.platformSuffix",
+      "ingestion.server.scalaVersion",
+      "ingestion.server.compileMvnDeps",
+      "ingestion.domainPrivate.platformSuffix",
+      "ingestion.services.scalaVersion",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.server.depManagement",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.api.scalaVersion",
+      "ingestion.server.mandatoryMvnDeps",
+      "ingestion.domainPublic.repositories",
+      "ingestion.domainPublic.mvnDeps",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPrivate.mvnDeps",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.server.bomMvnDeps",
+      "ingestion.services.platformSuffix",
+      "ingestion.services.repositories",
+      "ingestion.api.mvnDeps",
+      "ingestion.server.transitiveCoursierProjects",
+      "ingestion.services.mvnDeps",
+      "ingestion.domainPrivate.repositories",
+      "ingestion.server.runMvnDeps",
+      "ingestion.server.mvnDeps",
+      "ingestion.server.artifactTypes"
+    ],
+    "inputsHash": -2036950082
+  },
+  {
+    "label": "ingestion.server.resolvedRunMvnDeps",
+    "millis": 233,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.repositories",
+      "ingestion.api.repositories",
+      "ingestion.api.platformSuffix",
+      "ingestion.server.checkGradleModules",
+      "ingestion.server.scalaOrganization",
+      "ingestion.server.platformSuffix",
+      "ingestion.server.scalaVersion",
+      "ingestion.server.compileMvnDeps",
+      "ingestion.domainPrivate.platformSuffix",
+      "ingestion.services.scalaVersion",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.server.depManagement",
+      "ingestion.domainPublic.platformSuffix",
+      "ingestion.api.scalaVersion",
+      "ingestion.server.mandatoryMvnDeps",
+      "ingestion.domainPublic.repositories",
+      "ingestion.domainPublic.mvnDeps",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "ingestion.domainPrivate.mvnDeps",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.server.bomMvnDeps",
+      "ingestion.services.platformSuffix",
+      "ingestion.services.repositories",
+      "ingestion.api.mvnDeps",
+      "ingestion.server.transitiveCoursierProjects",
+      "ingestion.services.mvnDeps",
+      "ingestion.domainPrivate.repositories",
+      "ingestion.server.runMvnDeps",
+      "ingestion.server.mvnDeps",
+      "ingestion.server.artifactTypes"
+    ],
+    "inputsHash": -1366949048
+  },
+  {
+    "label": "ingestion.server.upstreamIvyAssemblyClasspath",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.resolvedRunMvnDeps"
+    ],
+    "inputsHash": 409230373
+  },
+  {
+    "label": "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClasspath",
+    "millis": 416,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "mill.javalib.classgraph.ClassgraphWorkerModule/checkGradleModules",
+      "mill.javalib.classgraph.ClassgraphWorkerModule/repositories"
+    ],
+    "inputsHash": 86547685
+  },
+  {
+    "label": "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClassloader",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClasspath"
+    ],
+    "inputsHash": 1470743898
+  },
+  {
+    "label": "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorker",
+    "millis": 3,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClassloader"
+    ],
+    "inputsHash": 731042041
+  },
+  {
+    "label": "mill.javalib.AssemblyModule/jarjarabramsWorkerClasspath",
+    "millis": 426,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.AssemblyModule/repositories",
+      "mill.javalib.AssemblyModule/checkGradleModules",
+      "mill.javalib.CoursierConfigModule/coursierEnv"
+    ],
+    "inputsHash": 86547685
+  },
+  {
+    "label": "mill.javalib.AssemblyModule/jarjarabramsWorkerClassloader",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.AssemblyModule/jarjarabramsWorkerClasspath"
+    ],
+    "inputsHash": -1216037127
+  },
+  {
+    "label": "mill.javalib.AssemblyModule/jarjarabramsWorker",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.AssemblyModule/jarjarabramsWorkerClassloader"
+    ],
+    "inputsHash": 437366375
+  },
+  {
+    "label": "mill.javalib.JvmWorkerModule/classpath",
+    "millis": 477,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.JvmWorkerModule/repositories",
+      "mill.javalib.JvmWorkerModule/checkGradleModules",
+      "mill.javalib.CoursierConfigModule/coursierEnv"
+    ],
+    "inputsHash": 86547685
+  },
+  {
+    "label": "mill.javalib.JvmWorkerModule/internalWorkerClassLoader",
+    "millis": 2,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.JvmWorkerModule/classpath"
+    ],
+    "inputsHash": 1701910573
+  },
+  {
+    "label": "mill.javalib.JvmWorkerModule/internalWorker",
+    "millis": 20,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.JvmWorkerModule/repositories",
+      "mill.javalib.JvmWorkerModule/checkGradleModules",
+      "mill.javalib.JvmWorkerModule/internalWorkerClassLoader",
+      "mill.javalib.JvmWorkerModule/classpath",
+      "mill.javalib.CoursierConfigModule/coursierEnv",
+      "mill.javalib.JvmWorkerModule/zincLogDebug"
+    ],
+    "inputsHash": 1318909305
+  },
+  {
+    "label": "ingestion.domainPublic.compile",
+    "millis": 1877,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.scalaCompilerClasspath",
+      "ingestion.domainPublic.compileClasspath",
+      "mill.javalib.JvmWorkerModule/internalWorker",
+      "ingestion.domainPublic.scalaCompilerBridge",
+      "ingestion.domainPublic.javaHome",
+      "ingestion.domainPublic.upstreamCompileOutput",
+      "ingestion.domainPublic.zincAuxiliaryClassFileExtensions",
+      "ingestion.domainPublic.scalaVersion",
+      "ingestion.domainPublic.zincReportCachedProblems",
+      "ingestion.domainPublic.scalaOrganization",
+      "ingestion.domainPublic.mandatoryJavacOptions",
+      "ingestion.domainPublic.javacOptions",
+      "ingestion.domainPublic.scalacPluginClasspath",
+      "ingestion.domainPublic.zincIncrementalCompilation",
+      "ingestion.domainPublic.allScalacOptions",
+      "ingestion.domainPublic.allSourceFiles"
+    ],
+    "inputsHash": 1137684645
+  },
+  {
+    "label": "ingestion.domainPublic.localRunClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.localRunClasspath.super.RunModule",
+      "ingestion.domainPublic.resources",
+      "ingestion.domainPublic.compile"
+    ],
+    "inputsHash": -61278706
+  },
+  {
+    "label": "ingestion.domainPrivate.compileClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.resolvedMvnDeps",
+      "ingestion.domainPublic.localCompileClasspath",
+      "ingestion.domainPublic.compile",
+      "ingestion.domainPrivate.localCompileClasspath"
+    ],
+    "inputsHash": 103092919
+  },
+  {
+    "label": "ingestion.domainPrivate.upstreamCompileOutput",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.compile"
+    ],
+    "inputsHash": -1738828726
+  },
+  {
+    "label": "ingestion.api.upstreamCompileOutput",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.compile"
+    ],
+    "inputsHash": -1738828726
+  },
+  {
+    "label": "ingestion.api.compileClasspath",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.localCompileClasspath",
+      "ingestion.domainPublic.localCompileClasspath",
+      "ingestion.domainPublic.compile",
+      "ingestion.api.resolvedMvnDeps"
+    ],
+    "inputsHash": 1949568303
+  },
+  {
+    "label": "ingestion.domainPublic.localClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.localCompileClasspath",
+      "ingestion.domainPublic.localRunClasspath"
+    ],
+    "inputsHash": 1829927529
+  },
+  {
+    "label": "ingestion.domainPrivate.compile",
+    "millis": 483,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.compileClasspath",
+      "ingestion.domainPrivate.mandatoryJavacOptions",
+      "ingestion.domainPrivate.zincAuxiliaryClassFileExtensions",
+      "ingestion.domainPrivate.scalaOrganization",
+      "ingestion.domainPrivate.scalaVersion",
+      "ingestion.domainPrivate.javacOptions",
+      "ingestion.domainPrivate.scalaCompilerClasspath",
+      "ingestion.domainPrivate.javaHome",
+      "ingestion.domainPrivate.zincReportCachedProblems",
+      "ingestion.domainPrivate.zincIncrementalCompilation",
+      "mill.javalib.JvmWorkerModule/internalWorker",
+      "ingestion.domainPrivate.scalacPluginClasspath",
+      "ingestion.domainPrivate.allSourceFiles",
+      "ingestion.domainPrivate.scalaCompilerBridge",
+      "ingestion.domainPrivate.allScalacOptions",
+      "ingestion.domainPrivate.upstreamCompileOutput"
+    ],
+    "inputsHash": 567494525
+  },
+  {
+    "label": "ingestion.domainPrivate.localRunClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.localRunClasspath.super.RunModule",
+      "ingestion.domainPrivate.resources",
+      "ingestion.domainPrivate.compile"
+    ],
+    "inputsHash": -235187992
+  },
+  {
+    "label": "ingestion.domainPrivate.localClasspath",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPrivate.localCompileClasspath",
+      "ingestion.domainPrivate.localRunClasspath"
+    ],
+    "inputsHash": 63667493
+  },
+  {
+    "label": "ingestion.api.compile",
+    "millis": 1377,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.scalaCompilerBridge",
+      "ingestion.api.scalaCompilerClasspath",
+      "ingestion.api.zincIncrementalCompilation",
+      "ingestion.api.zincAuxiliaryClassFileExtensions",
+      "mill.javalib.JvmWorkerModule/internalWorker",
+      "ingestion.api.zincReportCachedProblems",
+      "ingestion.api.mandatoryJavacOptions",
+      "ingestion.api.scalaOrganization",
+      "ingestion.api.allSourceFiles",
+      "ingestion.api.scalaVersion",
+      "ingestion.api.allScalacOptions",
+      "ingestion.api.javacOptions",
+      "ingestion.api.javaHome",
+      "ingestion.api.scalacPluginClasspath",
+      "ingestion.api.upstreamCompileOutput",
+      "ingestion.api.compileClasspath"
+    ],
+    "inputsHash": 1574400552
+  },
+  {
+    "label": "ingestion.api.localRunClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.localRunClasspath.super.RunModule",
+      "ingestion.api.resources",
+      "ingestion.api.compile"
+    ],
+    "inputsHash": 1144187835
+  },
+  {
+    "label": "ingestion.services.upstreamCompileOutput",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.compile",
+      "ingestion.domainPrivate.compile",
+      "ingestion.api.compile"
+    ],
+    "inputsHash": 970576441
+  },
+  {
+    "label": "ingestion.api.localClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.localCompileClasspath",
+      "ingestion.api.localRunClasspath"
+    ],
+    "inputsHash": 1183620522
+  },
+  {
+    "label": "ingestion.services.compileClasspath",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.resolvedMvnDeps",
+      "ingestion.api.compile",
+      "ingestion.domainPrivate.compile",
+      "ingestion.api.localCompileClasspath",
+      "ingestion.domainPublic.localCompileClasspath",
+      "ingestion.domainPublic.compile",
+      "ingestion.services.localCompileClasspath",
+      "ingestion.domainPrivate.localCompileClasspath"
+    ],
+    "inputsHash": 73890324
+  },
+  {
+    "label": "ingestion.services.compile",
+    "millis": 220,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.zincIncrementalCompilation",
+      "mill.javalib.JvmWorkerModule/internalWorker",
+      "ingestion.services.javaHome",
+      "ingestion.services.scalacPluginClasspath",
+      "ingestion.services.scalaCompilerClasspath",
+      "ingestion.services.allScalacOptions",
+      "ingestion.services.scalaVersion",
+      "ingestion.services.upstreamCompileOutput",
+      "ingestion.services.mandatoryJavacOptions",
+      "ingestion.services.zincAuxiliaryClassFileExtensions",
+      "ingestion.services.compileClasspath",
+      "ingestion.services.scalaCompilerBridge",
+      "ingestion.services.scalaOrganization",
+      "ingestion.services.javacOptions",
+      "ingestion.services.allSourceFiles",
+      "ingestion.services.zincReportCachedProblems"
+    ],
+    "inputsHash": -1545445479
+  },
+  {
+    "label": "ingestion.services.localRunClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.localRunClasspath.super.RunModule",
+      "ingestion.services.resources",
+      "ingestion.services.compile"
+    ],
+    "inputsHash": 37860378
+  },
+  {
+    "label": "ingestion.services.localClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.services.localCompileClasspath",
+      "ingestion.services.localRunClasspath"
+    ],
+    "inputsHash": 1309822643
+  },
+  {
+    "label": "ingestion.server.upstreamCompileOutput",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.compile",
+      "ingestion.domainPrivate.compile",
+      "ingestion.api.compile",
+      "ingestion.services.compile"
+    ],
+    "inputsHash": 106410922
+  },
+  {
+    "label": "ingestion.server.transitiveLocalClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.domainPublic.localClasspath",
+      "ingestion.domainPrivate.localClasspath",
+      "ingestion.api.localClasspath",
+      "ingestion.services.localClasspath"
+    ],
+    "inputsHash": -1393263504
+  },
+  {
+    "label": "ingestion.server.upstreamLocalAssemblyClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.transitiveLocalClasspath"
+    ],
+    "inputsHash": 1214708679
+  },
+  {
+    "label": "ingestion.server.compileClasspath",
+    "millis": 3,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.api.compile",
+      "ingestion.server.resolvedMvnDeps",
+      "ingestion.domainPrivate.compile",
+      "ingestion.api.localCompileClasspath",
+      "ingestion.domainPublic.compile",
+      "ingestion.services.localCompileClasspath",
+      "ingestion.server.localCompileClasspath",
+      "ingestion.domainPrivate.localCompileClasspath",
+      "ingestion.services.compile",
+      "ingestion.domainPublic.localCompileClasspath"
+    ],
+    "inputsHash": -1453248385
+  },
+  {
+    "label": "ingestion.server.compile",
+    "millis": 1454,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.scalaCompilerBridge",
+      "ingestion.server.allScalacOptions",
+      "ingestion.server.upstreamCompileOutput",
+      "ingestion.server.scalaCompilerClasspath",
+      "ingestion.server.scalacPluginClasspath",
+      "mill.javalib.JvmWorkerModule/internalWorker",
+      "ingestion.server.scalaOrganization",
+      "ingestion.server.scalaVersion",
+      "ingestion.server.zincAuxiliaryClassFileExtensions",
+      "ingestion.server.zincIncrementalCompilation",
+      "ingestion.server.compileClasspath",
+      "ingestion.server.javaHome",
+      "ingestion.server.javacOptions",
+      "ingestion.server.allSourceFiles",
+      "ingestion.server.zincReportCachedProblems",
+      "ingestion.server.mandatoryJavacOptions"
+    ],
+    "inputsHash": -277073709
+  },
+  {
+    "label": "ingestion.server.localRunClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.localRunClasspath.super.RunModule",
+      "ingestion.server.resources",
+      "ingestion.server.compile"
+    ],
+    "inputsHash": -220678614
+  },
+  {
+    "label": "ingestion.server.localClasspath",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.localCompileClasspath",
+      "ingestion.server.localRunClasspath"
+    ],
+    "inputsHash": -1002558707
+  },
+  {
+    "label": "ingestion.server.allLocalMainClasses",
+    "millis": 63,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorker",
+      "ingestion.server.localRunClasspath"
+    ],
+    "inputsHash": 717105599
+  },
+  {
+    "label": "ingestion.server.finalMainClassOpt",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.mainClass",
+      "ingestion.server.allLocalMainClasses"
+    ],
+    "inputsHash": -1209032848
+  },
+  {
+    "label": "ingestion.server.prependShellScript0",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.finalMainClassOpt",
+      "ingestion.server.forkArgs",
+      "ingestion.server.forkShellArgs",
+      "ingestion.server.forkCmdArgs"
+    ],
+    "inputsHash": 190225170
+  },
+  {
+    "label": "ingestion.server.manifest0",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.finalMainClassOpt"
+    ],
+    "inputsHash": -64894535
+  },
+  {
+    "label": "ingestion.server.manifest.super.javalib.AssemblyModule",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.manifest0"
+    ],
+    "inputsHash": 1180655302
+  },
+  {
+    "label": "ingestion.server.prependShellScript",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.prependShellScript0"
+    ],
+    "inputsHash": -1321241754
+  },
+  {
+    "label": "ingestion.server.manifest",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.manifest.super.javalib.AssemblyModule",
+      "ingestion.server.scalaVersion"
+    ],
+    "inputsHash": 1452468515
+  },
+  {
+    "label": "ingestion.server.resolvedIvyAssembly",
+    "millis": 3446,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.upstreamIvyAssemblyClasspath",
+      "ingestion.server.manifest",
+      "mill.javalib.AssemblyModule/jarjarabramsWorker"
+    ],
+    "inputsHash": 457589255
+  },
+  {
+    "label": "ingestion.server.upstreamAssembly",
+    "millis": 182,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.upstreamLocalAssemblyClasspath",
+      "ingestion.server.manifest",
+      "ingestion.server.resolvedIvyAssembly",
+      "mill.javalib.AssemblyModule/jarjarabramsWorker"
+    ],
+    "inputsHash": -330058818
+  },
+  {
+    "label": "ingestion.server.assembly",
+    "millis": 214,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.upstreamAssembly",
+      "mill.javalib.AssemblyModule/jarjarabramsWorker",
+      "ingestion.server.localClasspath",
+      "ingestion.server.prependShellScript",
+      "ingestion.server.manifest"
+    ],
+    "inputsHash": -929548013
+  },
+  {
+    "label": "ingestion.server.docker.dockerfile",
+    "millis": 0,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.docker.run",
+      "ingestion.server.docker.baseImage",
+      "ingestion.server.docker.envVars",
+      "ingestion.server.docker.jvmOptions",
+      "ingestion.server.docker.volumes",
+      "ingestion.server.docker.user",
+      "ingestion.server.docker.labels",
+      "ingestion.server.assembly",
+      "ingestion.server.docker.exposedPorts",
+      "ingestion.server.docker.exposedUdpPorts"
+    ],
+    "inputsHash": 1312136679
+  },
+  {
+    "label": "ingestion.server.docker.build",
+    "millis": 548,
+    "cached": false,
+    "valueHashChanged": true,
+    "dependencies": [
+      "ingestion.server.docker.dockerfile",
+      "ingestion.server.docker.pullAndHash",
+      "ingestion.server.docker.executable",
+      "ingestion.server.assembly",
+      "ingestion.server.docker.tags",
+      "ingestion.server.docker.platform",
+      "ingestion.server.docker.dockerEnv"
+    ],
+    "inputsHash": -1789533997
+  }
+]

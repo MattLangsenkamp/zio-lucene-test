@@ -1,4 +1,0 @@
-# Root BUILD file
-# Required for defs.bzl to be loadable by subpackages
-
-exports_files(["defs.bzl"])
