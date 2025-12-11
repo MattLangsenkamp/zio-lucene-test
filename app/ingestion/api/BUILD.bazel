@@ -1,0 +1,13 @@
+load("//:defs.bzl", "scala_lib")
+
+scala_lib(
+    name = "api",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:com_softwaremill_sttp_tapir_tapir_core_3",
+        "@maven//:com_softwaremill_sttp_model_core_3",
+        "@maven//:com_softwaremill_sttp_shared_core_3",
+        "@maven//:com_softwaremill_sttp_shared_ws_3",
+        "//app/ingestion/domain-public",
+    ],
+)

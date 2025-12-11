@@ -1,0 +1,6 @@
+load("//:defs.bzl", "zio_scala_library")
+
+zio_scala_library(
+    name = "domain-public",
+    visibility = ["//visibility:public"],
+)

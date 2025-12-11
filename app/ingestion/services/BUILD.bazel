@@ -1,0 +1,11 @@
+load("//:defs.bzl", "zio_scala_library")
+
+zio_scala_library(
+    name = "services",
+    visibility = ["//app/ingestion:__subpackages__"],
+    deps = [
+        "//app/ingestion/domain-public",
+        "//app/ingestion/domain-private",
+        "//app/ingestion/api",
+    ],
+)
