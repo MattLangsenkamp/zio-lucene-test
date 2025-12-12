@@ -1,0 +1,13 @@
+config:
+  aws:region: us-east-1
+  aws:accessKey: test
+  aws:secretKey: test
+  aws:skipCredentialsValidation: "true"
+  aws:skipMetadataApiCheck: "true"
+  aws:skipRequestingAccountId: "true"
+  aws:s3UsePathStyle: "true"
+  aws:endpoints:
+    - s3: http://localhost:4566
+      ec2: http://localhost:4566
+      dynamodb: http://localhost:4566
+      apigateway: http://localhost:4566

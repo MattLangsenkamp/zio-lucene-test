@@ -1,0 +1,6 @@
+name: zio-lucene-infra
+runtime:
+  name: scala
+  options:
+    binary: ../out/infra/sourceJar.dest/out.jar
+description: Infrastructure for ZIO Lucene project
