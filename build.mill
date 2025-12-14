@@ -6,6 +6,9 @@ import contrib.docker.DockerModule
 object VersionInfo:
   val scalaVersion = "3.3.7"
 
+// Infrastructure is managed by scala-cli (see infra/src/Main.scala)
+// Besom/Pulumi does not yet support Mill build tool
+
 // Ingestion Service
 object ingestion extends Module {
   object domainPublic extends ScalaModule {

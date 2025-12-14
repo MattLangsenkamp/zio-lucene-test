@@ -1,40 +1,10 @@
 {
-  "def build_.package_$writer$services$#scalaVersion$$anonfun$14$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
-    "call build_.package_$writer$services$!scalaVersion$$anonfun$14$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
-      "def build_.package_$writer$services$.$deserializeLambda$(java.lang.invoke.SerializedLambda)java.lang.Object": {},
-      "def build_.package_$writer$services$#scalaVersion$$anonfun$14()mill.api.Task$Simple": {
-        "call build_.package_$writer$services$!scalaVersion$$anonfun$14()mill.api.Task$Simple": {
-          "def build_.package_$writer$services$#scalaVersion()mill.api.Task$Simple": {}
-        }
-      }
-    }
-  },
-  "def build_.package_$writer$api$#scalaVersion$$anonfun$13$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
-    "call build_.package_$writer$api$!scalaVersion$$anonfun$13$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
-      "def build_.package_$writer$api$.$deserializeLambda$(java.lang.invoke.SerializedLambda)java.lang.Object": {},
-      "def build_.package_$writer$api$#scalaVersion$$anonfun$13()mill.api.Task$Simple": {
-        "call build_.package_$writer$api$!scalaVersion$$anonfun$13()mill.api.Task$Simple": {
-          "def build_.package_$writer$api$#scalaVersion()mill.api.Task$Simple": {}
-        }
-      }
-    }
-  },
-  "def build_.package_$writer$domainPrivate$#scalaVersion$$anonfun$12$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
-    "call build_.package_$writer$domainPrivate$!scalaVersion$$anonfun$12$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
-      "def build_.package_$writer$domainPrivate$#scalaVersion$$anonfun$12()mill.api.Task$Simple": {
-        "call build_.package_$writer$domainPrivate$!scalaVersion$$anonfun$12()mill.api.Task$Simple": {
-          "def build_.package_$writer$domainPrivate$#scalaVersion()mill.api.Task$Simple": {}
-        }
-      },
-      "def build_.package_$writer$domainPrivate$.$deserializeLambda$(java.lang.invoke.SerializedLambda)java.lang.Object": {}
-    }
-  },
-  "def build_.package_$writer$server$#scalaVersion$$anonfun$15$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
-    "call build_.package_$writer$server$!scalaVersion$$anonfun$15$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
-      "def build_.package_$writer$server$.$deserializeLambda$(java.lang.invoke.SerializedLambda)java.lang.Object": {},
-      "def build_.package_$writer$server$#scalaVersion$$anonfun$15()mill.api.Task$Simple": {
-        "call build_.package_$writer$server$!scalaVersion$$anonfun$15()mill.api.Task$Simple": {
-          "def build_.package_$writer$server$#scalaVersion()mill.api.Task$Simple": {}
+  "def build_.package_.build_$package_$infra$$$_$mvnDeps$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
+    "call build_.package_.build_$package_$infra$$$_$mvnDeps$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result": {
+      "def build_.package_$infra$.$deserializeLambda$(java.lang.invoke.SerializedLambda)java.lang.Object": {},
+      "def build_.package_$infra$#mvnDeps$$anonfun$1()mill.api.Task$Simple": {
+        "call build_.package_$infra$!mvnDeps$$anonfun$1()mill.api.Task$Simple": {
+          "def build_.package_$infra$#mvnDeps()mill.api.Task$Simple": {}
         }
       }
     }

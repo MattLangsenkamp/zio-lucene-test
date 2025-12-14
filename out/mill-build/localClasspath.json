@@ -2,8 +2,8 @@
     "value": [
         "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene/mill-build/compile-resources",
         "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene/mill-build/resources",
-        "ref:v0:b95d6bc0:/home/mattlang/Documents/projects/zio-lucene/out/mill-build/compile.dest/transformed-classes"
+        "ref:v0:1351a479:/home/mattlang/Documents/projects/zio-lucene/out/mill-build/compile.dest/transformed-classes"
     ],
-    "valueHash": -2111053847,
-    "inputsHash": 811605199
+    "valueHash": 441437155,
+    "inputsHash": 1429812199
 }

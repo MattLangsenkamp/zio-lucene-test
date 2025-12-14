@@ -1,22 +1,22 @@
 {
     "workerCache": {
         "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {
-            "identityHashCode": 1451424614,
+            "identityHashCode": 592243412,
             "inputHash": 1701910573
         },
         "mill.javalib.JvmWorkerModule/internalWorker": {
-            "identityHashCode": 1016153666,
+            "identityHashCode": 1379693320,
             "inputHash": 1318909305
         }
     },
     "evalWatched": [
         "/home/mattlang/Documents/projects/zio-lucene/mill-build/resources",
         "/home/mattlang/Documents/projects/zio-lucene/mill-build/compile-resources",
-        "/home/mattlang/Documents/projects/zio-lucene/build.mill",
-        "/home/mattlang/Documents/projects/zio-lucene/mill-build/src"
+        "/home/mattlang/Documents/projects/zio-lucene/mill-build/src",
+        "/home/mattlang/Documents/projects/zio-lucene/build.mill"
     ],
     "moduleWatched": [],
-    "classLoaderIdentity": -1870357297,
+    "classLoaderIdentity": 1469160211,
     "runClasspath": [
         [
             "/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-libs_3/1.1.0-RC3/mill-libs_3-1.1.0-RC3.jar",
@@ -480,8 +480,8 @@
         ],
         [
             "/home/mattlang/Documents/projects/zio-lucene/out/mill-build/compile.dest/transformed-classes",
-            -1185059904
+            324117625
         ]
     ],
-    "runClasspathHash": 1017251834
+    "runClasspathHash": 175022126
 }

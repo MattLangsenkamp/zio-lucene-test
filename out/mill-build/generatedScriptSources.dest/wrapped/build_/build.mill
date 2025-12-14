@@ -26,6 +26,16 @@ import contrib.docker.DockerModule
 object VersionInfo:
   val scalaVersion = "3.3.7"
 
+// Infrastructure
+object infra extends ScalaModule {
+  def scalaVersion = VersionInfo.scalaVersion
+  def mvnDeps = Seq(
+    mvn"org.virtuslab::besom-core:0.5.0",
+    mvn"org.virtuslab::besom-aws:7.7.0-core.0.5",
+    mvn"org.virtuslab::besom-kubernetes:4.19.0-core.0.5"
+  )
+}
+
 // Ingestion Service
 object ingestion extends Module {
   object domainPublic extends ScalaModule {

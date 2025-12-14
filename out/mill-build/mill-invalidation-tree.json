@@ -1,1 +1,28 @@
-{}
+{
+  "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {},
+  "resolvedRunMvnDeps": {},
+  "mill.javalib.JvmWorkerModule/internalWorker": {},
+  "resolvedMvnDeps": {},
+  "scriptSources": {
+    "allSourceFiles": {
+      "compile": {
+        "codeSignatures": {},
+        "localRunClasspath": {
+          "localClasspath": {
+            "runClasspath": {}
+          }
+        }
+      },
+      "zincIncrementalCompilation": {}
+    },
+    "sources": {
+      "allSources": {}
+    },
+    "parseBuildFiles": {
+      "generatedScriptSources": {
+        "generatedSources": {}
+      },
+      "millBuildRootModuleResult": {}
+    }
+  }
+}

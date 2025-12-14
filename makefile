@@ -8,6 +8,7 @@ check-local-deps:
 	@command -v docker >/dev/null 2>&1 || { echo "❌ docker is not installed. Install: https://docs.docker.com/engine/install/"; exit 1; }
 	@command -v kubectl >/dev/null 2>&1 || { echo "❌ kubectl is not installed. Install: snap install kubectl --classic"; exit 1; }
 	@command -v aws >/dev/null 2>&1 || { echo "❌ aws cli is not installed. Install: snap install aws-cli --classic"; exit 1; }
+	@command -v coursier >/dev/null 2>&1 || { echo "❌ coursier is not installed. Visit: https://get-coursier.io/"; exit 1; }
 	@command -v ./mill >/dev/null 2>&1 || { echo "❌ mill is not installed. Install: https://mill-build.com/mill/Intro_to_Mill.html#_installation"; exit 1; }
 	@echo "✅ All dependencies installed"
 	@echo ""
@@ -30,7 +31,7 @@ start-local-env: check-local-deps
 		docker run -d \
 			--name localstack \
 			-p 4566:4566 \
-			-e SERVICES=s3,kafka,iam,secretsmanager \
+			-e SERVICES=s3,kafka,iam,secretsmanager,ec2 \
 			localstack/localstack; \
 		echo "Waiting for LocalStack to be ready..."; \
 		sleep 5; \

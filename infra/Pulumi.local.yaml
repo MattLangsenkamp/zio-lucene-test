@@ -11,3 +11,5 @@ config:
       ec2: http://localhost:4566
       dynamodb: http://localhost:4566
       apigateway: http://localhost:4566
+      kafka: http://localhost:4566
+      msk: http://localhost:4566
