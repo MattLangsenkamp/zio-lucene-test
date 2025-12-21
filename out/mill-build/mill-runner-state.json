@@ -1,22 +1,22 @@
 {
     "workerCache": {
         "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {
-            "identityHashCode": 592243412,
+            "identityHashCode": 1246834837,
             "inputHash": 1701910573
         },
         "mill.javalib.JvmWorkerModule/internalWorker": {
-            "identityHashCode": 1379693320,
+            "identityHashCode": 1934841934,
             "inputHash": 1318909305
         }
     },
     "evalWatched": [
-        "/home/mattlang/Documents/projects/zio-lucene/mill-build/resources",
-        "/home/mattlang/Documents/projects/zio-lucene/mill-build/compile-resources",
-        "/home/mattlang/Documents/projects/zio-lucene/mill-build/src",
-        "/home/mattlang/Documents/projects/zio-lucene/build.mill"
+        "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/src",
+        "/home/mattlang/Documents/projects/zio-lucene-test/build.mill",
+        "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/resources",
+        "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/compile-resources"
     ],
     "moduleWatched": [],
-    "classLoaderIdentity": 1469160211,
+    "classLoaderIdentity": 193094452,
     "runClasspath": [
         [
             "/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-libs_3/1.1.0-RC3/mill-libs_3-1.1.0-RC3.jar",
@@ -471,17 +471,17 @@
             -952022362
         ],
         [
-            "/home/mattlang/Documents/projects/zio-lucene/mill-build/compile-resources",
+            "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/compile-resources",
             -914035544
         ],
         [
-            "/home/mattlang/Documents/projects/zio-lucene/mill-build/resources",
+            "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/resources",
             -914035544
         ],
         [
-            "/home/mattlang/Documents/projects/zio-lucene/out/mill-build/compile.dest/transformed-classes",
-            324117625
+            "/home/mattlang/Documents/projects/zio-lucene-test/out/mill-build/compile.dest/transformed-classes",
+            -1178051815
         ]
     ],
-    "runClasspathHash": 175022126
+    "runClasspathHash": -1156814907
 }

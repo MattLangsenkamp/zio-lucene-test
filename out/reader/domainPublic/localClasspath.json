@@ -1,0 +1,9 @@
+{
+    "value": [
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/reader/domainPublic/compile-resources",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/reader/domainPublic/resources",
+        "ref:v0:fa37d70c:/home/mattlang/Documents/projects/zio-lucene-test/out/reader/domainPublic/compile.dest/classes"
+    ],
+    "valueHash": -24862160,
+    "inputsHash": -1716928944
+}

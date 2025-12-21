@@ -1,0 +1,9 @@
+{
+    "value": [
+        "ref:v0:3968d128:/home/mattlang/Documents/projects/zio-lucene-test/build.mill",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/mill-build/src",
+        "ref:v0:f98bd2a2:/home/mattlang/Documents/projects/zio-lucene-test/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support"
+    ],
+    "valueHash": 1278939520,
+    "inputsHash": -112276545
+}

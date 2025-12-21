@@ -1,0 +1,18 @@
+{
+    "value": [
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/writer/domainPublic/compile-resources",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/writer/domainPublic/resources",
+        "ref:v0:a256a842:/home/mattlang/Documents/projects/zio-lucene-test/out/writer/domainPublic/compile.dest/classes",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/writer/domainPrivate/compile-resources",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/writer/domainPrivate/resources",
+        "ref:v0:664ea7a1:/home/mattlang/Documents/projects/zio-lucene-test/out/writer/domainPrivate/compile.dest/classes",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/writer/api/compile-resources",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/writer/api/resources",
+        "ref:v0:2ec7d145:/home/mattlang/Documents/projects/zio-lucene-test/out/writer/api/compile.dest/classes",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/writer/services/compile-resources",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/writer/services/resources",
+        "ref:v0:327b7d83:/home/mattlang/Documents/projects/zio-lucene-test/out/writer/services/compile.dest/classes"
+    ],
+    "valueHash": 1403859937,
+    "inputsHash": 1346073261
+}

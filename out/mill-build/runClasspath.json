@@ -113,10 +113,10 @@
         "qref:v1:7587a9b4:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.4.1/jansi-2.4.1.jar",
         "qref:v1:3d3adda8:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.19.0/commons-codec-1.19.0.jar",
         "qref:v1:c7414aa6:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.18.0/commons-lang3-3.18.0.jar",
-        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene/mill-build/compile-resources",
-        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene/mill-build/resources",
-        "ref:v0:1351a479:/home/mattlang/Documents/projects/zio-lucene/out/mill-build/compile.dest/transformed-classes"
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/mill-build/compile-resources",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/mill-build/resources",
+        "ref:v0:b9c85b19:/home/mattlang/Documents/projects/zio-lucene-test/out/mill-build/compile.dest/transformed-classes"
     ],
-    "valueHash": 737297050,
-    "inputsHash": 1114142238
+    "valueHash": 1159107103,
+    "inputsHash": 1744411689
 }

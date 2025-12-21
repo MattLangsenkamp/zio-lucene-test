@@ -1,9 +1,9 @@
 {
     "value": [
-        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene/ingestion/domainPublic/compile-resources",
-        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene/ingestion/domainPublic/resources",
-        "ref:v0:8615fa50:/home/mattlang/Documents/projects/zio-lucene/out/ingestion/domainPublic/compile.dest/classes"
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/ingestion/domainPublic/compile-resources",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/ingestion/domainPublic/resources",
+        "ref:v0:fdf27bab:/home/mattlang/Documents/projects/zio-lucene-test/out/ingestion/domainPublic/compile.dest/classes"
     ],
-    "valueHash": -1477769876,
-    "inputsHash": 1829927529
+    "valueHash": 78009388,
+    "inputsHash": -1171090206
 }

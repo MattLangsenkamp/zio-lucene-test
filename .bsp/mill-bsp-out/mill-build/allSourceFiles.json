@@ -1,0 +1,9 @@
+{
+    "value": [
+        "ref:v0:204413bc:/home/mattlang/Documents/projects/zio-lucene-test/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala",
+        "ref:v0:3465e8d3:/home/mattlang/Documents/projects/zio-lucene-test/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala",
+        "ref:v0:ad56d4e9:/home/mattlang/Documents/projects/zio-lucene-test/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/wrapped/build_/build.mill"
+    ],
+    "valueHash": 696985448,
+    "inputsHash": -99971445
+}

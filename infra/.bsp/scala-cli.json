@@ -4,12 +4,12 @@
     "/home/mattlang/.local/share/coursier/bin/.scala-cli.aux",
     "bsp",
     "--json-options",
-    "/home/mattlang/Documents/projects/zio-lucene/infra/.scala-build/ide-options-v2.json",
+    "/home/mattlang/Documents/projects/zio-lucene-test/infra/.scala-build/ide-options-v2.json",
     "--json-launcher-options",
-    "/home/mattlang/Documents/projects/zio-lucene/infra/.scala-build/ide-launcher-options.json",
+    "/home/mattlang/Documents/projects/zio-lucene-test/infra/.scala-build/ide-launcher-options.json",
     "--envs-file",
-    "/home/mattlang/Documents/projects/zio-lucene/infra/.scala-build/ide-envs.json",
-    "/home/mattlang/Documents/projects/zio-lucene/infra"
+    "/home/mattlang/Documents/projects/zio-lucene-test/infra/.scala-build/ide-envs.json",
+    "/home/mattlang/Documents/projects/zio-lucene-test/infra"
   ],
   "version": "1.11.0",
   "bspVersion": "2.1.1",

@@ -1,0 +1,33 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 152B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/azul/zulu-openjdk-alpine:21-jre
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/2] FROM docker.io/azul/zulu-openjdk-alpine:21-jre
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 36.22MB 0.1s done
+#5 DONE 0.1s
+
+#4 [1/2] FROM docker.io/azul/zulu-openjdk-alpine:21-jre
+#4 CACHED
+
+#6 [2/2] COPY out.jar /out.jar
+#6 DONE 0.1s
+
+#7 exporting to image
+#7 exporting layers
+#7 exporting layers 0.1s done
+#7 writing image sha256:261e84f3beb4233dff6c5fde6c495c3ade8ab982a2a407d0a5fa082a9b517a43 done
+#7 naming to docker.io/library/reader-server:latest done
+#7 DONE 0.1s
+Docker build completed successfully

@@ -1,0 +1,8 @@
+{
+    "value": [
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/mill-build/resources",
+        "ref:v0:4c98c78f:/home/mattlang/Documents/projects/zio-lucene-test/.bsp/mill-bsp-out/mill-build/compile.dest/transformed-classes"
+    ],
+    "valueHash": 1041022486,
+    "inputsHash": -721462499
+}

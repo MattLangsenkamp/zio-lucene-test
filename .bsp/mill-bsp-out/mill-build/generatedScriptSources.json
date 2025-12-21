@@ -1,0 +1,15 @@
+{
+    "value": {
+        "wrapped": [
+            "ref:v0:0aed8e18:/home/mattlang/Documents/projects/zio-lucene-test/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/wrapped"
+        ],
+        "support": [
+            "ref:v0:f98bd2a2:/home/mattlang/Documents/projects/zio-lucene-test/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support"
+        ],
+        "resources": [
+            "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/resources"
+        ]
+    },
+    "valueHash": -1992564098,
+    "inputsHash": -140256806
+}

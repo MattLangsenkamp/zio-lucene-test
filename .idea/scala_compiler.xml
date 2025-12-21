@@ -2,6 +2,16 @@
 <project version="4">
   <component name="ScalaCompilerConfiguration">
     <option name="incrementalityType" value="IDEA" />
-    <profile name="bazel 1" modules="app.ingestion.api.api,app.ingestion.domain-private.domain-private,app.ingestion.domain-public.domain-public,app.ingestion.server.server,app.ingestion.services.services,app.reader.api.api,app.reader.domain-private.domain-private,app.reader.domain-public.domain-public,app.reader.server.server,app.reader.services.services,app.writer.api.api,app.writer.domain-private.domain-private,app.writer.domain-public.domain-public,app.writer.server.server,app.writer.services.services,search-engine-lib" />
+    <profile name="bazel 1" modules="app.ingestion.api.api,app.ingestion.domain-private.domain-private,app.ingestion.domain-public.domain-public,app.ingestion.server.server,app.ingestion.services.services,app.reader.api.api,app.reader.domain-private.domain-private,app.reader.domain-public.domain-public,app.reader.server.server,app.reader.services.services,app.writer.api.api,app.writer.domain-private.domain-private,app.writer.domain-public.domain-public,app.writer.server.server,app.writer.services.services,ingestion.api,ingestion.domainPrivate,ingestion.domainPublic,ingestion.server,ingestion.services,reader.api,reader.domainPrivate,reader.domainPublic,reader.server,reader.services,search-engine-lib,writer.api,writer.domainPrivate,writer.domainPublic,writer.server,writer.services" />
+    <profile name="bsp 1" modules="mill-build_">
+      <option name="deprecationWarnings" value="true" />
+      <parameters>
+        <parameter value="-Wconf:msg=will be encoded on the classpath:silent" />
+      </parameters>
+      <plugins>
+        <plugin path="$USER_HOME$/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.0-RC2/0.12.3/scalac-mill-moduledefs-plugin_3.8.0-RC2-0.12.3.jar" />
+        <plugin path="$USER_HOME$/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-runner-autooverride-plugin_3.8.0-RC2/1.1.0-RC3/mill-runner-autooverride-plugin_3.8.0-RC2-1.1.0-RC3.jar" />
+      </plugins>
+    </profile>
   </component>
 </project>

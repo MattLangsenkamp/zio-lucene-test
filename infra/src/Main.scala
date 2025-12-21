@@ -6,9 +6,12 @@
 
 import besom.*
 import utils.{S3, K8s, MSK}
+import utils.ingestion.Ingestion
+import utils.reader.Reader
+import utils.writer.Writer
 
 @main def main = Pulumi.run {
-  val stackName = config.require[String]("pulumi:stack") //.getOrElse("local")
+  val stackName = sys.env.getOrElse("STACK_ENV", "local")
   val isLocal = stackName == "local"
 
   // Create S3 bucket
@@ -23,14 +26,49 @@ import utils.{S3, K8s, MSK}
   if (!isLocal) {
     // Create MSK infrastructure
     val mskInfra = MSK.createMskInfrastructure()
+    val bootstrapServers = mskInfra.cluster.bootstrapBrokers
 
-    Stack(bucket, mskInfra.vpc, mskInfra.subnet1, mskInfra.subnet2, mskInfra.securityGroup, mskInfra.cluster, namespace)
-      .exports(
-        bucketName = bucket.id,
-        mskClusterArn = mskInfra.cluster.arn,
-        mskBootstrapBrokers = mskInfra.cluster.bootstrapBrokers,
-        k8sNamespace = namespaceName
-      )
+    // Deploy application services
+    val ingestionService = Ingestion.createService(namespaceName)
+    val ingestionDeployment = Ingestion.createDeployment(
+      namespaceName,
+      bootstrapServers,
+      bucket.id
+    )
+
+    val readerService = Reader.createService(namespaceName)
+    val readerDeployment = Reader.createDeployment(
+      namespaceName,
+      bucket.id
+    )
+
+    val writerService = Writer.createService(namespaceName)
+    val writerStatefulSet = Writer.createStatefulSet(
+      namespaceName,
+      bootstrapServers,
+      bucket.id
+    )
+
+    Stack(
+      bucket,
+      mskInfra.vpc,
+      mskInfra.subnet1,
+      mskInfra.subnet2,
+      mskInfra.securityGroup,
+      mskInfra.cluster,
+      namespace,
+      ingestionService,
+      ingestionDeployment,
+      readerService,
+      readerDeployment,
+      writerService,
+      writerStatefulSet
+    ).exports(
+      bucketName = bucket.id,
+      mskClusterArn = mskInfra.cluster.arn,
+      mskBootstrapServers = bootstrapServers,
+      k8sNamespace = namespaceName
+    )
   } else {
     // Local stack - S3, K8s namespace, and Kafka in k3d
 
@@ -50,11 +88,44 @@ import utils.{S3, K8s, MSK}
       "kafka"
     )
 
-    Stack(bucket, namespace, kafkaService, kafkaStatefulSet)
-      .exports(
-        bucketName = bucket.id,
-        k8sNamespace = namespaceName,
-        kafkaBootstrapServers = "kafka-0.kafka.zio-lucene.svc.cluster.local:9092"
-      )
+    val bootstrapServers = Output("kafka-0.kafka.zio-lucene.svc.cluster.local:9092")
+
+    // Deploy application services
+    val ingestionService = Ingestion.createService(namespaceName)
+    val ingestionDeployment = Ingestion.createDeployment(
+      namespaceName,
+      bootstrapServers,
+      bucket.id
+    )
+
+    val readerService = Reader.createService(namespaceName)
+    val readerDeployment = Reader.createDeployment(
+      namespaceName,
+      bucket.id
+    )
+
+    val writerService = Writer.createService(namespaceName)
+    val writerStatefulSet = Writer.createStatefulSet(
+      namespaceName,
+      bootstrapServers,
+      bucket.id
+    )
+
+    Stack(
+      bucket,
+      namespace,
+      kafkaService,
+      kafkaStatefulSet,
+      ingestionService,
+      ingestionDeployment,
+      readerService,
+      readerDeployment,
+      writerService,
+      writerStatefulSet
+    ).exports(
+      bucketName = bucket.id,
+      k8sNamespace = namespaceName,
+      kafkaBootstrapServers = bootstrapServers
+    )
   }
 }

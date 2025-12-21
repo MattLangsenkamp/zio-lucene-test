@@ -1,5 +1,5 @@
 {
     "value": "\nFROM azul/zulu-openjdk-alpine:21-jre\nEXPOSE 8080/tcp\nCOPY out.jar /out.jar\nENTRYPOINT [\"java\", \"-jar\", \"/out.jar\"]",
     "valueHash": -97266900,
-    "inputsHash": 1312136679
+    "inputsHash": -470069801
 }

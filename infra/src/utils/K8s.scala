@@ -6,7 +6,7 @@ import besom.api.kubernetes as k8s
 object K8s:
   def createNamespace(name: String)(using Context): Output[k8s.core.v1.Namespace] =
     k8s.core.v1.Namespace(
-      name,
+      NonEmptyString(name).getOrElse("default"),
       k8s.core.v1.NamespaceArgs(
         metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
           name = name

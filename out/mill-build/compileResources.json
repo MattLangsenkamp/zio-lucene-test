@@ -1,7 +1,7 @@
 {
     "value": [
-        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene/mill-build/compile-resources"
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/mill-build/compile-resources"
     ],
-    "valueHash": -1587824719,
-    "inputsHash": -1873790043
+    "valueHash": 1802278620,
+    "inputsHash": 1718691022
 }

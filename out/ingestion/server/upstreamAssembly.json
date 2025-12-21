@@ -1,8 +1,8 @@
 {
     "value": {
-        "pathRef": "ref:v0:4a9cf884:/home/mattlang/Documents/projects/zio-lucene/out/ingestion/server/upstreamAssembly.dest/out.jar",
+        "pathRef": "ref:v0:45a2cb83:/home/mattlang/Documents/projects/zio-lucene-test/out/ingestion/server/upstreamAssembly.dest/out.jar",
         "entries": 15006
     },
-    "valueHash": -1931218856,
-    "inputsHash": -330058818
+    "valueHash": 2043009822,
+    "inputsHash": -866234436
 }

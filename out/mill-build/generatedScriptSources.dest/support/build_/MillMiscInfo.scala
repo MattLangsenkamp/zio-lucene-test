@@ -4,8 +4,8 @@ package build_
 @_root_.scala.annotation.nowarn
 object MillMiscInfo
     extends mill.api.internal.RootModule.Info(
-  projectRoot0 = "/home/mattlang/Documents/projects/zio-lucene",
-  output0 = "/home/mattlang/Documents/projects/zio-lucene/out",
-  topLevelProjectRoot0 = "/home/mattlang/Documents/projects/zio-lucene"
+  projectRoot0 = "/home/mattlang/Documents/projects/zio-lucene-test",
+  output0 = "/home/mattlang/Documents/projects/zio-lucene-test/out",
+  topLevelProjectRoot0 = "/home/mattlang/Documents/projects/zio-lucene-test"
 )
 

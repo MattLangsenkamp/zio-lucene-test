@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="BSP: besom-aws_3-7.7.0-core.0.5" external-system-id="BSP">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/besom-aws_3/7.7.0-core.0.5/besom-aws_3-7.7.0-core.0.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/besom-aws_3/7.7.0-core.0.5/besom-aws_3-7.7.0-core.0.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

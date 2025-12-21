@@ -1,0 +1,11 @@
+{
+    "value": [
+        "dev.zio::zio:2.1.17",
+        "dev.zio::izumi-reflect:3.0.8",
+        "dev.zio::izumi-reflect-thirdparty-boopickle-shaded:3.0.8",
+        "dev.zio::zio-stacktracer:2.1.17",
+        "dev.zio::zio-internal-macros:2.1.17"
+    ],
+    "valueHash": 1761129405,
+    "inputsHash": -1594174289
+}

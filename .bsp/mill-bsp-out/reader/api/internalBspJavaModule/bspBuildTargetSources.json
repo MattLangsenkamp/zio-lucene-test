@@ -1,0 +1,12 @@
+{
+    "value": [
+        [
+            "file:///home/mattlang/Documents/projects/zio-lucene-test/reader/api/src/"
+        ],
+        [
+            "file:///home/mattlang/Documents/projects/zio-lucene-test/.bsp/mill-bsp-out/reader/api/compileGeneratedSources.dest/"
+        ]
+    ],
+    "valueHash": 996994914,
+    "inputsHash": 1291066775
+}

@@ -1,0 +1,745 @@
+[
+  {
+    "label": "ingestion.domainPrivate.generatedSources",
+    "millis": 11,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1831309728
+  },
+  {
+    "label": "ingestion.domainPublic.compileGeneratedSources",
+    "millis": 11,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": -726255513
+  },
+  {
+    "label": "ingestion.api.compileGeneratedSources",
+    "millis": 11,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": -726255513
+  },
+  {
+    "label": "ingestion.domainPublic.generatedSources",
+    "millis": 11,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1831309728
+  },
+  {
+    "label": "ingestion.server.generatedSources",
+    "millis": 11,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 706338319
+  },
+  {
+    "label": "reader.domainPrivate.compileGeneratedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 2085869699
+  },
+  {
+    "label": "reader.domainPublic.compileGeneratedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 2085869699
+  },
+  {
+    "label": "reader.domainPublic.generatedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": -8247244
+  },
+  {
+    "label": "reader.server.generatedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 2794836
+  },
+  {
+    "label": "ingestion.api.generatedSources",
+    "millis": 12,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1831309728
+  },
+  {
+    "label": "ingestion.services.generatedSources",
+    "millis": 12,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1831309728
+  },
+  {
+    "label": "reader.server.compileGeneratedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": -1197810134
+  },
+  {
+    "label": "ingestion.domainPrivate.compileGeneratedSources",
+    "millis": 12,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": -726255513
+  },
+  {
+    "label": "reader.services.generatedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": -8247244
+  },
+  {
+    "label": "reader.services.compileGeneratedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 2085869699
+  },
+  {
+    "label": "writer.api.generatedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1000472690
+  },
+  {
+    "label": "writer.api.compileGeneratedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1619932447
+  },
+  {
+    "label": "writer.domainPrivate.compileGeneratedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1619932447
+  },
+  {
+    "label": "writer.domainPrivate.generatedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1000472690
+  },
+  {
+    "label": "ingestion.server.sources",
+    "millis": 13,
+    "valueHashChanged": false,
+    "inputsHash": 694306301,
+    "previousInputsHash": -1273216036
+  },
+  {
+    "label": "writer.domainPublic.generatedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1000472690
+  },
+  {
+    "label": "ingestion.api.sources",
+    "millis": 13,
+    "valueHashChanged": false,
+    "inputsHash": -1251601135,
+    "previousInputsHash": -1535581901
+  },
+  {
+    "label": "writer.domainPublic.compileGeneratedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1619932447
+  },
+  {
+    "label": "writer.server.generatedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 2003074148
+  },
+  {
+    "label": "ingestion.services.compileGeneratedSources",
+    "millis": 13,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": -726255513
+  },
+  {
+    "label": "ingestion.server.compileGeneratedSources",
+    "millis": 13,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1868528247
+  },
+  {
+    "label": "ingestion.services.sources",
+    "millis": 13,
+    "valueHashChanged": false,
+    "inputsHash": -1126377828,
+    "previousInputsHash": 1231262472
+  },
+  {
+    "label": "writer.server.compileGeneratedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1996638924
+  },
+  {
+    "label": "writer.domainPrivate.sources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": 1704247256,
+    "previousInputsHash": -1207585006
+  },
+  {
+    "label": "writer.domainPublic.sources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": 1916174078,
+    "previousInputsHash": 326959308
+  },
+  {
+    "label": "writer.services.generatedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1000472690
+  },
+  {
+    "label": "writer.services.compileGeneratedSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 1619932447
+  },
+  {
+    "label": "reader.services.sources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": -1820383253,
+    "previousInputsHash": -58291120
+  },
+  {
+    "label": "reader.api.compileGeneratedSources",
+    "millis": 14,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": 2085869699
+  },
+  {
+    "label": "reader.domainPublic.sources",
+    "millis": 3,
+    "valueHashChanged": false,
+    "inputsHash": -150233977,
+    "previousInputsHash": -246108452
+  },
+  {
+    "label": "writer.server.sources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": -1076929360,
+    "previousInputsHash": -568014105
+  },
+  {
+    "label": "writer.services.sources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": 1674246796,
+    "previousInputsHash": -2068093887
+  },
+  {
+    "label": "ingestion.domainPrivate.sources",
+    "millis": 14,
+    "valueHashChanged": false,
+    "inputsHash": -1639441821,
+    "previousInputsHash": -893372458
+  },
+  {
+    "label": "reader.api.generatedSources",
+    "millis": 14,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": -8247244
+  },
+  {
+    "label": "writer.api.sources",
+    "millis": 2,
+    "valueHashChanged": false,
+    "inputsHash": 2627277,
+    "previousInputsHash": 231655025
+  },
+  {
+    "label": "ingestion.services.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.services.sources",
+      "ingestion.services.generatedSources",
+      "ingestion.services.compileGeneratedSources"
+    ],
+    "inputsHash": -1642566968
+  },
+  {
+    "label": "ingestion.domainPublic.sources",
+    "millis": 14,
+    "valueHashChanged": false,
+    "inputsHash": 2019490912,
+    "previousInputsHash": 1391032737
+  },
+  {
+    "label": "reader.domainPublic.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.domainPublic.sources",
+      "reader.domainPublic.generatedSources",
+      "reader.domainPublic.compileGeneratedSources"
+    ],
+    "inputsHash": 368461785
+  },
+  {
+    "label": "reader.server.sources",
+    "millis": 3,
+    "valueHashChanged": false,
+    "inputsHash": 1690342068,
+    "previousInputsHash": 625285446
+  },
+  {
+    "label": "reader.services.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.services.sources",
+      "reader.services.generatedSources",
+      "reader.services.compileGeneratedSources"
+    ],
+    "inputsHash": 1296765260
+  },
+  {
+    "label": "reader.api.sources",
+    "millis": 14,
+    "valueHashChanged": false,
+    "inputsHash": -998284151,
+    "previousInputsHash": -758517565
+  },
+  {
+    "label": "ingestion.domainPrivate.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.domainPrivate.sources",
+      "ingestion.domainPrivate.generatedSources",
+      "ingestion.domainPrivate.compileGeneratedSources"
+    ],
+    "inputsHash": 1004322158
+  },
+  {
+    "label": "writer.domainPrivate.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.domainPrivate.sources",
+      "writer.domainPrivate.generatedSources",
+      "writer.domainPrivate.compileGeneratedSources"
+    ],
+    "inputsHash": -1903776135
+  },
+  {
+    "label": "reader.server.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.server.sources",
+      "reader.server.generatedSources",
+      "reader.server.compileGeneratedSources"
+    ],
+    "inputsHash": 772888065
+  },
+  {
+    "label": "ingestion.server.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.server.sources",
+      "ingestion.server.generatedSources",
+      "ingestion.server.compileGeneratedSources"
+    ],
+    "inputsHash": 1948555609
+  },
+  {
+    "label": "ingestion.api.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.api.sources",
+      "ingestion.api.generatedSources",
+      "ingestion.api.compileGeneratedSources"
+    ],
+    "inputsHash": 394794146
+  },
+  {
+    "label": "writer.api.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.api.sources",
+      "writer.api.generatedSources",
+      "writer.api.compileGeneratedSources"
+    ],
+    "inputsHash": -1730077222
+  },
+  {
+    "label": "reader.domainPrivate.generatedSources",
+    "millis": 15,
+    "cached": true,
+    "valueHashChanged": false,
+    "inputsHash": -8247244
+  },
+  {
+    "label": "writer.domainPublic.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.domainPublic.sources",
+      "writer.domainPublic.generatedSources",
+      "writer.domainPublic.compileGeneratedSources"
+    ],
+    "inputsHash": -1795452060
+  },
+  {
+    "label": "ingestion.domainPublic.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.domainPublic.sources",
+      "ingestion.domainPublic.generatedSources",
+      "ingestion.domainPublic.compileGeneratedSources"
+    ],
+    "inputsHash": 1835361130
+  },
+  {
+    "label": "reader.api.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.api.sources",
+      "reader.api.generatedSources",
+      "reader.api.compileGeneratedSources"
+    ],
+    "inputsHash": 1291066775
+  },
+  {
+    "label": "writer.services.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.services.sources",
+      "writer.services.generatedSources",
+      "writer.services.compileGeneratedSources"
+    ],
+    "inputsHash": -246677617
+  },
+  {
+    "label": "writer.server.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.server.sources",
+      "writer.server.generatedSources",
+      "writer.server.compileGeneratedSources"
+    ],
+    "inputsHash": 2084661032
+  },
+  {
+    "label": "reader.domainPrivate.sources",
+    "millis": 16,
+    "valueHashChanged": false,
+    "inputsHash": 1549440523,
+    "previousInputsHash": 694419153
+  },
+  {
+    "label": "reader.domainPrivate.internalBspJavaModule.bspBuildTargetSources",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.domainPrivate.sources",
+      "reader.domainPrivate.generatedSources",
+      "reader.domainPrivate.compileGeneratedSources"
+    ],
+    "inputsHash": -590279138
+  },
+  {
+    "label": "reader.domainPrivate.resources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": 1249327841,
+    "previousInputsHash": 1330159768
+  },
+  {
+    "label": "ingestion.services.resources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": -53682718,
+    "previousInputsHash": -188314415
+  },
+  {
+    "label": "ingestion.server.resources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": 622270180,
+    "previousInputsHash": -1704273950
+  },
+  {
+    "label": "ingestion.domainPrivate.resources",
+    "millis": 2,
+    "valueHashChanged": false,
+    "inputsHash": 608281536,
+    "previousInputsHash": -619251860
+  },
+  {
+    "label": "Task.Anon@405b6d75(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.domainPrivate.resources"
+    ],
+    "inputsHash": 1116033195
+  },
+  {
+    "label": "reader.domainPublic.resources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": -879020890,
+    "previousInputsHash": -217640290
+  },
+  {
+    "label": "Task.Anon@101ca8da(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.services.resources"
+    ],
+    "inputsHash": 943540265
+  },
+  {
+    "label": "Task.Anon@2582b0ef(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.domainPrivate.resources"
+    ],
+    "inputsHash": -1802713596
+  },
+  {
+    "label": "reader.api.resources",
+    "millis": 2,
+    "valueHashChanged": false,
+    "inputsHash": 277330769,
+    "previousInputsHash": 1164316646
+  },
+  {
+    "label": "Task.Anon@769bd849(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.server.resources"
+    ],
+    "inputsHash": 1104996135
+  },
+  {
+    "label": "Task.Anon@682abca7(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.domainPublic.resources"
+    ],
+    "inputsHash": -552189779
+  },
+  {
+    "label": "reader.services.resources",
+    "millis": 0,
+    "valueHashChanged": false,
+    "inputsHash": 1119726069,
+    "previousInputsHash": -696504471
+  },
+  {
+    "label": "writer.domainPrivate.resources",
+    "millis": 0,
+    "valueHashChanged": false,
+    "inputsHash": -621739234,
+    "previousInputsHash": 1675448368
+  },
+  {
+    "label": "Task.Anon@20a967fe(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.api.resources"
+    ],
+    "inputsHash": -441370790
+  },
+  {
+    "label": "reader.server.resources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": 1077932200,
+    "previousInputsHash": 1975153166
+  },
+  {
+    "label": "Task.Anon@76f881d9(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.services.resources"
+    ],
+    "inputsHash": -1068230783
+  },
+  {
+    "label": "ingestion.api.resources",
+    "millis": 3,
+    "valueHashChanged": false,
+    "inputsHash": 863510352,
+    "previousInputsHash": -796317654
+  },
+  {
+    "label": "Task.Anon@50a13c2f(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.domainPrivate.resources"
+    ],
+    "inputsHash": -1809999019
+  },
+  {
+    "label": "Task.Anon@3ddb774f(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.api.resources"
+    ],
+    "inputsHash": 2026804283
+  },
+  {
+    "label": "Task.Anon@1d858300(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "reader.server.resources"
+    ],
+    "inputsHash": 263998653
+  },
+  {
+    "label": "writer.api.resources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": 1302880753,
+    "previousInputsHash": -57837037
+  },
+  {
+    "label": "writer.domainPublic.resources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": -62469347,
+    "previousInputsHash": 167898832
+  },
+  {
+    "label": "ingestion.domainPublic.resources",
+    "millis": 3,
+    "valueHashChanged": false,
+    "inputsHash": 1733288207,
+    "previousInputsHash": 469019787
+  },
+  {
+    "label": "Task.Anon@6dd36ab6(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.api.resources"
+    ],
+    "inputsHash": 1961464212
+  },
+  {
+    "label": "Task.Anon@610d28b8(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.domainPublic.resources"
+    ],
+    "inputsHash": 250025305
+  },
+  {
+    "label": "Task.Anon@70721c12(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "ingestion.domainPublic.resources"
+    ],
+    "inputsHash": -1463374912
+  },
+  {
+    "label": "writer.server.resources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": 1135291820,
+    "previousInputsHash": -2028830099
+  },
+  {
+    "label": "Task.Anon@53c99b09(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.server.resources"
+    ],
+    "inputsHash": 405062222
+  },
+  {
+    "label": "writer.services.resources",
+    "millis": 1,
+    "valueHashChanged": false,
+    "inputsHash": 2146381689,
+    "previousInputsHash": -994430422
+  },
+  {
+    "label": "Task.Anon@2539cd1c(mill.javalib.bsp.BspJavaModule#bspBuildTargetResources)",
+    "millis": 0,
+    "valueHashChanged": false,
+    "dependencies": [
+      "writer.services.resources"
+    ],
+    "inputsHash": -1634939974
+  },
+  {
+    "label": "version",
+    "millis": 1,
+    "cached": false,
+    "valueHashChanged": false,
+    "inputsHash": 1177982423,
+    "previousInputsHash": 1177982423
+  }
+]

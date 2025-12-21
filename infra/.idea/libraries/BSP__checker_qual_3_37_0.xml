@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="BSP: checker-qual-3.37.0" external-system-id="BSP">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.37.0/checker-qual-3.37.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.37.0/checker-qual-3.37.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

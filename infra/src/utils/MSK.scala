@@ -10,7 +10,7 @@ object MSK:
     cidrBlock: String = "10.0.0.0/16"
   )(using Context): Output[ec2.Vpc] =
     ec2.Vpc(
-      name,
+      NonEmptyString(name).getOrElse("default"),
       ec2.VpcArgs(
         cidrBlock = cidrBlock,
         enableDnsHostnames = true,
@@ -25,7 +25,7 @@ object MSK:
     availabilityZone: String
   )(using Context): Output[ec2.Subnet] =
     ec2.Subnet(
-      name,
+      NonEmptyString(name).getOrElse("default"),
       ec2.SubnetArgs(
         vpcId = vpcId,
         cidrBlock = cidrBlock,
@@ -39,7 +39,7 @@ object MSK:
     description: String = "Security group for MSK cluster"
   )(using Context): Output[ec2.SecurityGroup] =
     ec2.SecurityGroup(
-      name,
+      NonEmptyString(name).getOrElse("default"),
       ec2.SecurityGroupArgs(
         vpcId = vpcId,
         description = description,
@@ -65,7 +65,7 @@ object MSK:
     volumeSize: Int = 10
   )(using Context): Output[msk.Cluster] =
     msk.Cluster(
-      name,
+      NonEmptyString.apply(name).getOrElse("default"),
       msk.ClusterArgs(
         clusterName = clusterName,
         kafkaVersion = kafkaVersion,

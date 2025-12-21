@@ -9,6 +9,6 @@
         "com.softwaremill.sttp.tapir::tapir-zio:1.11.10",
         "com.softwaremill.sttp.tapir::tapir-zio-http-server:1.11.10"
     ],
-    "valueHash": 537571834,
-    "inputsHash": -731353853
+    "valueHash": 268321648,
+    "inputsHash": 1141747810
 }

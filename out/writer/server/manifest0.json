@@ -1,0 +1,13 @@
+{
+    "value": {
+        "main": {
+            "Manifest-Version": "1.0",
+            "Created-By": "Mill 1.1.0-RC3",
+            "Tool": "Mill-1.1.0-RC3",
+            "Main-Class": "app.writer.server.Server"
+        },
+        "groups": {}
+    },
+    "valueHash": 1382721066,
+    "inputsHash": -657637438
+}

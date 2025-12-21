@@ -1,0 +1,66 @@
+bsp-init] Skipping script discovery in writer/domainPublic/src: Inside module source folder writer/domainPublic/src
+bsp-init] Skipping script discovery in writer/server/src: Inside module source folder writer/server/src
+bsp-init] Skipping script discovery in writer/api/src: Inside module source folder writer/api/src
+bsp-init] Skipping script discovery in writer/domainPrivate/src: Inside module source folder writer/domainPrivate/src
+bsp-init] Skipping script discovery in writer/services/src: Inside module source folder writer/services/src
+bsp-init] Skipping script discovery in ingestion/domainPublic/src: Inside module source folder ingestion/domainPublic/src
+bsp-init] Skipping script discovery in ingestion/server/src: Inside module source folder ingestion/server/src
+bsp-init] Skipping script discovery in ingestion/api/src: Inside module source folder ingestion/api/src
+bsp-init] Skipping script discovery in ingestion/domainPrivate/src: Inside module source folder ingestion/domainPrivate/src
+bsp-init] Skipping script discovery in ingestion/services/src: Inside module source folder ingestion/services/src
+bsp-init] Skipping script discovery in reader/domainPublic/src: Inside module source folder reader/domainPublic/src
+bsp-init] Skipping script discovery in reader/server/src: Inside module source folder reader/server/src
+bsp-init] Skipping script discovery in reader/api/src: Inside module source folder reader/api/src
+bsp-init] Skipping script discovery in reader/domainPrivate/src: Inside module source folder reader/domainPrivate/src
+bsp-init] Skipping script discovery in reader/services/src: Inside module source folder reader/services/src
+bsp-init] 1.1.0-RC3
+Skipping script discovery in writer/domainPublic/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in writer/server/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in writer/api/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in writer/domainPrivate/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in writer/services/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/domainPublic/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/server/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/api/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/domainPrivate/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/services/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in infra/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/domainPublic/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/server/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/api/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/domainPrivate/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/services/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in .bsp/mill-bsp-out: Ignored due to `bspScriptIgnore`
+bsp-init] Skipping script discovery in writer/domainPublic/src: Inside module source folder writer/domainPublic/src
+bsp-init] Skipping script discovery in writer/server/src: Inside module source folder writer/server/src
+bsp-init] Skipping script discovery in writer/api/src: Inside module source folder writer/api/src
+bsp-init] Skipping script discovery in writer/domainPrivate/src: Inside module source folder writer/domainPrivate/src
+bsp-init] Skipping script discovery in writer/services/src: Inside module source folder writer/services/src
+bsp-init] Skipping script discovery in ingestion/domainPublic/src: Inside module source folder ingestion/domainPublic/src
+bsp-init] Skipping script discovery in ingestion/server/src: Inside module source folder ingestion/server/src
+bsp-init] Skipping script discovery in ingestion/api/src: Inside module source folder ingestion/api/src
+bsp-init] Skipping script discovery in ingestion/domainPrivate/src: Inside module source folder ingestion/domainPrivate/src
+bsp-init] Skipping script discovery in ingestion/services/src: Inside module source folder ingestion/services/src
+bsp-init] Skipping script discovery in reader/domainPublic/src: Inside module source folder reader/domainPublic/src
+bsp-init] Skipping script discovery in reader/server/src: Inside module source folder reader/server/src
+bsp-init] Skipping script discovery in reader/api/src: Inside module source folder reader/api/src
+bsp-init] Skipping script discovery in reader/domainPrivate/src: Inside module source folder reader/domainPrivate/src
+bsp-init] Skipping script discovery in reader/services/src: Inside module source folder reader/services/src
+bsp-init] 1.1.0-RC3
+Skipping script discovery in writer/domainPublic/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in writer/server/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in writer/api/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in writer/domainPrivate/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in writer/services/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/domainPublic/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/server/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/api/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/domainPrivate/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in ingestion/services/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in infra/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/domainPublic/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/server/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/api/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/domainPrivate/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in reader/services/src: Ignored due to `bspScriptIgnore`
+Skipping script discovery in .bsp/mill-bsp-out: Ignored due to `bspScriptIgnore`

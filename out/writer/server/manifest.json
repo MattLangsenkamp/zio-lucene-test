@@ -1,0 +1,14 @@
+{
+    "value": {
+        "main": {
+            "Manifest-Version": "1.0",
+            "Scala-Version": "3.3.7",
+            "Main-Class": "app.writer.server.Server",
+            "Created-By": "Mill 1.1.0-RC3",
+            "Tool": "Mill-1.1.0-RC3"
+        },
+        "groups": {}
+    },
+    "valueHash": 1250486067,
+    "inputsHash": -296959587
+}

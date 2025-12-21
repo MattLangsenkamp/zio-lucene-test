@@ -1,0 +1,11 @@
+{
+    "value": {
+        "resolvedDepsSources": [
+            "file:///home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.7/scala3-library_3-3.3.7-sources.jar",
+            "file:///home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16-sources.jar"
+        ],
+        "unmanagedClasspath": []
+    },
+    "valueHash": -435264465,
+    "inputsHash": -1839728868
+}

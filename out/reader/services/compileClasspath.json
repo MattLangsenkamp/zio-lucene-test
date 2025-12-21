@@ -1,0 +1,25 @@
+{
+    "value": [
+        "qref:v1:bb8a40e5:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.7/scala3-library_3-3.3.7.jar",
+        "qref:v1:e9d83acf:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/dev/zio/zio_3/2.1.17/zio_3-2.1.17.jar",
+        "qref:v1:90236a7f:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/3.0.8/izumi-reflect_3-3.0.8.jar",
+        "qref:v1:02a17c41:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_3/3.0.8/izumi-reflect-thirdparty-boopickle-shaded_3-3.0.8.jar",
+        "qref:v1:2e8ebd90:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_3/2.1.17/zio-stacktracer_3-2.1.17.jar",
+        "qref:v1:7d1167dd:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_3/2.1.17/zio-internal-macros_3-2.1.17.jar",
+        "qref:v1:61ccc0d1:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/tapir/tapir-core_3/1.11.10/tapir-core_3-1.11.10.jar",
+        "qref:v1:c45743aa:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.11/core_3-1.7.11.jar",
+        "qref:v1:3cb77c4f:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.4.0/core_3-1.4.0.jar",
+        "qref:v1:659e7533:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.4.0/ws_3-1.4.0.jar",
+        "qref:v1:af4b3a3d:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "qref:v1:530baadc:/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.8/magnolia_3-1.3.8.jar",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/reader/domainPublic/compile-resources",
+        "ref:v0:fa37d70c:/home/mattlang/Documents/projects/zio-lucene-test/out/reader/domainPublic/compile.dest/classes",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/reader/domainPrivate/compile-resources",
+        "ref:v0:9492500d:/home/mattlang/Documents/projects/zio-lucene-test/out/reader/domainPrivate/compile.dest/classes",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/reader/api/compile-resources",
+        "ref:v0:8551ea2c:/home/mattlang/Documents/projects/zio-lucene-test/out/reader/api/compile.dest/classes",
+        "ref:v0:c984eca8:/home/mattlang/Documents/projects/zio-lucene-test/reader/services/compile-resources"
+    ],
+    "valueHash": 359880336,
+    "inputsHash": -1568897317
+}

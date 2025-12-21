@@ -1,8 +1,8 @@
 {
     "value": {
-        "pathRef": "ref:v0:3c02fe9a:/home/mattlang/Documents/projects/zio-lucene/out/ingestion/server/resolvedIvyAssembly.dest/out.jar",
+        "pathRef": "ref:v0:73606a93:/home/mattlang/Documents/projects/zio-lucene-test/out/ingestion/server/resolvedIvyAssembly.dest/out.jar",
         "entries": 15000
     },
-    "valueHash": 185412141,
-    "inputsHash": 457589255
+    "valueHash": 114834434,
+    "inputsHash": -837388894
 }

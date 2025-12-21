@@ -1,8 +1,8 @@
 {
     "value": {
-        "analysisFile": "/home/mattlang/Documents/projects/zio-lucene/out/ingestion/domainPublic/compile.dest/zinc",
-        "classes": "ref:v0:8615fa50:/home/mattlang/Documents/projects/zio-lucene/out/ingestion/domainPublic/compile.dest/classes"
+        "analysisFile": "/home/mattlang/Documents/projects/zio-lucene-test/out/ingestion/domainPublic/compile.dest/zinc",
+        "classes": "ref:v0:fdf27bab:/home/mattlang/Documents/projects/zio-lucene-test/out/ingestion/domainPublic/compile.dest/classes"
     },
-    "valueHash": -729038467,
-    "inputsHash": 1137684645
+    "valueHash": -1397655694,
+    "inputsHash": 445383938
 }
