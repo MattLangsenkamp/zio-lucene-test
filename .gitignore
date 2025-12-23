@@ -1,6 +1,7 @@
 ./out/**
 ../.scala-build
 ../.bsp
+*/.scala-build
 
 out/
 mill-ivy/
