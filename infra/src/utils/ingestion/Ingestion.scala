@@ -6,7 +6,7 @@ import besom.api.kubernetes as k8s
 object Ingestion:
   def createService(
     namespace: Output[String],
-    port: Int = 8080,
+    port: Int = 80,
     replicas: Int = 1,
     image: String = "ingestion-server:latest"
   )(using Context): Output[k8s.core.v1.Service] =
@@ -24,7 +24,7 @@ object Ingestion:
             k8s.core.v1.inputs.ServicePortArgs(
               name = "http",
               port = port,
-              targetPort = port
+              targetPort = 8080
             )
           ),
           `type` = "ClusterIP"

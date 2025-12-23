@@ -6,7 +6,7 @@ import besom.api.kubernetes as k8s
 object Reader:
   def createService(
     namespace: Output[String],
-    port: Int = 8081,
+    port: Int = 80,
     replicas: Int = 1,
     image: String = "reader-server:latest"
   )(using Context): Output[k8s.core.v1.Service] =
