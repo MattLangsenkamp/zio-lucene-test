@@ -1,8 +1,0 @@
-{
-  "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {},
-  "mill.javalib.AssemblyModule/jarjarabramsWorkerClassloader": {},
-  "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClassloader": {},
-  "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorker": {},
-  "mill.javalib.JvmWorkerModule/internalWorker": {},
-  "mill.javalib.AssemblyModule/jarjarabramsWorker": {}
-}

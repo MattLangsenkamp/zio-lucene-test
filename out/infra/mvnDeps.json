@@ -1,9 +1,0 @@
-{
-    "value": [
-        "org.virtuslab::besom-core:0.5.0",
-        "org.virtuslab::besom-aws:7.7.0-core.0.5",
-        "org.virtuslab::besom-kubernetes:4.19.0-core.0.5"
-    ],
-    "valueHash": 714808938,
-    "inputsHash": 839906329
-}
