@@ -1,4 +1,736 @@
 {
+  "reader.server.docker.build": {
+    "reader.server.docker.executable": {},
+    "reader.server.docker.dockerEnv": {},
+    "reader.server.docker.platform": {},
+    "reader.server.assembly": {
+      "reader.server.manifest": {
+        "reader.server.manifest.super.javalib.AssemblyModule": {
+          "reader.server.manifest0": {}
+        },
+        "reader.server.scalaVersion": {}
+      },
+      "reader.server.upstreamAssembly": {
+        "reader.server.upstreamLocalAssemblyClasspath": {
+          "reader.server.transitiveLocalClasspath": {
+            "reader.services.localClasspath": {
+              "reader.services.localCompileClasspath": {
+                "reader.services.compileResources": {},
+                "reader.services.unmanagedClasspath": {}
+              },
+              "reader.services.localRunClasspath": {
+                "reader.services.resources": {},
+                "reader.services.localRunClasspath.super.RunModule": {}
+              }
+            },
+            "reader.domainPrivate.localClasspath": {
+              "reader.domainPrivate.localRunClasspath": {
+                "reader.domainPrivate.resources": {},
+                "reader.domainPrivate.localRunClasspath.super.RunModule": {}
+              },
+              "reader.domainPrivate.localCompileClasspath": {
+                "reader.domainPrivate.compileResources": {},
+                "reader.domainPrivate.unmanagedClasspath": {}
+              }
+            },
+            "reader.api.localClasspath": {
+              "reader.api.localCompileClasspath": {
+                "reader.api.compileResources": {},
+                "reader.api.unmanagedClasspath": {}
+              },
+              "reader.api.localRunClasspath": {
+                "reader.api.localRunClasspath.super.RunModule": {},
+                "reader.api.resources": {}
+              }
+            },
+            "reader.domainPublic.localClasspath": {
+              "reader.domainPublic.localCompileClasspath": {
+                "reader.domainPublic.unmanagedClasspath": {},
+                "reader.domainPublic.compileResources": {}
+              },
+              "reader.domainPublic.localRunClasspath": {
+                "reader.domainPublic.localRunClasspath.super.RunModule": {},
+                "reader.domainPublic.resources": {}
+              }
+            }
+          }
+        },
+        "reader.server.resolvedIvyAssembly": {
+          "reader.server.upstreamIvyAssemblyClasspath": {
+            "reader.server.resolvedRunMvnDeps": {
+              "reader.api.platformSuffix": {},
+              "reader.domainPrivate.platformSuffix": {},
+              "reader.domainPublic.repositories": {},
+              "reader.domainPrivate.mvnDeps": {},
+              "reader.server.bomMvnDeps": {},
+              "reader.server.compileMvnDeps": {},
+              "reader.server.runMvnDeps": {},
+              "reader.services.mvnDeps": {},
+              "reader.server.platformSuffix": {},
+              "reader.server.depManagement": {},
+              "reader.server.mvnDeps": {},
+              "reader.api.mvnDeps": {},
+              "reader.domainPublic.platformSuffix": {},
+              "reader.services.platformSuffix": {},
+              "reader.server.repositories": {},
+              "reader.domainPrivate.scalaVersion": {},
+              "reader.domainPublic.scalaVersion": {},
+              "reader.api.scalaVersion": {},
+              "reader.services.scalaVersion": {},
+              "reader.domainPublic.mvnDeps": {},
+              "reader.server.mandatoryMvnDeps": {
+                "reader.server.mandatoryMvnDeps.super.javalib.JavaModule": {}
+              },
+              "reader.services.repositories": {},
+              "reader.server.checkGradleModules": {},
+              "reader.server.artifactTypes": {},
+              "reader.api.repositories": {},
+              "reader.server.transitiveCoursierProjects": {
+                "reader.services.compileMvnDeps": {},
+                "reader.domainPublic.bomMvnDeps": {},
+                "reader.domainPublic.transitiveCoursierProjects": {},
+                "reader.services.bomMvnDeps": {},
+                "reader.api.mandatoryMvnDeps": {
+                  "reader.api.mandatoryMvnDeps.super.javalib.JavaModule": {},
+                  "reader.api.scalaLibraryMvnDeps": {}
+                },
+                "reader.domainPrivate.compileMvnDeps": {},
+                "reader.api.compileMvnDeps": {},
+                "reader.domainPublic.runMvnDeps": {},
+                "reader.domainPublic.mandatoryMvnDeps": {
+                  "reader.domainPublic.mandatoryMvnDeps.super.javalib.JavaModule": {},
+                  "reader.domainPublic.scalaLibraryMvnDeps": {}
+                },
+                "reader.api.runMvnDeps": {},
+                "reader.services.depManagement": {},
+                "reader.domainPrivate.bomMvnDeps": {},
+                "reader.services.transitiveCoursierProjects": {},
+                "reader.domainPrivate.transitiveCoursierProjects": {},
+                "reader.api.bomMvnDeps": {},
+                "reader.domainPrivate.depManagement": {},
+                "reader.domainPublic.compileMvnDeps": {},
+                "reader.api.transitiveCoursierProjects": {},
+                "reader.api.depManagement": {},
+                "reader.domainPrivate.runMvnDeps": {},
+                "reader.services.runMvnDeps": {},
+                "reader.domainPrivate.mandatoryMvnDeps": {
+                  "reader.domainPrivate.mandatoryMvnDeps.super.javalib.JavaModule": {},
+                  "reader.domainPrivate.scalaLibraryMvnDeps": {}
+                },
+                "reader.services.mandatoryMvnDeps": {
+                  "reader.services.scalaLibraryMvnDeps": {},
+                  "reader.services.mandatoryMvnDeps.super.javalib.JavaModule": {}
+                },
+                "reader.domainPublic.depManagement": {}
+              },
+              "reader.domainPrivate.repositories": {}
+            }
+          }
+        }
+      },
+      "reader.server.localClasspath": {
+        "reader.server.localRunClasspath": {
+          "reader.server.compile": {
+            "reader.server.zincAuxiliaryClassFileExtensions": {
+              "reader.server.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+            },
+            "reader.server.compileClasspath": {
+              "reader.services.compile": {
+                "reader.services.scalaCompilerClasspath": {},
+                "reader.services.upstreamCompileOutput": {},
+                "reader.services.zincIncrementalCompilation": {},
+                "reader.services.zincReportCachedProblems": {},
+                "reader.services.mandatoryJavacOptions": {},
+                "reader.services.javaHome": {
+                  "reader.services.jvmId": {},
+                  "reader.services.jvmIndexVersion": {}
+                },
+                "reader.services.scalaCompilerBridge": {},
+                "reader.services.compileClasspath": {
+                  "reader.services.resolvedMvnDeps": {
+                    "reader.services.artifactTypes": {}
+                  }
+                },
+                "reader.services.allSourceFiles": {
+                  "reader.services.allSources": {
+                    "reader.services.sources": {},
+                    "reader.services.generatedSources": {}
+                  }
+                },
+                "reader.services.scalaOrganization": {},
+                "reader.services.allScalacOptions": {
+                  "reader.services.scalacOptions": {},
+                  "reader.services.enablePluginScalacOptions": {},
+                  "reader.services.mandatoryScalacOptions": {}
+                },
+                "reader.services.scalacPluginClasspath": {
+                  "reader.services.checkGradleModules": {},
+                  "reader.services.scalacPluginMvnDeps": {}
+                },
+                "reader.services.javacOptions": {},
+                "reader.services.zincAuxiliaryClassFileExtensions": {
+                  "reader.services.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                }
+              },
+              "reader.domainPrivate.compile": {
+                "reader.domainPrivate.zincIncrementalCompilation": {},
+                "reader.domainPrivate.scalacPluginClasspath": {
+                  "reader.domainPrivate.scalacPluginMvnDeps": {},
+                  "reader.domainPrivate.checkGradleModules": {}
+                },
+                "reader.domainPrivate.allScalacOptions": {
+                  "reader.domainPrivate.mandatoryScalacOptions": {},
+                  "reader.domainPrivate.enablePluginScalacOptions": {},
+                  "reader.domainPrivate.scalacOptions": {}
+                },
+                "reader.domainPrivate.allSourceFiles": {
+                  "reader.domainPrivate.allSources": {
+                    "reader.domainPrivate.generatedSources": {},
+                    "reader.domainPrivate.sources": {}
+                  }
+                },
+                "reader.domainPrivate.scalaCompilerClasspath": {},
+                "reader.domainPrivate.javaHome": {
+                  "reader.domainPrivate.jvmId": {},
+                  "reader.domainPrivate.jvmIndexVersion": {}
+                },
+                "reader.domainPrivate.compileClasspath": {
+                  "reader.domainPrivate.resolvedMvnDeps": {
+                    "reader.domainPrivate.artifactTypes": {}
+                  }
+                },
+                "reader.domainPrivate.mandatoryJavacOptions": {},
+                "reader.domainPrivate.upstreamCompileOutput": {},
+                "reader.domainPrivate.scalaOrganization": {},
+                "reader.domainPrivate.scalaCompilerBridge": {},
+                "reader.domainPrivate.javacOptions": {},
+                "reader.domainPrivate.zincReportCachedProblems": {},
+                "reader.domainPrivate.zincAuxiliaryClassFileExtensions": {
+                  "reader.domainPrivate.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                }
+              },
+              "reader.api.compile": {
+                "reader.api.upstreamCompileOutput": {},
+                "reader.api.scalaCompilerBridge": {},
+                "reader.api.scalaOrganization": {},
+                "reader.api.zincIncrementalCompilation": {},
+                "reader.api.mandatoryJavacOptions": {},
+                "reader.api.scalaCompilerClasspath": {},
+                "reader.api.scalacPluginClasspath": {
+                  "reader.api.checkGradleModules": {},
+                  "reader.api.scalacPluginMvnDeps": {}
+                },
+                "reader.api.javacOptions": {},
+                "reader.api.zincReportCachedProblems": {},
+                "reader.api.allScalacOptions": {
+                  "reader.api.enablePluginScalacOptions": {},
+                  "reader.api.mandatoryScalacOptions": {},
+                  "reader.api.scalacOptions": {}
+                },
+                "reader.api.compileClasspath": {
+                  "reader.api.resolvedMvnDeps": {
+                    "reader.api.artifactTypes": {}
+                  }
+                },
+                "reader.api.allSourceFiles": {
+                  "reader.api.allSources": {
+                    "reader.api.generatedSources": {},
+                    "reader.api.sources": {}
+                  }
+                },
+                "reader.api.zincAuxiliaryClassFileExtensions": {
+                  "reader.api.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                },
+                "reader.api.javaHome": {
+                  "reader.api.jvmIndexVersion": {},
+                  "reader.api.jvmId": {}
+                }
+              },
+              "reader.domainPublic.compile": {
+                "reader.domainPublic.zincReportCachedProblems": {},
+                "reader.domainPublic.upstreamCompileOutput": {},
+                "reader.domainPublic.mandatoryJavacOptions": {},
+                "reader.domainPublic.javaHome": {
+                  "reader.domainPublic.jvmId": {},
+                  "reader.domainPublic.jvmIndexVersion": {}
+                },
+                "reader.domainPublic.zincAuxiliaryClassFileExtensions": {
+                  "reader.domainPublic.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                },
+                "reader.domainPublic.zincIncrementalCompilation": {},
+                "reader.domainPublic.allSourceFiles": {
+                  "reader.domainPublic.allSources": {
+                    "reader.domainPublic.generatedSources": {},
+                    "reader.domainPublic.sources": {}
+                  }
+                },
+                "reader.domainPublic.scalaCompilerBridge": {},
+                "reader.domainPublic.compileClasspath": {
+                  "reader.domainPublic.resolvedMvnDeps": {
+                    "reader.domainPublic.artifactTypes": {}
+                  }
+                },
+                "reader.domainPublic.scalaCompilerClasspath": {
+                  "reader.domainPublic.checkGradleModules": {}
+                },
+                "reader.domainPublic.allScalacOptions": {
+                  "reader.domainPublic.scalacOptions": {},
+                  "reader.domainPublic.mandatoryScalacOptions": {},
+                  "reader.domainPublic.enablePluginScalacOptions": {}
+                },
+                "reader.domainPublic.scalaOrganization": {},
+                "reader.domainPublic.javacOptions": {},
+                "reader.domainPublic.scalacPluginClasspath": {
+                  "reader.domainPublic.scalacPluginMvnDeps": {}
+                }
+              },
+              "reader.server.resolvedMvnDeps": {}
+            },
+            "reader.server.javaHome": {
+              "reader.server.jvmIndexVersion": {},
+              "reader.server.jvmId": {}
+            },
+            "reader.server.allSourceFiles": {
+              "reader.server.allSources": {
+                "reader.server.generatedSources": {},
+                "reader.server.sources": {}
+              }
+            },
+            "reader.server.scalaCompilerBridge": {},
+            "reader.server.scalaOrganization": {},
+            "reader.server.upstreamCompileOutput": {},
+            "reader.server.javacOptions": {},
+            "reader.server.zincReportCachedProblems": {},
+            "reader.server.mandatoryJavacOptions": {},
+            "mill.javalib.JvmWorkerModule/internalWorker": {
+              "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {},
+              "mill.javalib.JvmWorkerModule/checkGradleModules": {},
+              "mill.javalib.JvmWorkerModule/classpath": {},
+              "mill.javalib.JvmWorkerModule/zincLogDebug": {},
+              "mill.javalib.JvmWorkerModule/repositories": {}
+            },
+            "reader.server.scalaCompilerClasspath": {
+              "reader.server.scalaLibraryMvnDeps": {}
+            },
+            "reader.server.zincIncrementalCompilation": {},
+            "reader.server.scalacPluginClasspath": {
+              "reader.server.scalacPluginMvnDeps": {}
+            },
+            "reader.server.allScalacOptions": {
+              "reader.server.scalacOptions": {},
+              "reader.server.enablePluginScalacOptions": {},
+              "reader.server.mandatoryScalacOptions": {}
+            }
+          },
+          "reader.server.localRunClasspath.super.RunModule": {},
+          "reader.server.resources": {}
+        },
+        "reader.server.localCompileClasspath": {
+          "reader.server.compileResources": {},
+          "reader.server.unmanagedClasspath": {}
+        }
+      },
+      "mill.javalib.AssemblyModule/jarjarabramsWorker": {
+        "mill.javalib.AssemblyModule/jarjarabramsWorkerClassloader": {
+          "mill.javalib.AssemblyModule/jarjarabramsWorkerClasspath": {
+            "mill.javalib.AssemblyModule/checkGradleModules": {},
+            "mill.javalib.CoursierConfigModule/coursierEnv": {},
+            "mill.javalib.AssemblyModule/repositories": {}
+          }
+        }
+      },
+      "reader.server.prependShellScript": {
+        "reader.server.prependShellScript0": {
+          "reader.server.forkArgs": {},
+          "reader.server.finalMainClassOpt": {
+            "reader.server.allLocalMainClasses": {
+              "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorker": {
+                "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClassloader": {
+                  "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClasspath": {
+                    "mill.javalib.classgraph.ClassgraphWorkerModule/repositories": {},
+                    "mill.javalib.classgraph.ClassgraphWorkerModule/checkGradleModules": {}
+                  }
+                }
+              }
+            },
+            "reader.server.mainClass": {}
+          },
+          "reader.server.forkShellArgs": {},
+          "reader.server.forkCmdArgs": {}
+        }
+      }
+    },
+    "reader.server.docker.pullAndHash": {
+      "reader.server.docker.pullBaseImage": {}
+    },
+    "reader.server.docker.dockerfile": {
+      "reader.server.docker.user": {},
+      "reader.server.docker.exposedUdpPorts": {},
+      "reader.server.docker.baseImage": {},
+      "reader.server.docker.jvmOptions": {},
+      "reader.server.docker.volumes": {},
+      "reader.server.docker.envVars": {},
+      "reader.server.docker.exposedPorts": {},
+      "reader.server.docker.run": {},
+      "reader.server.docker.labels": {}
+    },
+    "reader.server.docker.tags": {}
+  },
+  "writer.server.docker.build": {
+    "writer.server.docker.executable": {},
+    "writer.server.docker.tags": {},
+    "writer.server.docker.dockerfile": {
+      "writer.server.docker.labels": {},
+      "writer.server.docker.jvmOptions": {},
+      "writer.server.docker.exposedPorts": {},
+      "writer.server.docker.run": {},
+      "writer.server.docker.baseImage": {},
+      "writer.server.docker.exposedUdpPorts": {},
+      "writer.server.docker.envVars": {},
+      "writer.server.docker.volumes": {},
+      "writer.server.docker.user": {}
+    },
+    "writer.server.docker.dockerEnv": {},
+    "writer.server.assembly": {
+      "writer.server.prependShellScript": {
+        "writer.server.prependShellScript0": {
+          "writer.server.finalMainClassOpt": {
+            "writer.server.mainClass": {},
+            "writer.server.allLocalMainClasses": {}
+          },
+          "writer.server.forkShellArgs": {},
+          "writer.server.forkArgs": {},
+          "writer.server.forkCmdArgs": {}
+        }
+      },
+      "writer.server.localClasspath": {
+        "writer.server.localCompileClasspath": {
+          "writer.server.unmanagedClasspath": {},
+          "writer.server.compileResources": {}
+        },
+        "writer.server.localRunClasspath": {
+          "writer.server.localRunClasspath.super.RunModule": {},
+          "writer.server.resources": {},
+          "writer.server.compile": {
+            "writer.server.scalaOrganization": {},
+            "writer.server.upstreamCompileOutput": {},
+            "writer.server.scalaCompilerBridge": {},
+            "writer.server.javacOptions": {},
+            "writer.server.javaHome": {
+              "writer.server.jvmId": {},
+              "writer.server.jvmIndexVersion": {}
+            },
+            "writer.server.mandatoryJavacOptions": {},
+            "writer.server.compileClasspath": {
+              "writer.services.localCompileClasspath": {
+                "writer.services.compileResources": {},
+                "writer.services.unmanagedClasspath": {}
+              },
+              "writer.domainPrivate.compile": {
+                "writer.domainPrivate.zincReportCachedProblems": {},
+                "writer.domainPrivate.zincAuxiliaryClassFileExtensions": {
+                  "writer.domainPrivate.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                },
+                "writer.domainPrivate.upstreamCompileOutput": {},
+                "writer.domainPrivate.scalacPluginClasspath": {
+                  "writer.domainPrivate.scalacPluginMvnDeps": {}
+                },
+                "writer.domainPrivate.javaHome": {
+                  "writer.domainPrivate.jvmIndexVersion": {},
+                  "writer.domainPrivate.jvmId": {}
+                },
+                "writer.domainPrivate.mandatoryJavacOptions": {},
+                "writer.domainPrivate.javacOptions": {},
+                "writer.domainPrivate.allScalacOptions": {
+                  "writer.domainPrivate.mandatoryScalacOptions": {},
+                  "writer.domainPrivate.enablePluginScalacOptions": {},
+                  "writer.domainPrivate.scalacOptions": {}
+                },
+                "writer.domainPrivate.scalaCompilerBridge": {},
+                "writer.domainPrivate.allSourceFiles": {
+                  "writer.domainPrivate.allSources": {
+                    "writer.domainPrivate.generatedSources": {},
+                    "writer.domainPrivate.sources": {}
+                  }
+                },
+                "writer.domainPrivate.scalaOrganization": {},
+                "writer.domainPrivate.compileClasspath": {
+                  "writer.domainPrivate.resolvedMvnDeps": {
+                    "writer.domainPrivate.artifactTypes": {}
+                  }
+                },
+                "writer.domainPrivate.scalaCompilerClasspath": {
+                  "writer.domainPrivate.scalaLibraryMvnDeps": {},
+                  "writer.domainPrivate.checkGradleModules": {}
+                },
+                "writer.domainPrivate.zincIncrementalCompilation": {}
+              },
+              "writer.api.compile": {
+                "writer.api.mandatoryJavacOptions": {},
+                "writer.api.scalaOrganization": {},
+                "writer.api.allScalacOptions": {
+                  "writer.api.scalacOptions": {},
+                  "writer.api.enablePluginScalacOptions": {},
+                  "writer.api.mandatoryScalacOptions": {}
+                },
+                "writer.api.upstreamCompileOutput": {},
+                "writer.api.zincReportCachedProblems": {},
+                "writer.api.scalaCompilerBridge": {},
+                "writer.api.compileClasspath": {
+                  "writer.api.resolvedMvnDeps": {
+                    "writer.api.artifactTypes": {}
+                  }
+                },
+                "writer.api.scalaCompilerClasspath": {
+                  "writer.api.scalaLibraryMvnDeps": {}
+                },
+                "writer.api.zincIncrementalCompilation": {},
+                "writer.api.javacOptions": {},
+                "writer.api.javaHome": {
+                  "writer.api.jvmIndexVersion": {},
+                  "writer.api.jvmId": {}
+                },
+                "writer.api.scalacPluginClasspath": {
+                  "writer.api.scalacPluginMvnDeps": {},
+                  "writer.api.checkGradleModules": {}
+                },
+                "writer.api.allSourceFiles": {
+                  "writer.api.allSources": {
+                    "writer.api.generatedSources": {},
+                    "writer.api.sources": {}
+                  }
+                },
+                "writer.api.zincAuxiliaryClassFileExtensions": {
+                  "writer.api.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                }
+              },
+              "writer.domainPublic.localCompileClasspath": {
+                "writer.domainPublic.compileResources": {},
+                "writer.domainPublic.unmanagedClasspath": {}
+              },
+              "writer.server.resolvedMvnDeps": {},
+              "writer.domainPublic.compile": {
+                "writer.domainPublic.scalaOrganization": {},
+                "writer.domainPublic.scalacPluginClasspath": {
+                  "writer.domainPublic.scalacPluginMvnDeps": {}
+                },
+                "writer.domainPublic.scalaCompilerClasspath": {
+                  "writer.domainPublic.scalaLibraryMvnDeps": {},
+                  "writer.domainPublic.checkGradleModules": {}
+                },
+                "writer.domainPublic.zincAuxiliaryClassFileExtensions": {
+                  "writer.domainPublic.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                },
+                "writer.domainPublic.mandatoryJavacOptions": {},
+                "writer.domainPublic.upstreamCompileOutput": {},
+                "writer.domainPublic.zincIncrementalCompilation": {},
+                "writer.domainPublic.javacOptions": {},
+                "writer.domainPublic.javaHome": {
+                  "writer.domainPublic.jvmIndexVersion": {},
+                  "writer.domainPublic.jvmId": {}
+                },
+                "writer.domainPublic.scalaCompilerBridge": {},
+                "writer.domainPublic.zincReportCachedProblems": {},
+                "writer.domainPublic.compileClasspath": {
+                  "writer.domainPublic.resolvedMvnDeps": {
+                    "writer.domainPublic.artifactTypes": {}
+                  }
+                },
+                "writer.domainPublic.allScalacOptions": {
+                  "writer.domainPublic.mandatoryScalacOptions": {},
+                  "writer.domainPublic.enablePluginScalacOptions": {},
+                  "writer.domainPublic.scalacOptions": {}
+                },
+                "writer.domainPublic.allSourceFiles": {
+                  "writer.domainPublic.allSources": {
+                    "writer.domainPublic.sources": {},
+                    "writer.domainPublic.generatedSources": {}
+                  }
+                }
+              },
+              "writer.api.localCompileClasspath": {
+                "writer.api.compileResources": {},
+                "writer.api.unmanagedClasspath": {}
+              },
+              "writer.services.compile": {
+                "writer.services.javaHome": {
+                  "writer.services.jvmIndexVersion": {},
+                  "writer.services.jvmId": {}
+                },
+                "writer.services.scalacPluginClasspath": {
+                  "writer.services.scalacPluginMvnDeps": {}
+                },
+                "writer.services.javacOptions": {},
+                "writer.services.scalaOrganization": {},
+                "writer.services.scalaCompilerClasspath": {
+                  "writer.services.scalaLibraryMvnDeps": {},
+                  "writer.services.checkGradleModules": {}
+                },
+                "writer.services.allSourceFiles": {
+                  "writer.services.allSources": {
+                    "writer.services.sources": {},
+                    "writer.services.generatedSources": {}
+                  }
+                },
+                "writer.services.zincReportCachedProblems": {},
+                "writer.services.allScalacOptions": {
+                  "writer.services.enablePluginScalacOptions": {},
+                  "writer.services.mandatoryScalacOptions": {},
+                  "writer.services.scalacOptions": {}
+                },
+                "writer.services.zincIncrementalCompilation": {},
+                "writer.services.upstreamCompileOutput": {},
+                "writer.services.zincAuxiliaryClassFileExtensions": {
+                  "writer.services.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+                },
+                "writer.services.compileClasspath": {
+                  "writer.services.resolvedMvnDeps": {
+                    "writer.services.artifactTypes": {}
+                  }
+                },
+                "writer.services.mandatoryJavacOptions": {},
+                "writer.services.scalaCompilerBridge": {}
+              },
+              "writer.domainPrivate.localCompileClasspath": {
+                "writer.domainPrivate.compileResources": {},
+                "writer.domainPrivate.unmanagedClasspath": {}
+              }
+            },
+            "writer.server.scalaCompilerClasspath": {
+              "writer.server.scalaLibraryMvnDeps": {}
+            },
+            "writer.server.scalacPluginClasspath": {
+              "writer.domainPublic.repositories": {},
+              "writer.api.repositories": {},
+              "writer.domainPrivate.repositories": {},
+              "writer.server.scalacPluginMvnDeps": {},
+              "writer.server.repositories": {},
+              "writer.server.platformSuffix": {},
+              "writer.server.checkGradleModules": {},
+              "writer.services.repositories": {}
+            },
+            "writer.server.allScalacOptions": {
+              "writer.server.scalacOptions": {},
+              "writer.server.mandatoryScalacOptions": {},
+              "writer.server.enablePluginScalacOptions": {}
+            },
+            "writer.server.zincIncrementalCompilation": {},
+            "writer.server.zincAuxiliaryClassFileExtensions": {
+              "writer.server.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
+            },
+            "writer.server.allSourceFiles": {
+              "writer.server.allSources": {
+                "writer.server.sources": {},
+                "writer.server.generatedSources": {}
+              }
+            },
+            "writer.server.zincReportCachedProblems": {}
+          }
+        }
+      },
+      "writer.server.manifest": {
+        "writer.server.scalaVersion": {},
+        "writer.server.manifest.super.javalib.AssemblyModule": {
+          "writer.server.manifest0": {}
+        }
+      },
+      "writer.server.upstreamAssembly": {
+        "writer.server.resolvedIvyAssembly": {
+          "writer.server.upstreamIvyAssemblyClasspath": {
+            "writer.server.resolvedRunMvnDeps": {
+              "writer.server.mandatoryMvnDeps": {
+                "writer.server.mandatoryMvnDeps.super.javalib.JavaModule": {}
+              },
+              "writer.services.platformSuffix": {},
+              "writer.api.mvnDeps": {},
+              "writer.api.platformSuffix": {},
+              "writer.domainPublic.platformSuffix": {},
+              "writer.domainPublic.scalaVersion": {},
+              "writer.domainPublic.mvnDeps": {},
+              "writer.server.runMvnDeps": {},
+              "writer.services.scalaVersion": {},
+              "writer.domainPrivate.scalaVersion": {},
+              "writer.server.bomMvnDeps": {},
+              "writer.domainPrivate.mvnDeps": {},
+              "writer.api.scalaVersion": {},
+              "writer.server.compileMvnDeps": {},
+              "writer.server.depManagement": {},
+              "writer.services.mvnDeps": {},
+              "writer.domainPrivate.platformSuffix": {},
+              "writer.server.mvnDeps": {},
+              "writer.server.artifactTypes": {},
+              "writer.server.transitiveCoursierProjects": {
+                "writer.services.depManagement": {},
+                "writer.api.runMvnDeps": {},
+                "writer.api.bomMvnDeps": {},
+                "writer.services.transitiveCoursierProjects": {},
+                "writer.domainPublic.transitiveCoursierProjects": {},
+                "writer.domainPublic.runMvnDeps": {},
+                "writer.services.mandatoryMvnDeps": {
+                  "writer.services.mandatoryMvnDeps.super.javalib.JavaModule": {}
+                },
+                "writer.api.compileMvnDeps": {},
+                "writer.domainPrivate.depManagement": {},
+                "writer.api.mandatoryMvnDeps": {
+                  "writer.api.mandatoryMvnDeps.super.javalib.JavaModule": {}
+                },
+                "writer.services.bomMvnDeps": {},
+                "writer.services.runMvnDeps": {},
+                "writer.domainPublic.mandatoryMvnDeps": {
+                  "writer.domainPublic.mandatoryMvnDeps.super.javalib.JavaModule": {}
+                },
+                "writer.domainPrivate.runMvnDeps": {},
+                "writer.domainPrivate.mandatoryMvnDeps": {
+                  "writer.domainPrivate.mandatoryMvnDeps.super.javalib.JavaModule": {}
+                },
+                "writer.api.depManagement": {},
+                "writer.services.compileMvnDeps": {},
+                "writer.domainPublic.bomMvnDeps": {},
+                "writer.domainPrivate.bomMvnDeps": {},
+                "writer.domainPublic.depManagement": {},
+                "writer.domainPublic.compileMvnDeps": {},
+                "writer.domainPrivate.transitiveCoursierProjects": {},
+                "writer.domainPrivate.compileMvnDeps": {},
+                "writer.api.transitiveCoursierProjects": {}
+              }
+            }
+          }
+        },
+        "writer.server.upstreamLocalAssemblyClasspath": {
+          "writer.server.transitiveLocalClasspath": {
+            "writer.domainPrivate.localClasspath": {
+              "writer.domainPrivate.localRunClasspath": {
+                "writer.domainPrivate.resources": {},
+                "writer.domainPrivate.localRunClasspath.super.RunModule": {}
+              }
+            },
+            "writer.api.localClasspath": {
+              "writer.api.localRunClasspath": {
+                "writer.api.resources": {},
+                "writer.api.localRunClasspath.super.RunModule": {}
+              }
+            },
+            "writer.services.localClasspath": {
+              "writer.services.localRunClasspath": {
+                "writer.services.resources": {},
+                "writer.services.localRunClasspath.super.RunModule": {}
+              }
+            },
+            "writer.domainPublic.localClasspath": {
+              "writer.domainPublic.localRunClasspath": {
+                "writer.domainPublic.resources": {},
+                "writer.domainPublic.localRunClasspath.super.RunModule": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "writer.server.docker.pullAndHash": {
+      "writer.server.docker.pullBaseImage": {}
+    },
+    "writer.server.docker.platform": {}
+  },
   "ingestion.server.docker.build": {
     "ingestion.server.docker.executable": {},
     "ingestion.server.docker.dockerfile": {
@@ -25,37 +757,21 @@
               "ingestion.domainPrivate.localRunClasspath": {
                 "ingestion.domainPrivate.resources": {},
                 "ingestion.domainPrivate.localRunClasspath.super.RunModule": {}
-              },
-              "ingestion.domainPrivate.localCompileClasspath": {
-                "ingestion.domainPrivate.compileResources": {},
-                "ingestion.domainPrivate.unmanagedClasspath": {}
               }
             },
             "ingestion.api.localClasspath": {
               "ingestion.api.localRunClasspath": {
                 "ingestion.api.localRunClasspath.super.RunModule": {},
                 "ingestion.api.resources": {}
-              },
-              "ingestion.api.localCompileClasspath": {
-                "ingestion.api.compileResources": {},
-                "ingestion.api.unmanagedClasspath": {}
               }
             },
             "ingestion.services.localClasspath": {
               "ingestion.services.localRunClasspath": {
                 "ingestion.services.resources": {},
                 "ingestion.services.localRunClasspath.super.RunModule": {}
-              },
-              "ingestion.services.localCompileClasspath": {
-                "ingestion.services.compileResources": {},
-                "ingestion.services.unmanagedClasspath": {}
               }
             },
             "ingestion.domainPublic.localClasspath": {
-              "ingestion.domainPublic.localCompileClasspath": {
-                "ingestion.domainPublic.unmanagedClasspath": {},
-                "ingestion.domainPublic.compileResources": {}
-              },
               "ingestion.domainPublic.localRunClasspath": {
                 "ingestion.domainPublic.resources": {},
                 "ingestion.domainPublic.localRunClasspath.super.RunModule": {}
@@ -66,20 +782,26 @@
         "ingestion.server.resolvedIvyAssembly": {
           "ingestion.server.upstreamIvyAssemblyClasspath": {
             "ingestion.server.resolvedRunMvnDeps": {
-              "ingestion.domainPrivate.repositories": {},
-              "ingestion.domainPublic.repositories": {},
+              "ingestion.domainPublic.mvnDeps": {},
+              "ingestion.server.bomMvnDeps": {},
               "ingestion.domainPrivate.platformSuffix": {},
+              "ingestion.server.runMvnDeps": {},
               "ingestion.server.mvnDeps": {},
+              "ingestion.api.mvnDeps": {},
               "ingestion.services.platformSuffix": {},
               "ingestion.services.scalaVersion": {},
-              "ingestion.services.repositories": {},
+              "ingestion.server.artifactTypes": {},
+              "ingestion.api.platformSuffix": {},
+              "ingestion.server.depManagement": {},
+              "ingestion.server.compileMvnDeps": {},
+              "ingestion.domainPrivate.mvnDeps": {},
+              "ingestion.api.scalaVersion": {},
               "ingestion.server.transitiveCoursierProjects": {
                 "ingestion.domainPublic.compileMvnDeps": {},
                 "ingestion.domainPublic.transitiveCoursierProjects": {},
                 "ingestion.domainPrivate.compileMvnDeps": {},
                 "ingestion.api.mandatoryMvnDeps": {
-                  "ingestion.api.mandatoryMvnDeps.super.javalib.JavaModule": {},
-                  "ingestion.api.scalaLibraryMvnDeps": {}
+                  "ingestion.api.mandatoryMvnDeps.super.javalib.JavaModule": {}
                 },
                 "ingestion.domainPrivate.depManagement": {},
                 "ingestion.services.runMvnDeps": {},
@@ -88,12 +810,10 @@
                 "ingestion.services.compileMvnDeps": {},
                 "ingestion.api.bomMvnDeps": {},
                 "ingestion.domainPublic.mandatoryMvnDeps": {
-                  "ingestion.domainPublic.mandatoryMvnDeps.super.javalib.JavaModule": {},
-                  "ingestion.domainPublic.scalaLibraryMvnDeps": {}
+                  "ingestion.domainPublic.mandatoryMvnDeps.super.javalib.JavaModule": {}
                 },
                 "ingestion.services.mandatoryMvnDeps": {
-                  "ingestion.services.mandatoryMvnDeps.super.javalib.JavaModule": {},
-                  "ingestion.services.scalaLibraryMvnDeps": {}
+                  "ingestion.services.mandatoryMvnDeps.super.javalib.JavaModule": {}
                 },
                 "ingestion.domainPublic.runMvnDeps": {},
                 "ingestion.domainPrivate.bomMvnDeps": {},
@@ -105,26 +825,11 @@
                 "ingestion.services.transitiveCoursierProjects": {},
                 "ingestion.domainPublic.depManagement": {},
                 "ingestion.domainPrivate.mandatoryMvnDeps": {
-                  "ingestion.domainPrivate.mandatoryMvnDeps.super.javalib.JavaModule": {},
-                  "ingestion.domainPrivate.scalaLibraryMvnDeps": {}
+                  "ingestion.domainPrivate.mandatoryMvnDeps.super.javalib.JavaModule": {}
                 },
                 "ingestion.api.compileMvnDeps": {},
                 "ingestion.domainPrivate.transitiveCoursierProjects": {}
               },
-              "ingestion.domainPublic.mvnDeps": {},
-              "ingestion.server.bomMvnDeps": {},
-              "ingestion.server.runMvnDeps": {},
-              "ingestion.api.mvnDeps": {},
-              "ingestion.server.artifactTypes": {},
-              "ingestion.api.platformSuffix": {},
-              "ingestion.server.depManagement": {},
-              "ingestion.server.checkGradleModules": {},
-              "ingestion.server.compileMvnDeps": {},
-              "ingestion.domainPrivate.mvnDeps": {},
-              "ingestion.api.scalaVersion": {},
-              "ingestion.server.platformSuffix": {},
-              "ingestion.api.repositories": {},
-              "ingestion.server.repositories": {},
               "ingestion.server.mandatoryMvnDeps": {
                 "ingestion.server.mandatoryMvnDeps.super.javalib.JavaModule": {}
               },
@@ -169,6 +874,10 @@
               }
             },
             "ingestion.server.compileClasspath": {
+              "ingestion.domainPublic.localCompileClasspath": {
+                "ingestion.domainPublic.unmanagedClasspath": {},
+                "ingestion.domainPublic.compileResources": {}
+              },
               "ingestion.domainPrivate.compile": {
                 "ingestion.domainPrivate.javacOptions": {},
                 "ingestion.domainPrivate.allScalacOptions": {
@@ -188,7 +897,10 @@
                   }
                 },
                 "ingestion.domainPrivate.zincReportCachedProblems": {},
-                "ingestion.domainPrivate.scalaCompilerClasspath": {},
+                "ingestion.domainPrivate.scalaCompilerClasspath": {
+                  "ingestion.domainPrivate.checkGradleModules": {},
+                  "ingestion.domainPrivate.scalaLibraryMvnDeps": {}
+                },
                 "ingestion.domainPrivate.allSourceFiles": {
                   "ingestion.domainPrivate.allSources": {
                     "ingestion.domainPrivate.sources": {},
@@ -196,8 +908,7 @@
                   }
                 },
                 "ingestion.domainPrivate.scalacPluginClasspath": {
-                  "ingestion.domainPrivate.scalacPluginMvnDeps": {},
-                  "ingestion.domainPrivate.checkGradleModules": {}
+                  "ingestion.domainPrivate.scalacPluginMvnDeps": {}
                 },
                 "ingestion.domainPrivate.zincAuxiliaryClassFileExtensions": {
                   "ingestion.domainPrivate.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
@@ -210,7 +921,6 @@
                 "ingestion.api.zincIncrementalCompilation": {},
                 "ingestion.api.scalaOrganization": {},
                 "ingestion.api.scalacPluginClasspath": {
-                  "ingestion.api.checkGradleModules": {},
                   "ingestion.api.scalacPluginMvnDeps": {}
                 },
                 "ingestion.api.scalaCompilerBridge": {},
@@ -227,7 +937,10 @@
                   }
                 },
                 "ingestion.api.zincReportCachedProblems": {},
-                "ingestion.api.scalaCompilerClasspath": {},
+                "ingestion.api.scalaCompilerClasspath": {
+                  "ingestion.api.checkGradleModules": {},
+                  "ingestion.api.scalaLibraryMvnDeps": {}
+                },
                 "ingestion.api.allScalacOptions": {
                   "ingestion.api.mandatoryScalacOptions": {},
                   "ingestion.api.enablePluginScalacOptions": {},
@@ -244,18 +957,24 @@
                 }
               },
               "ingestion.server.resolvedMvnDeps": {},
+              "ingestion.domainPrivate.localCompileClasspath": {
+                "ingestion.domainPrivate.compileResources": {},
+                "ingestion.domainPrivate.unmanagedClasspath": {}
+              },
               "ingestion.domainPublic.compile": {
                 "ingestion.domainPublic.scalaCompilerBridge": {},
                 "ingestion.domainPublic.zincAuxiliaryClassFileExtensions": {
                   "ingestion.domainPublic.zincAuxiliaryClassFileExtensions.super.javalib.JavaModule": {}
                 },
-                "ingestion.domainPublic.scalaCompilerClasspath": {},
+                "ingestion.domainPublic.scalaCompilerClasspath": {
+                  "ingestion.domainPublic.scalaLibraryMvnDeps": {},
+                  "ingestion.domainPublic.checkGradleModules": {}
+                },
                 "ingestion.domainPublic.javacOptions": {},
                 "ingestion.domainPublic.mandatoryJavacOptions": {},
                 "ingestion.domainPublic.zincIncrementalCompilation": {},
                 "ingestion.domainPublic.zincReportCachedProblems": {},
                 "ingestion.domainPublic.scalacPluginClasspath": {
-                  "ingestion.domainPublic.checkGradleModules": {},
                   "ingestion.domainPublic.scalacPluginMvnDeps": {}
                 },
                 "ingestion.domainPublic.compileClasspath": {
@@ -281,6 +1000,10 @@
                 },
                 "ingestion.domainPublic.upstreamCompileOutput": {}
               },
+              "ingestion.api.localCompileClasspath": {
+                "ingestion.api.compileResources": {},
+                "ingestion.api.unmanagedClasspath": {}
+              },
               "ingestion.services.compile": {
                 "ingestion.services.scalaCompilerBridge": {},
                 "ingestion.services.zincAuxiliaryClassFileExtensions": {
@@ -289,6 +1012,7 @@
                 "ingestion.services.upstreamCompileOutput": {},
                 "ingestion.services.mandatoryJavacOptions": {},
                 "ingestion.services.scalaCompilerClasspath": {
+                  "ingestion.services.scalaLibraryMvnDeps": {},
                   "ingestion.services.checkGradleModules": {}
                 },
                 "ingestion.services.javacOptions": {},
@@ -318,14 +1042,11 @@
                   "ingestion.services.scalacOptions": {},
                   "ingestion.services.enablePluginScalacOptions": {}
                 }
+              },
+              "ingestion.services.localCompileClasspath": {
+                "ingestion.services.compileResources": {},
+                "ingestion.services.unmanagedClasspath": {}
               }
-            },
-            "mill.javalib.JvmWorkerModule/internalWorker": {
-              "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {},
-              "mill.javalib.JvmWorkerModule/checkGradleModules": {},
-              "mill.javalib.JvmWorkerModule/classpath": {},
-              "mill.javalib.JvmWorkerModule/zincLogDebug": {},
-              "mill.javalib.JvmWorkerModule/repositories": {}
             },
             "ingestion.server.scalacPluginClasspath": {
               "ingestion.server.scalacPluginMvnDeps": {}
@@ -333,7 +1054,14 @@
             "ingestion.server.javacOptions": {},
             "ingestion.server.zincReportCachedProblems": {},
             "ingestion.server.scalaCompilerClasspath": {
-              "ingestion.server.scalaLibraryMvnDeps": {}
+              "ingestion.domainPrivate.repositories": {},
+              "ingestion.domainPublic.repositories": {},
+              "ingestion.services.repositories": {},
+              "ingestion.server.platformSuffix": {},
+              "ingestion.api.repositories": {},
+              "ingestion.server.repositories": {},
+              "ingestion.server.scalaLibraryMvnDeps": {},
+              "ingestion.server.checkGradleModules": {}
             }
           },
           "ingestion.server.localRunClasspath.super.RunModule": {},
@@ -347,30 +1075,12 @@
       "ingestion.server.prependShellScript": {
         "ingestion.server.prependShellScript0": {
           "ingestion.server.finalMainClassOpt": {
-            "ingestion.server.allLocalMainClasses": {
-              "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorker": {
-                "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClassloader": {
-                  "mill.javalib.classgraph.ClassgraphWorkerModule/classgraphWorkerClasspath": {
-                    "mill.javalib.classgraph.ClassgraphWorkerModule/repositories": {},
-                    "mill.javalib.classgraph.ClassgraphWorkerModule/checkGradleModules": {}
-                  }
-                }
-              }
-            },
+            "ingestion.server.allLocalMainClasses": {},
             "ingestion.server.mainClass": {}
           },
           "ingestion.server.forkArgs": {},
           "ingestion.server.forkShellArgs": {},
           "ingestion.server.forkCmdArgs": {}
-        }
-      },
-      "mill.javalib.AssemblyModule/jarjarabramsWorker": {
-        "mill.javalib.AssemblyModule/jarjarabramsWorkerClassloader": {
-          "mill.javalib.AssemblyModule/jarjarabramsWorkerClasspath": {
-            "mill.javalib.AssemblyModule/checkGradleModules": {},
-            "mill.javalib.CoursierConfigModule/coursierEnv": {},
-            "mill.javalib.AssemblyModule/repositories": {}
-          }
         }
       }
     },

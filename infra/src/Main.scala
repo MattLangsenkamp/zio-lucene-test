@@ -5,7 +5,7 @@
 //> using dep "org.virtuslab::besom-kubernetes:4.19.0-core.0.5"
 
 import besom.*
-import utils.{S3, K8s, MSK}
+import utils.{S3, K8s, MSK, EKS, AlbIngress}
 import utils.ingestion.Ingestion
 import utils.reader.Reader
 import utils.writer.Writer
@@ -28,6 +28,13 @@ import utils.writer.Writer
     val mskInfra = MSK.createMskInfrastructure()
     val bootstrapServers = mskInfra.cluster.bootstrapBrokers
 
+    // Create EKS cluster in the same VPC as MSK
+    val eksCluster = EKS.createCluster(
+      namePrefix = "zio-lucene",
+      vpcId = mskInfra.vpc.id,
+      subnetIds = List(mskInfra.subnet1.id, mskInfra.subnet2.id)
+    )
+
     // Deploy application services
     val ingestionService = Ingestion.createService(namespaceName)
     val ingestionDeployment = Ingestion.createDeployment(
@@ -49,6 +56,16 @@ import utils.writer.Writer
       bucket.id
     )
 
+    // Set up ALB Ingress for public access
+    val albIngress = AlbIngress.setup(
+      clusterName = eksCluster.clusterName,
+      clusterOidcIssuer = eksCluster.oidcProviderUrl,
+      clusterOidcIssuerArn = eksCluster.oidcProviderArn,
+      namespace = namespaceName,
+      readerServiceName = readerService.metadata.name.map(_.getOrElse("reader")),
+      stackName = stackName
+    )
+
     Stack(
       bucket,
       mskInfra.vpc,
@@ -56,18 +73,22 @@ import utils.writer.Writer
       mskInfra.subnet2,
       mskInfra.securityGroup,
       mskInfra.cluster,
+      eksCluster.cluster,
+      eksCluster.oidcProvider,
       namespace,
       ingestionService,
       ingestionDeployment,
       readerService,
       readerDeployment,
       writerService,
-      writerStatefulSet
+      writerStatefulSet,
+      albIngress
     ).exports(
       bucketName = bucket.id,
       mskClusterArn = mskInfra.cluster.arn,
       mskBootstrapServers = bootstrapServers,
-      k8sNamespace = namespaceName
+      k8sNamespace = namespaceName,
+      eksClusterName = eksCluster.clusterName
     )
   } else {
     // Local stack - S3, K8s namespace, and Kafka in k3d

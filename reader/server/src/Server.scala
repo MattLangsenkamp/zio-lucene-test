@@ -1,7 +1,7 @@
 package app.reader.server
 
 import zio.ZIO
-import zio.ZIOAppDefault
+import zio.ZIOAppDefaultWhyhy
 import zio.http.Server as ZServer
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
 import sttp.tapir.ztapir._

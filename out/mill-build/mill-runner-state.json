@@ -1,22 +1,22 @@
 {
     "workerCache": {
         "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {
-            "identityHashCode": 1246834837,
+            "identityHashCode": 1611640302,
             "inputHash": 1701910573
         },
         "mill.javalib.JvmWorkerModule/internalWorker": {
-            "identityHashCode": 1934841934,
+            "identityHashCode": 990726396,
             "inputHash": 1318909305
         }
     },
     "evalWatched": [
-        "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/src",
-        "/home/mattlang/Documents/projects/zio-lucene-test/build.mill",
         "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/resources",
-        "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/compile-resources"
+        "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/compile-resources",
+        "/home/mattlang/Documents/projects/zio-lucene-test/mill-build/src",
+        "/home/mattlang/Documents/projects/zio-lucene-test/build.mill"
     ],
     "moduleWatched": [],
-    "classLoaderIdentity": 193094452,
+    "classLoaderIdentity": 1200993172,
     "runClasspath": [
         [
             "/home/mattlang/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-libs_3/1.1.0-RC3/mill-libs_3-1.1.0-RC3.jar",

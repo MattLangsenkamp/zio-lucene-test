@@ -12,6 +12,8 @@
       <sourceFolder url="file://$MODULE_DIR$/../../src/utils/ingestion/Ingestion.scala" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../src/utils/reader/Reader.scala" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../src/utils/writer/Writer.scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../src/utils/AlbIngress.scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../src/utils/EKS.scala" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/../../.bloop" />
       <excludeFolder url="file://$MODULE_DIR$/../../.bsp" />
       <excludeFolder url="file://$MODULE_DIR$/../../.scala-build" />
