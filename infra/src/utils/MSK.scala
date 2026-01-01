@@ -4,126 +4,80 @@ import besom.*
 import besom.api.aws.ec2
 import besom.api.aws.msk
 
-object MSK:
-  def createVpc(
-    name: String,
-    cidrBlock: String = "10.0.0.0/16"
-  )(using Context): Output[ec2.Vpc] =
-    ec2.Vpc(
-      NonEmptyString(name).getOrElse("default"),
-      ec2.VpcArgs(
-        cidrBlock = cidrBlock,
-        enableDnsHostnames = true,
-        enableDnsSupport = true
-      )
-    )
+case class MskInput(
+  namePrefix: String = "zio-lucene",
+  vpcId: Output[String],
+  privateSubnet1Id: Output[String],
+  privateSubnet2Id: Output[String],
+  vpcCidrBlock: String = "10.0.0.0/16",
+  kafkaVersion: String = "4.1.x.kraft",
+  numberOfBrokerNodes: Int = 2,
+  instanceType: String = "kafka.m5.large",
+  volumeSize: Int = 10
+)
 
-  def createSubnet(
-    name: String,
-    vpcId: Output[String],
-    cidrBlock: String,
-    availabilityZone: String
-  )(using Context): Output[ec2.Subnet] =
-    ec2.Subnet(
-      NonEmptyString(name).getOrElse("default"),
-      ec2.SubnetArgs(
-        vpcId = vpcId,
-        cidrBlock = cidrBlock,
-        availabilityZone = availabilityZone
-      )
-    )
+case class MskOutput(
+  securityGroup: ec2.SecurityGroup,
+  cluster: msk.Cluster
+)
 
-  def createSecurityGroup(
-    name: String,
-    vpcId: Output[String],
-    description: String = "Security group for MSK cluster"
+object MSK extends Resource[MskInput, MskOutput, Unit, Unit] {
+
+  override def make(inputParams: MskInput)(using Context): Output[MskOutput] =
+    val securityGroup = createSecurityGroup(inputParams)
+    val cluster = createCluster(inputParams, securityGroup.flatMap(_.id))
+
+    securityGroup.zip(cluster).map { case (sg, cl) =>
+      MskOutput(
+        securityGroup = sg,
+        cluster = cl
+      )
+    }
+
+  override def makeLocal(inputParams: Unit)(using Context): Output[Unit] =
+    throw new IllegalStateException("no msk needed locally due to usage of k3d kafka")
+
+  private def createSecurityGroup(
+    params: MskInput
   )(using Context): Output[ec2.SecurityGroup] =
     ec2.SecurityGroup(
-      NonEmptyString(name).getOrElse("default"),
+      s"${params.namePrefix}-msk-sg",
       ec2.SecurityGroupArgs(
-        vpcId = vpcId,
-        description = description,
+        vpcId = params.vpcId,
+        description = "Security group for MSK cluster",
         ingress = List(
           ec2.inputs.SecurityGroupIngressArgs(
             protocol = "tcp",
             fromPort = 9092,
             toPort = 9092,
-            cidrBlocks = List("10.0.0.0/16")
+            cidrBlocks = List(params.vpcCidrBlock)
           )
-        )
+        ),
+        tags = Map("Name" -> s"${params.namePrefix}-msk-sg")
       )
     )
 
-  def createCluster(
-    name: String,
-    clusterName: String,
-    kafkaVersion: String = "4.1.0",
-    numberOfBrokerNodes: Int = 2,
-    instanceType: String = "kafka.t3.small",
-    clientSubnets: List[Output[String]],
-    securityGroups: List[Output[String]],
-    volumeSize: Int = 10
+  private def createCluster(
+    params: MskInput,
+    securityGroupId: Output[String]
   )(using Context): Output[msk.Cluster] =
     msk.Cluster(
-      NonEmptyString.apply(name).getOrElse("default"),
+      s"${params.namePrefix}-msk",
       msk.ClusterArgs(
-        clusterName = clusterName,
-        kafkaVersion = kafkaVersion,
-        numberOfBrokerNodes = numberOfBrokerNodes,
+        clusterName = s"${params.namePrefix}-kafka",
+        kafkaVersion = params.kafkaVersion,
+        numberOfBrokerNodes = params.numberOfBrokerNodes,
         brokerNodeGroupInfo = msk.inputs.ClusterBrokerNodeGroupInfoArgs(
-          instanceType = instanceType,
-          clientSubnets = clientSubnets,
-          securityGroups = securityGroups,
+          instanceType = params.instanceType,
+          clientSubnets = List(params.privateSubnet1Id, params.privateSubnet2Id),
+          securityGroups = List(securityGroupId),
           storageInfo = msk.inputs.ClusterBrokerNodeGroupInfoStorageInfoArgs(
             ebsStorageInfo = msk.inputs.ClusterBrokerNodeGroupInfoStorageInfoEbsStorageInfoArgs(
-              volumeSize = volumeSize
+              volumeSize = params.volumeSize
             )
           )
-        )
+        ),
+        tags = Map("Name" -> s"${params.namePrefix}-kafka")
       )
     )
-
-  case class MskInfrastructure(
-    vpc: Output[ec2.Vpc],
-    subnet1: Output[ec2.Subnet],
-    subnet2: Output[ec2.Subnet],
-    securityGroup: Output[ec2.SecurityGroup],
-    cluster: Output[msk.Cluster]
-  )
-
-  def createMskInfrastructure(
-    namePrefix: String = "zio-lucene",
-    kafkaVersion: String = "4.1.0",
-    numberOfBrokerNodes: Int = 2
-  )(using Context): MskInfrastructure =
-    val vpc = createVpc(s"$namePrefix-vpc")
-
-    val subnet1 = createSubnet(
-      s"$namePrefix-subnet-1",
-      vpc.id,
-      "10.0.1.0/24",
-      "us-east-1a"
-    )
-
-    val subnet2 = createSubnet(
-      s"$namePrefix-subnet-2",
-      vpc.id,
-      "10.0.2.0/24",
-      "us-east-1b"
-    )
-
-    val securityGroup = createSecurityGroup(
-      s"$namePrefix-msk-sg",
-      vpc.id
-    )
-
-    val cluster = createCluster(
-      s"$namePrefix-msk",
-      s"$namePrefix-kafka",
-      kafkaVersion = kafkaVersion,
-      numberOfBrokerNodes = numberOfBrokerNodes,
-      clientSubnets = List(subnet1.id, subnet2.id),
-      securityGroups = List(securityGroup.id)
-    )
-
-    MskInfrastructure(vpc, subnet1, subnet2, securityGroup, cluster)
+}

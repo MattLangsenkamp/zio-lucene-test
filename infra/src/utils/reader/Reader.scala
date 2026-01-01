@@ -36,7 +36,8 @@ object Reader:
     namespace: Output[String],
     bucketName: Output[String],
     replicas: Int = 1,
-    image: String = "reader-server:latest"
+    image: String = "reader-server:latest",
+    imagePullPolicy: String = "IfNotPresent"
   )(using Context): Output[k8s.apps.v1.Deployment] =
     k8s.apps.v1.Deployment(
       "reader-deployment",
@@ -59,7 +60,7 @@ object Reader:
                 k8s.core.v1.inputs.ContainerArgs(
                   name = "reader",
                   image = image,
-                  imagePullPolicy = "IfNotPresent",
+                  imagePullPolicy = imagePullPolicy,
                   ports = List(
                     k8s.core.v1.inputs.ContainerPortArgs(
                       containerPort = 8080,

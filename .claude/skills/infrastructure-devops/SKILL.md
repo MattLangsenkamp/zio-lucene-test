@@ -59,22 +59,27 @@ kubectl exec -it kafka-0 -n zio-lucene -- kafka-topics.sh --list --bootstrap-ser
 
 For detailed information, see the reference files:
 
+- **[besom-patterns.md](references/besom-patterns.md)**: Output handling, for-comprehensions, Resource trait pattern, function signatures, Stack construction
+- **[design-decisions.md](references/design-decisions.md)**: Fail-fast error handling, Output[T] patterns, port mapping, StatefulSet usage, k3d image management, HTTPS/DNS configuration
 - **[project-architecture.md](references/project-architecture.md)**: Service details, deployment patterns, infrastructure components, adding new services
-- **[environment-config.md](references/environment-config.md)**: STACK_ENV pattern, environment variables, bootstrap servers, Kafka configuration
-- **[besom-patterns.md](references/besom-patterns.md)**: Output handling, resource organization, common K8s patterns, multi-project setup
+- **[environment-config.md](references/environment-config.md)**: Stack environment configuration, Pulumi config patterns, bootstrap servers, Kafka configuration
 - **[local-development.md](references/local-development.md)**: Setup, testing, debugging, troubleshooting commands
-- **[future-enhancements.md](references/future-enhancements.md)**: ConfigMaps, Ingress, IRSA, HPA, monitoring, and other roadmap items
 - **[eks-best-practices.md](references/eks-best-practices.md)**: EKS configuration patterns
 - **[msk-configuration.md](references/msk-configuration.md)**: MSK setup and configuration
 - **[iam-roles.md](references/iam-roles.md)**: IAM role patterns and IRSA
+- **[future-enhancements.md](references/future-enhancements.md)**: ConfigMaps, Ingress, IRSA, HPA, monitoring, and other roadmap items
 
 ## Key Patterns
 
-### STACK_ENV Configuration
+### Stack Environment Configuration
 ```scala
-val stackName = sys.env.getOrElse("STACK_ENV", "local")
+val stackName = sys.env.get("PULUMI_STACK").getOrElse {
+  throw new RuntimeException("PULUMI_STACK environment variable is not set. This should be set automatically by Pulumi CLI.")
+}
 val isLocal = stackName == "local"
 ```
+
+The `PULUMI_STACK` environment variable is automatically set by Pulumi CLI to match the current stack name (local, dev, prod). The code fails fast if this variable is not set.
 
 ### Bootstrap Servers
 - **Local**: `kafka-0.kafka.zio-lucene.svc.cluster.local:9092`

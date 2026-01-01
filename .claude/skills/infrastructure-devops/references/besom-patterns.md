@@ -1,38 +1,197 @@
 # Besom/Pulumi Patterns
 
-## Output Handling
+## Output Handling Philosophy
 
 Besom uses `Output[T]` for values that won't be known until deployment. Outputs are similar to Futures/Promises but are specific to Pulumi's execution model.
 
+### Core Principle: Pass Output[T] Directly to Resource Constructors
+
+**CRITICAL**: Resource creation functions should accept `Output[T]` parameters and pass them directly to resource constructors. This allows Pulumi to build the correct dependency graph and enables preview mode.
+
+Reference: https://virtuslab.github.io/besom/docs/io/
+
+```scala
+// ✅ GOOD - Functions taking Output parameters
+def createDeployment(
+  namespace: Output[String],
+  bootstrapServers: Output[String],
+  bucketName: Output[String]
+): Output[Deployment] =
+  k8s.apps.v1.Deployment(
+    "my-deployment",
+    k8s.apps.v1.DeploymentArgs(
+      metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+        name = "my-app",
+        namespace = namespace  // Pass Output[String] directly
+      ),
+      spec = k8s.apps.v1.inputs.DeploymentSpecArgs(
+        template = k8s.core.v1.inputs.PodTemplateSpecArgs(
+          spec = k8s.core.v1.inputs.PodSpecArgs(
+            containers = List(
+              k8s.core.v1.inputs.ContainerArgs(
+                env = List(
+                  k8s.core.v1.inputs.EnvVarArgs(
+                    name = "KAFKA_SERVERS",
+                    value = bootstrapServers  // Pass Output[String] directly
+                  ),
+                  k8s.core.v1.inputs.EnvVarArgs(
+                    name = "BUCKET",
+                    value = bucketName  // Pass Output[String] directly
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+
+// ❌ BAD - Unwrapping in for-comp before passing
+def createDeployment(
+  namespace: String,  // Unwrapped - loses dependency information
+  bootstrapServers: String,
+  bucketName: String
+): Output[Deployment] = ???
+```
+
+**Why?** This pattern ensures:
+1. Pulumi can build the correct dependency graph automatically
+2. Preview mode works correctly (no values are actually resolved)
+3. Resources can be created in parallel when possible
+4. Dependencies are implicit in the Output chain
+
+### When to Use For-Comprehensions
+
+Use for-comprehensions ONLY when you need:
+1. **Actual resource objects for dependsOn/parent relationships**
+2. **Combining multiple Outputs for the final result**
+
+```scala
+// ✅ GOOD - Pass Outputs directly, no unwrapping needed
+val deployment = Service.createDeployment(
+  namespace = namespaceOutput,        // Pass Output[String] directly
+  bootstrapServers = serversOutput,   // Pass Output[String] directly
+  bucketId = bucketIdOutput           // Pass Output[String] directly
+)
+
+// ✅ GOOD - Use for-comp when you need actual resource object
+val namespace = for {
+  eks <- eksCluster  // Need actual Cluster object for dependsOn
+  ns <- K8s.createNamespace("my-ns", Some(eks.cluster))
+} yield ns
+
+// ✅ GOOD - Use for-comp to combine Outputs for final result
+val output = for {
+  vpc <- vpcResource
+  sg <- securityGroup
+  cluster <- clusterResource
+} yield MyOutput(
+  vpc = vpc,      // Need actual resource objects
+  sg = sg,        // Not Output[Resource]
+  cluster = cluster
+)
+
+// ❌ BAD - Never yield Stack from for-comp
+val stack = for {
+  bucket <- S3.createBucket("segments")
+  vpc <- Vpc.make(VpcInput())
+} yield Stack(bucket, vpc, ...)  // Produces Output[Stack] - won't compile!
+
+// ✅ GOOD - Construct Stack directly
+Stack(
+  bucket,    // Output[Bucket]
+  vpcOutput, // Output[VpcOutput]
+  // ...
+)
+```
+
+### Fail Fast on Optional Values
+
+When extracting optional values from resources, fail fast with clear error messages:
+
+```scala
+// Pattern: Extract optional field from resource
+val resource = createResource()
+val fieldOpt = resource.flatMap(_.metadata.flatMap(_.someField))
+val fieldOutput = fieldOpt.getOrElse {
+  throw new RuntimeException("Failed to get required field from resource")
+}
+
+// Now use in for-comprehensions
+val dependent = for {
+  field <- fieldOutput  // Unwraps to concrete type
+  result <- doSomething(field)
+} yield result
+```
+
+### Complete Pattern: Building Resources
+
+```scala
+// 1. Create base resources (returns Output[Resource])
+val bucket = S3.createBucket("segments")
+val vpcOutput = Vpc.make(VpcInput())
+
+// 2. Extract primitive values using flatMap/map (returns Output[String/Int/etc])
+val bucketId = bucket.flatMap(_.id)
+val vpcId = vpcOutput.flatMap(_.vpc.id)
+
+// 3. Extract optional values with fail-fast
+val resourceOpt = resource.flatMap(_.metadata.flatMap(_.name))
+val resourceName = resourceOpt.getOrElse {
+  throw new RuntimeException("Missing required field")
+}
+
+// 4. Build dependent resources - pass Outputs directly!
+val dependent = createDependentResource(
+  id = bucketId,        // Pass Output[String] directly
+  vpc = vpcId,          // Pass Output[String] directly
+  name = resourceName   // Pass Output[String] directly
+)
+
+// 5. For resources needing actual objects (dependsOn/parent), use for-comp
+val namespace = for {
+  eks <- eksCluster  // Unwrap to get actual Cluster object
+  ns <- K8s.createNamespace("my-ns", Some(eks.cluster))
+} yield ns
+
+// 6. Construct Stack directly (NOT in for-comp)
+Stack(
+  bucket,
+  vpcOutput,
+  dependent
+).exports(
+  bucketId = bucketId,
+  vpcId = vpcId
+)
+```
+
 ### Transforming Outputs
 
-Use `.map()` to transform Output values:
 ```scala
-val namespace = K8s.createNamespace("zio-lucene")
-val namespaceName = namespace.metadata.name.map(_.getOrElse("zio-lucene"))
-```
+// Simple transformation with .map()
+val upperName = nameOutput.map(_.toUpperCase)
 
-### Passing Outputs to Resources
+// Chaining with .flatMap() (when field is Output[T])
+val bucketId = bucket.flatMap(_.id)        // bucket.id is Output[String]
+val vpcId = vpcOutput.flatMap(_.vpc.id)    // vpc.id is Output[String]
 
-Outputs can be passed directly to other resource constructors:
-```scala
-val service = createService(namespaceName)  // namespaceName is Output[String]
-```
+// Accessing resource objects with .map()
+val vpc = vpcOutput.map(_.vpc)             // vpc is Resource
+val subnet1 = vpcOutput.map(_.publicSubnet1)  // subnet is Resource
 
-### Combining Multiple Outputs
-
-Use `Output.all()` or for-comprehensions:
-```scala
-// Using Output.all
-val combined = Output.all(output1, output2).map { case (val1, val2) =>
+// Combining multiple Outputs with .zip()
+val combined = output1.zip(output2).map { case (val1, val2) =>
   s"$val1-$val2"
 }
 
-// Using for-comprehension (in ZIO style)
-val result = for {
-  val1 <- output1
-  val2 <- output2
-} yield s"$val1-$val2"
+// Combining many Outputs for a result
+val securityGroup = createSecurityGroup(params)
+val cluster = createCluster(params, securityGroup.flatMap(_.id))
+
+securityGroup.zip(cluster).map { case (sg, cl) =>
+  MyOutput(securityGroup = sg, cluster = cl)
+}
 ```
 
 ## Resource Organization
@@ -53,21 +212,151 @@ Separate infrastructure concerns into focused modules:
 
 ### Standard Service Module Pattern
 
-Each service module should provide:
+Each service module should provide functions that accept Output parameters:
+
 ```scala
 object ServiceName:
   // Creates Kubernetes Service resource
   def createService(
-    namespace: Output[String],
+    namespace: Output[String],  // ✅ Output[String] for dependency tracking
     port: Int = <default-port>
-  )(using Context): Output[k8s.core.v1.Service] = ???
+  )(using Context): Output[k8s.core.v1.Service] =
+    k8s.core.v1.Service(
+      "service-name-service",
+      k8s.core.v1.ServiceArgs(
+        metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+          name = "service-name",
+          namespace = namespace,  // Pass Output[String] directly
+          labels = Map("app" -> "service-name")
+        ),
+        spec = k8s.core.v1.inputs.ServiceSpecArgs(
+          selector = Map("app" -> "service-name"),
+          ports = List(
+            k8s.core.v1.inputs.ServicePortArgs(
+              port = port,
+              targetPort = 8080
+            )
+          )
+        )
+      )
+    )
 
   // Creates Deployment or StatefulSet
   def createDeployment(
-    namespace: Output[String],
-    // ... other dependencies
-  )(using Context): Output[k8s.apps.v1.Deployment] = ???
+    namespace: Output[String],        // ✅ Output[String]
+    bootstrapServers: Output[String], // ✅ Output[String]
+    bucketName: Output[String],       // ✅ Output[String]
+    replicas: Int = 1,
+    image: String = "default:latest",
+    imagePullPolicy: String = "IfNotPresent"
+  )(using Context): Output[k8s.apps.v1.Deployment] =
+    k8s.apps.v1.Deployment(
+      "service-name-deployment",
+      k8s.apps.v1.DeploymentArgs(
+        metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+          name = "service-name",
+          namespace = namespace  // Pass Output[String] directly
+        ),
+        spec = k8s.apps.v1.inputs.DeploymentSpecArgs(
+          template = k8s.core.v1.inputs.PodTemplateSpecArgs(
+            spec = k8s.core.v1.inputs.PodSpecArgs(
+              containers = List(
+                k8s.core.v1.inputs.ContainerArgs(
+                  image = image,
+                  env = List(
+                    k8s.core.v1.inputs.EnvVarArgs(
+                      name = "KAFKA_BOOTSTRAP_SERVERS",
+                      value = bootstrapServers  // Pass Output[String] directly
+                    ),
+                    k8s.core.v1.inputs.EnvVarArgs(
+                      name = "BUCKET_NAME",
+                      value = bucketName  // Pass Output[String] directly
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
 ```
+
+**Pattern**: Functions return `Output[Resource]` and accept `Output[T]` parameters for values that come from other resources. The caller passes Outputs directly without unwrapping.
+
+### Resource Trait Pattern
+
+For infrastructure that needs environment-specific behavior, use the Resource trait:
+
+```scala
+// 1. Define input case class with Output[T] fields
+case class MyResourceInput(
+  vpcId: Output[String],
+  subnetIds: List[Output[String]]
+)
+
+// 2. Define output case class with actual resource objects
+case class MyResourceOutput(
+  resource: aws.someservice.Resource,
+  securityGroup: aws.ec2.SecurityGroup
+)
+
+// 3. Implement Resource trait
+object MyResource extends Resource[MyResourceInput, MyResourceOutput]:
+  // For cloud environments (dev/prod)
+  // Keep make() method SIMPLE - delegate to private functions
+  def make(input: MyResourceInput)(using Context): Output[MyResourceOutput] =
+    val securityGroup = createSecurityGroup(input)
+    val resource = createResource(input, securityGroup.flatMap(_.id))
+
+    securityGroup.zip(resource).map { case (sg, res) =>
+      MyResourceOutput(
+        resource = res,
+        securityGroup = sg
+      )
+    }
+
+  // Private functions accept Output[T] and pass them directly
+  private def createSecurityGroup(input: MyResourceInput)(using Context): Output[aws.ec2.SecurityGroup] =
+    aws.ec2.SecurityGroup(
+      "my-sg",
+      aws.ec2.SecurityGroupArgs(
+        vpcId = input.vpcId,  // Pass Output[String] directly
+        // ...
+      )
+    )
+
+  private def createResource(
+    input: MyResourceInput,
+    securityGroupId: Output[String]
+  )(using Context): Output[aws.someservice.Resource] =
+    aws.someservice.Resource(
+      "my-resource",
+      aws.someservice.ResourceArgs(
+        securityGroups = List(securityGroupId),  // Pass Output[String] directly
+        // ...
+      )
+    )
+
+  // For local environment
+  // PREFER: Implement in terms of make() when possible
+  def makeLocal(input: MyResourceInput)(using Context): Output[MyResourceOutput] =
+    make(input)  // Reuse cloud implementation if no differences needed
+```
+
+**Usage in Main.scala:**
+```scala
+if (!isLocal) {
+  val myResource = MyResource.make(MyResourceInput(vpcId, subnetIds))
+} else {
+  val myResource = MyResource.makeLocal(MyResourceInput(vpcId, subnetIds))
+}
+```
+
+**Why implement makeLocal in terms of make?**
+- Reduces duplication
+- Ensures consistency between environments
+- Only add complexity when there's a real environmental difference
 
 ## Stack Exports
 
@@ -87,9 +376,11 @@ These exports can be:
 
 ## Environment-Specific Logic
 
-Use environment variables to drive conditional infrastructure:
+Use the `PULUMI_STACK` environment variable (automatically set by Pulumi CLI) to drive conditional infrastructure:
 ```scala
-val stackName = sys.env.getOrElse("STACK_ENV", "local")
+val stackName = sys.env.get("PULUMI_STACK").getOrElse {
+  throw new RuntimeException("PULUMI_STACK environment variable is not set. This should be set automatically by Pulumi CLI.")
+}
 val isLocal = stackName == "local"
 
 if (!isLocal) {

@@ -1,0 +1,4 @@
+config:
+  zio-lucene-infra:hostedZoneId: Z09722571DSCDPR3Y2KK1
+  zio-lucene-infra:domain: zio-lucent-test.com
+  zio-lucene-infra:certificateArn: arn:aws:acm:us-east-1:853236864732:certificate/36ddc249-98fd-431f-8606-a26e56b2f343

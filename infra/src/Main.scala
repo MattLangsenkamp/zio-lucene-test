@@ -5,76 +5,168 @@
 //> using dep "org.virtuslab::besom-kubernetes:4.19.0-core.0.5"
 
 import besom.*
-import utils.{S3, K8s, MSK, EKS, AlbIngress}
+import besom.internal.Context
+import utils.*
 import utils.ingestion.Ingestion
 import utils.reader.Reader
 import utils.writer.Writer
 
 @main def main = Pulumi.run {
-  val stackName = sys.env.getOrElse("STACK_ENV", "local")
+  // Get stack name - PULUMI_STACK env var is set by Pulumi CLI
+  val stackName = sys.env.getOrElse(
+    "PULUMI_STACK",
+    throw new RuntimeException(
+      "PULUMI_STACK environment variable is not set. This should be set automatically by Pulumi CLI."
+    )
+  )
   val isLocal = stackName == "local"
 
-  // Create S3 bucket
-  val bucket = S3.createBucket("segments")
-
-  // Create Kubernetes namespace
-  val namespace = K8s.createNamespace("zio-lucene")
-  val namespaceName = namespace.metadata.name.map(_.getOrElse("zio-lucene"))
+  // Get Pulumi config (using project name as namespace)
+  val config = Config("zio-lucene-infra")
+  val hostedZoneId = config.get[String]("hostedZoneId")
+  val baseDomain = config.get[String]("domain")
+  val certificateArn = config.get[String]("certificateArn")
 
   // Only create MSK resources for non-local environments (dev/prod)
   // For local development, use plain Kafka in k3d instead
   if (!isLocal) {
-    // Create MSK infrastructure
-    val mskInfra = MSK.createMskInfrastructure()
-    val bootstrapServers = mskInfra.cluster.bootstrapBrokers
+    // 1. Create S3 bucket
+    val bucket = S3.createBucket("segments")
+    val bucketId = bucket.flatMap(_.id)
 
-    // Create EKS cluster in the same VPC as MSK
-    val eksCluster = EKS.createCluster(
-      namePrefix = "zio-lucene",
-      vpcId = mskInfra.vpc.id,
-      subnetIds = List(mskInfra.subnet1.id, mskInfra.subnet2.id)
+    // 2. Create VPC with public/private subnets, IGW, NAT
+    val vpcOutput = Vpc.make(VpcInput())
+
+    // 3. Create MSK cluster in private subnets
+    val mskOutput =
+      for {
+        vpcDetails <- vpcOutput
+        mskDetails <- MSK.make(
+          MskInput(
+            vpcId = vpcDetails.vpc.id,
+            privateSubnet1Id = vpcDetails.privateSubnet1.id,
+            privateSubnet2Id = vpcDetails.privateSubnet2.id
+          )
+        )
+      } yield mskDetails
+    val bootstrapServers = mskOutput.flatMap(_.cluster.bootstrapBrokers)
+
+    // 4. Create EKS cluster with public subnets (for worker nodes)
+    val eksCluster = for {
+      vpcOut <- vpcOutput
+      eks <- EKS.make(
+        EksInput(
+          namePrefix = "zio-lucene",
+          vpcId = vpcOut.vpc.id,
+          subnetIds = List(vpcOut.publicSubnet1.id, vpcOut.publicSubnet2.id)
+        )
+      )
+    } yield eks
+    val clusterName = eksCluster.map(_.clusterName)
+
+    // 5. Create aws-auth ConfigMap so nodes can join the cluster
+    val awsAuthConfigMap =
+      for {
+        eks <- eksCluster
+        configMap <- K8s.createAwsAuthConfigMap(
+          eks.nodeRoleArn,
+          eks.nodeGroup
+        )
+      } yield configMap
+
+    // 6. Create Kubernetes namespace (for EKS cluster)
+    val namespace =
+      for {
+        eks <- eksCluster
+        ns <- K8s.createNamespace("zio-lucene", eks.cluster, eks.nodeGroup)
+      } yield ns
+    val namespaceNameOpt = namespace.flatMap(_.metadata.flatMap(_.name))
+    val namespaceNameOutput = namespaceNameOpt.getOrElse {
+      throw new RuntimeException(
+        "Failed to get namespace name from created namespace resource"
+      )
+    }
+
+    // 7. Deploy application services with Docker Hub images
+    val ingestionService = Ingestion.createService(
+      namespace = namespaceNameOutput
     )
 
-    // Deploy application services
-    val ingestionService = Ingestion.createService(namespaceName)
     val ingestionDeployment = Ingestion.createDeployment(
-      namespaceName,
-      bootstrapServers,
-      bucket.id
+      namespace = namespaceNameOutput,
+      kafkaBootstrapServers = bootstrapServers,
+      bucketName = bucketId,
+      image = "mattlangsenkamp/ingestion-server:latest",
+      imagePullPolicy = "Always"
     )
 
-    val readerService = Reader.createService(namespaceName)
+    val readerService = Reader.createService(
+      namespace = namespaceNameOutput
+    )
+
     val readerDeployment = Reader.createDeployment(
-      namespaceName,
-      bucket.id
+      namespace = namespaceNameOutput,
+      bucketName = bucketId,
+      image = "mattlangsenkamp/reader-server:latest",
+      imagePullPolicy = "Always"
     )
 
-    val writerService = Writer.createService(namespaceName)
+    val writerService = Writer.createService(
+      namespace = namespaceNameOutput
+    )
+
     val writerStatefulSet = Writer.createStatefulSet(
-      namespaceName,
-      bootstrapServers,
-      bucket.id
+      namespace = namespaceNameOutput,
+      kafkaBootstrapServers = bootstrapServers,
+      bucketName = bucketId,
+      image = "mattlangsenkamp/writer-server:latest",
+      imagePullPolicy = "Always"
     )
 
-    // Set up ALB Ingress for public access
-    val albIngress = AlbIngress.setup(
-      clusterName = eksCluster.clusterName,
-      clusterOidcIssuer = eksCluster.oidcProviderUrl,
-      clusterOidcIssuerArn = eksCluster.oidcProviderArn,
-      namespace = namespaceName,
-      readerServiceName = readerService.metadata.name.map(_.getOrElse("reader")),
-      stackName = stackName
-    )
+    // 8. Set up ALB Ingress for public access
+    val readerServiceNameOpt = readerService.metadata.name
+    val readerServiceName = readerServiceNameOpt.getOrElse {
+      throw new RuntimeException(
+        "Failed to get reader service name from created service resource"
+      )
+    }
+
+    val albIngress =
+      for {
+        eks <- eksCluster
+        albIngress <- AlbIngress.make(
+          AlbIngressInput(
+            eksCluster = eks.cluster,
+            clusterName = eks.clusterName,
+            clusterOidcIssuer = eks.oidcProviderUrl,
+            clusterOidcIssuerArn = eks.oidcProviderArn,
+            namespace = namespaceNameOutput,
+            readerServiceName = readerServiceName,
+            stackName = stackName,
+            hostedZoneIdConfig = hostedZoneId,
+            baseDomainConfig = baseDomain,
+            certificateArnConfig = certificateArn
+          )
+        )
+      } yield albIngress
 
     Stack(
       bucket,
-      mskInfra.vpc,
-      mskInfra.subnet1,
-      mskInfra.subnet2,
-      mskInfra.securityGroup,
-      mskInfra.cluster,
-      eksCluster.cluster,
-      eksCluster.oidcProvider,
+      vpcOutput.map(_.vpc),
+      vpcOutput.map(_.publicSubnet1),
+      vpcOutput.map(_.publicSubnet2),
+      vpcOutput.map(_.privateSubnet1),
+      vpcOutput.map(_.privateSubnet2),
+      vpcOutput.map(_.internetGateway),
+      vpcOutput.map(_.natGateway),
+      vpcOutput.map(_.publicRouteTable),
+      vpcOutput.map(_.privateRouteTable),
+      mskOutput.map(_.securityGroup),
+      mskOutput.map(_.cluster),
+      eksCluster.map(_.cluster),
+      awsAuthConfigMap,
+      eksCluster.map(_.nodeGroup),
+      albIngress.map(_.oidcProvider),
       namespace,
       ingestionService,
       ingestionDeployment,
@@ -82,56 +174,82 @@ import utils.writer.Writer
       readerDeployment,
       writerService,
       writerStatefulSet,
-      albIngress
-    ).exports(
-      bucketName = bucket.id,
-      mskClusterArn = mskInfra.cluster.arn,
-      mskBootstrapServers = bootstrapServers,
-      k8sNamespace = namespaceName,
-      eksClusterName = eksCluster.clusterName
+      albIngress.map(_.policy),
+      albIngress.map(_.role),
+      albIngress.map(_.serviceAccount),
+      albIngress.map(_.helmRelease),
+      albIngress.map(_.ingress)
     )
+      .exports(
+        bucketName = bucketId,
+        mskClusterArn = mskOutput.map(_.cluster.arn),
+        mskBootstrapServers = bootstrapServers,
+        k8sNamespace = namespaceNameOutput,
+        eksClusterName = clusterName
+      )
   } else {
     // Local stack - S3, K8s namespace, and Kafka in k3d
 
-    // Create Kafka Service
+    // 1. Create S3 bucket
+    val bucket = S3.createBucket("segments")
+    val bucketId = bucket.flatMap(_.id)
+
+    // 2. Create Kubernetes namespace (for k3d cluster)
+    val namespace = K8s.createNamespace("zio-lucene", None)
+    val namespaceNameOpt = namespace.metadata.name
+    val namespaceNameOut = namespaceNameOpt.getOrElse {
+      throw new RuntimeException(
+        "Failed to get namespace name from created namespace resource"
+      )
+    }
+
+    // 3. Create Kafka Service
     val kafkaService = K8s.createHeadlessService(
-      "kafka",
-      namespaceName,
-      Map("app" -> "kafka"),
-      9092,
-      "kafka"
+      name = "kafka",
+      namespace = namespaceNameOut,
+      selector = Map("app" -> "kafka"),
+      port = 9092,
+      portName = "kafka"
     )
 
-    // Create Kafka StatefulSet (KRaft mode - no ZooKeeper needed for Kafka 4.x)
+    // 4. Create Kafka StatefulSet (KRaft mode - no ZooKeeper needed for Kafka 4.x)
     val kafkaStatefulSet = K8s.createKafkaStatefulSet(
-      "kafka",
-      namespaceName,
-      "kafka"
+      name = "kafka",
+      namespace = namespaceNameOut,
+      serviceName = "kafka"
     )
 
-    val bootstrapServers = Output("kafka-0.kafka.zio-lucene.svc.cluster.local:9092")
+    val bootstrapServers = "kafka-0.kafka.zio-lucene.svc.cluster.local:9092"
 
-    // Deploy application services
-    val ingestionService = Ingestion.createService(namespaceName)
+    // 5. Deploy application services
+    val ingestionService = Ingestion.createService(
+      namespace = namespaceNameOut
+    )
+
     val ingestionDeployment = Ingestion.createDeployment(
-      namespaceName,
-      bootstrapServers,
-      bucket.id
+      namespace = namespaceNameOut,
+      kafkaBootstrapServers = Output(bootstrapServers),
+      bucketName = bucketId
     )
 
-    val readerService = Reader.createService(namespaceName)
+    val readerService = Reader.createService(
+      namespace = namespaceNameOut
+    )
+
     val readerDeployment = Reader.createDeployment(
-      namespaceName,
-      bucket.id
+      namespace = namespaceNameOut,
+      bucketName = bucketId
     )
 
-    val writerService = Writer.createService(namespaceName)
+    val writerService = Writer.createService(
+      namespace = namespaceNameOut
+    )
+
     val writerStatefulSet = Writer.createStatefulSet(
-      namespaceName,
-      bootstrapServers,
-      bucket.id
+      namespace = namespaceNameOut,
+      kafkaBootstrapServers = Output(bootstrapServers),
+      bucketName = bucketId
     )
-
     Stack(
       bucket,
       namespace,
@@ -144,8 +262,8 @@ import utils.writer.Writer
       writerService,
       writerStatefulSet
     ).exports(
-      bucketName = bucket.id,
-      k8sNamespace = namespaceName,
+      bucketName = bucketId,
+      k8sNamespace = namespaceNameOut,
       kafkaBootstrapServers = bootstrapServers
     )
   }

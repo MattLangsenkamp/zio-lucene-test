@@ -1,9 +1,13 @@
-.PHONY: local-dev dev prod check-local-deps start-local-env delete-local-volume import-images logs health build-apps
+.PHONY: local-dev local-down dev dev-down prod prod-down dev-preview check-local-deps start-local-env delete-local-volume import-images logs health build-apps dockerhub-push dockerhub-full kubeconfig-dev kubeconfig-prod list-eks-clusters list-nodegroups check-aws-resources
 
 # Configuration
 LOCALSTACK_VOLUME = zio-lucene-localstack-data
 K3D_CLUSTER_NAME = zio-lucene
 NAMESPACE = zio-lucene
+DOCKERHUB_USER = mattlangsenkamp
+TAG ?= latest
+EKS_CLUSTER_NAME = zio-lucene-cluster
+AWS_REGION = us-east-1
 
 # Check all local dependencies are installed
 check-local-deps:
@@ -97,10 +101,39 @@ import-images:
 	@k3d image import writer-server:latest -c $(K3D_CLUSTER_NAME) 2>/dev/null || echo "⚠️  writer-server:latest not found"
 	@echo "✅ Images imported"
 
+# Push Docker images to Docker Hub (usage: make dockerhub-push TAG=v1.0.0)
+dockerhub-push:
+	@echo "Logging into Docker Hub..."
+	docker login
+	@echo ""
+	@echo "Tagging and pushing images to Docker Hub as $(DOCKERHUB_USER)/*:$(TAG)..."
+	@echo "Tagging ingestion-server..."
+	docker tag ingestion-server:latest $(DOCKERHUB_USER)/ingestion-server:$(TAG)
+	@echo "Pushing ingestion-server..."
+	docker push $(DOCKERHUB_USER)/ingestion-server:$(TAG)
+	@echo ""
+	@echo "Tagging reader-server..."
+	docker tag reader-server:latest $(DOCKERHUB_USER)/reader-server:$(TAG)
+	@echo "Pushing reader-server..."
+	docker push $(DOCKERHUB_USER)/reader-server:$(TAG)
+	@echo ""
+	@echo "Tagging writer-server..."
+	docker tag writer-server:latest $(DOCKERHUB_USER)/writer-server:$(TAG)
+	@echo "Pushing writer-server..."
+	docker push $(DOCKERHUB_USER)/writer-server:$(TAG)
+	@echo ""
+	@echo "✅ All images pushed to Docker Hub"
+	@echo "   - $(DOCKERHUB_USER)/ingestion-server:$(TAG)"
+	@echo "   - $(DOCKERHUB_USER)/reader-server:$(TAG)"
+	@echo "   - $(DOCKERHUB_USER)/writer-server:$(TAG)"
+
+# Build and push Docker images to Docker Hub in one command
+dockerhub-full: build-apps dockerhub-push
+
 local-dev-up:
 	@echo "Deploying to local environment..."
 	cd infra && pulumi stack select local
-	cd infra && STACK_ENV=local pulumi up
+	cd infra && pulumi up
 
 # Deploy to local environment
 local-dev: start-local-env import-images local-dev-up
@@ -108,22 +141,79 @@ local-dev: start-local-env import-images local-dev-up
 dev:
 	@echo "Deploying to dev environment..."
 	cd infra && pulumi stack select dev
-	cd infra && STACK_ENV=dev pulumi up
+	cd infra && pulumi up
+
+dev-down:
+	@echo "Destroying dev environment..."
+	cd infra && pulumi stack select dev
+	cd infra && pulumi destroy
 
 prod:
 	@echo "Deploying to prod environment..."
 	cd infra && pulumi stack select prod
-	cd infra && STACK_ENV=prod pulumi up --yes
+	cd infra && pulumi up --yes
+
+prod-down:
+	@echo "Destroying prod environment..."
+	cd infra && pulumi stack select prod
+	cd infra && pulumi destroy
+
+dev-preview:
+	@echo "Previewing to dev environment..."
+	cd infra && pulumi stack select dev
+	cd infra && pulumi preview
+
+# Set kubeconfig for dev EKS cluster
+kubeconfig-dev:
+	@echo "Setting kubeconfig for dev EKS cluster..."
+	aws eks update-kubeconfig --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME)
+	@echo "✅ Kubeconfig updated for dev cluster"
+	@echo ""
+	kubectl config current-context
+	@echo ""
+	kubectl get nodes
+
+# Set kubeconfig for prod EKS cluster
+kubeconfig-prod:
+	@echo "Setting kubeconfig for prod EKS cluster..."
+	aws eks update-kubeconfig --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME)
+	@echo "✅ Kubeconfig updated for prod cluster"
+	@echo ""
+	kubectl config current-context
+	@echo ""
+	kubectl get nodes
+
+# List all EKS clusters
+list-eks-clusters:
+	@echo "Listing all EKS clusters in region $(AWS_REGION)..."
+	@aws eks list-clusters --region $(AWS_REGION) --output table
+
+# List node groups for a cluster (usage: make list-nodegroups CLUSTER=zio-lucene-cluster)
+list-nodegroups:
+	@if [ -z "$(CLUSTER)" ]; then \
+		echo "Listing node groups for default cluster: $(EKS_CLUSTER_NAME)..."; \
+		aws eks list-nodegroups --region $(AWS_REGION) --cluster-name $(EKS_CLUSTER_NAME) --output table; \
+	else \
+		echo "Listing node groups for cluster: $(CLUSTER)..."; \
+		aws eks list-nodegroups --region $(AWS_REGION) --cluster-name $(CLUSTER) --output table; \
+	fi
+
+# Check for dangling AWS resources
+check-aws-resources:
+	@AWS_REGION=$(AWS_REGION) PROJECT_NAME=zio-lucene ./bin/check-aws-resources.sh
 
 # Helper targets
 local-preview: start-local-env
 	cd infra && pulumi stack select local
-	cd infra && STACK_ENV=local pulumi preview
+	cd infra && pulumi preview
 
 local-destroy:
 	@echo "Destroying local stack..."
 	cd infra && pulumi stack select local
-	cd infra && STACK_ENV=local pulumi destroy
+	cd infra && pulumi destroy
+
+# Alias for local-destroy
+local-down: local-destroy
 
 stop-local-env:
 	@echo "Stopping local environment..."

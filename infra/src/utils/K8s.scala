@@ -4,14 +4,30 @@ import besom.*
 import besom.api.kubernetes as k8s
 
 object K8s:
-  def createNamespace(name: String)(using Context): Output[k8s.core.v1.Namespace] =
+
+  def createNamespace(
+    name: String,
+    cluster: besom.api.aws.eks.Cluster,
+    nodeGroup: besom.api.aws.eks.NodeGroup
+  )(using Context): Output[k8s.core.v1.Namespace] =
+    createNamespace(name, Some(cluster), Some(nodeGroup))
+
+  def createNamespace(
+    name: String,
+    cluster: Option[besom.api.aws.eks.Cluster],
+    nodeGroup: Option[besom.api.aws.eks.NodeGroup] = None
+  )(using Context): Output[k8s.core.v1.Namespace] =
+    val dependencies = List(cluster, nodeGroup).flatten
     k8s.core.v1.Namespace(
-      NonEmptyString(name).getOrElse("default"),
+      NonEmptyString(name).getOrElse {
+        throw new IllegalArgumentException(s"Namespace name cannot be empty. Provided: '$name'")
+      },
       k8s.core.v1.NamespaceArgs(
         metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
           name = name
         )
-      )
+      ),
+      if (dependencies.nonEmpty) opts(dependsOn = dependencies) else opts()
     )
 
   def createHeadlessService(
@@ -51,7 +67,6 @@ object K8s:
     replicas: Int = 1,
     storageSize: String = "1Gi"
   )(using Context): Output[k8s.apps.v1.StatefulSet] =
-    val namespaceName = namespace.map(_.toString)
 
     k8s.apps.v1.StatefulSet(
       s"$name-statefulset",
@@ -96,11 +111,11 @@ object K8s:
                     ),
                     k8s.core.v1.inputs.EnvVarArgs(
                       name = "KAFKA_ADVERTISED_LISTENERS",
-                      value = namespaceName.map(ns => s"PLAINTEXT://$name-0.$serviceName.$ns.svc.cluster.local:9092")
+                      value = namespace.map(ns => s"PLAINTEXT://$name-0.$serviceName.$ns.svc.cluster.local:9092")
                     ),
                     k8s.core.v1.inputs.EnvVarArgs(
                       name = "KAFKA_CONTROLLER_QUORUM_VOTERS",
-                      value = namespaceName.map(ns => s"1@$name-0.$serviceName.$ns.svc.cluster.local:9093")
+                      value = namespace.map(ns => s"1@$name-0.$serviceName.$ns.svc.cluster.local:9093")
                     ),
                     k8s.core.v1.inputs.EnvVarArgs(
                       name = "KAFKA_CONTROLLER_LISTENER_NAMES",
@@ -153,3 +168,28 @@ object K8s:
         )
       )
     )
+
+  /**
+   * Creates the aws-auth ConfigMap for EKS to allow nodes to join the cluster
+   */
+  def createAwsAuthConfigMap(
+    nodeRoleArn: Output[String],
+    nodeGroup: besom.api.aws.eks.NodeGroup
+  )(using Context): Output[k8s.core.v1.ConfigMap] =
+      k8s.core.v1.ConfigMap(
+        "aws-auth",
+        k8s.core.v1.ConfigMapArgs(
+          metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+            name = "aws-auth",
+            namespace = "kube-system"
+          ),
+          data = nodeRoleArn.map(arn => Map(
+            "mapRoles" -> s"""- rolearn: $arn
+  username: system:node:{{EC2PrivateDNSName}}
+  groups:
+    - system:bootstrappers
+    - system:nodes"""
+          ))
+        ),
+        opts(dependsOn = nodeGroup)
+      )

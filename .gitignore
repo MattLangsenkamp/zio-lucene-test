@@ -1,10 +1,7 @@
 ./out/**
-../.scala-build
-../.bsp
-*/.scala-build
-
+**/.bsp
+**/.scala-build
+**/.idea
 out/
 mill-ivy/
-.bsp/
 
-infra/.scala-build

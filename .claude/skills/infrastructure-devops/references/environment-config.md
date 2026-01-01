@@ -1,17 +1,26 @@
 # Environment Configuration
 
-## STACK_ENV Pattern
+## Stack Environment Pattern
 
-All infrastructure code reads the environment from `STACK_ENV`:
+All infrastructure code reads the stack name from the `PULUMI_STACK` environment variable automatically set by Pulumi CLI:
 ```scala
-val stackName = sys.env.getOrElse("STACK_ENV", "local")
+val stackName = sys.env.get("PULUMI_STACK").getOrElse {
+  throw new RuntimeException("PULUMI_STACK environment variable is not set. This should be set automatically by Pulumi CLI.")
+}
 val isLocal = stackName == "local"
 ```
 
-The Makefile sets this for each environment:
-- `make local-dev`: Sets `STACK_ENV=local`
-- `make dev`: Sets `STACK_ENV=dev`
-- `make prod`: Sets `STACK_ENV=prod`
+**Why this approach:**
+- `PULUMI_STACK` is automatically set by Pulumi CLI when you run `pulumi preview`, `pulumi up`, etc.
+- The value matches the stack name (local, dev, prod)
+- No additional configuration needed
+- Enables conditional resource creation based on environment
+- Fail-fast: Throws immediately if environment variable is missing
+
+The Makefile selects the appropriate stack:
+- `make local-dev`: Selects `local` stack → `PULUMI_STACK=local`
+- `make dev`: Selects `dev` stack → `PULUMI_STACK=dev`
+- `make prod`: Selects `prod` stack → `PULUMI_STACK=prod`
 
 ## Environment Variables Strategy
 

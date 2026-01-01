@@ -128,7 +128,7 @@ make start-local-env
 cd infra && pulumi stack
 
 # Preview changes
-cd infra && STACK_ENV=local pulumi preview
+cd infra && pulumi preview
 
 # View stack outputs
 cd infra && pulumi stack output

@@ -4,18 +4,67 @@ import besom.*
 import besom.api.aws
 import besom.api.kubernetes as k8s
 
+case class AlbIngressInput(
+  eksCluster: besom.api.aws.eks.Cluster,
+  clusterName: Output[String],
+  clusterOidcIssuer: Output[String],
+  clusterOidcIssuerArn: Output[String],
+  namespace: Output[String],
+  readerServiceName: Output[String],
+  stackName: String,
+  hostedZoneIdConfig: Output[Option[String]],
+  baseDomainConfig: Output[Option[String]],
+  certificateArnConfig: Output[Option[String]]
+)
+
 case class AlbIngressOutput(
   policy: aws.iam.Policy,
   oidcProvider: aws.iam.OpenIdConnectProvider,
   role: aws.iam.Role,
   serviceAccount: k8s.core.v1.ServiceAccount,
   helmRelease: k8s.helm.v3.Release,
-  ingress: k8s.networking.v1.Ingress
+  ingress: k8s.networking.v1.Ingress,
+  dnsRecord: Option[aws.route53.Record]
 )
 
-object AlbIngress:
+object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit]:
 
-  // AWS Load Balancer Controller IAM policy JSON
+  override def make(inputParams: AlbIngressInput)(using Context): Output[AlbIngressOutput] =
+    for {
+      policy <- createAlbControllerPolicy(inputParams)
+      oidcProvider <- createOidcProvider(inputParams)
+      role <- createRole(inputParams)
+      _ <- attachPolicyToRole(role, policy)
+      serviceAccount <- createServiceAccount(inputParams, role)
+      helmRelease <- installHelmRelease(inputParams, serviceAccount)
+      ingress <- createIngress(inputParams)
+      dnsRecord <- createDnsRecord(inputParams, ingress)
+    } yield AlbIngressOutput(
+      policy = policy,
+      oidcProvider = oidcProvider,
+      role = role,
+      serviceAccount = serviceAccount,
+      helmRelease = helmRelease,
+      ingress = ingress,
+      dnsRecord = dnsRecord
+    )
+
+  override def makeLocal(inputParams: Unit)(using Context): Output[Unit] =
+    throw new IllegalStateException("no alb ingress needed locally due to usage of k3d")
+
+  /**
+   * AWS Load Balancer Controller IAM Policy
+   *
+   * This is the official IAM policy required by the AWS Load Balancer Controller.
+   * We use a raw JSON string instead of structured policy builders because:
+   *
+   * 1. This is AWS's official policy document - easier to keep in sync with updates
+   * 2. The policy contains complex conditional statements that would be verbose to express structurally
+   * 3. We can copy-paste updated versions directly from AWS documentation
+   *
+   * Source: https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+   * Documentation: https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/deploy/installation/
+   */
   private val albControllerPolicyDocument = """{
     "Version": "2012-10-17",
     "Statement": [
@@ -258,130 +307,155 @@ object AlbIngress:
     ]
   }"""
 
-  def setup(
-    clusterName: Output[String],
-    clusterOidcIssuer: Output[String],
-    clusterOidcIssuerArn: Output[String],
-    namespace: Output[String],
-    readerServiceName: Output[String],
-    stackName: String
-  )(using Context): Output[AlbIngressOutput] =
-    for
-      // 1. Create IAM Policy for AWS Load Balancer Controller
-      policy <- aws.iam.Policy(
-        "alb-controller-policy",
-        aws.iam.PolicyArgs(
-          name = s"AWSLoadBalancerControllerPolicy-$stackName",
-          policy = albControllerPolicyDocument,
-          description = "IAM policy for AWS Load Balancer Controller"
-        )
+  private def createAlbControllerPolicy(params: AlbIngressInput)(using Context): Output[aws.iam.Policy] =
+    aws.iam.Policy(
+      "alb-controller-policy",
+      aws.iam.PolicyArgs(
+        name = s"AWSLoadBalancerControllerPolicy-${params.stackName}",
+        policy = albControllerPolicyDocument,
+        description = "IAM policy for AWS Load Balancer Controller"
       )
+    )
 
-      // 2. Create OIDC Provider (if not exists - typically created with EKS cluster)
-      oidcProvider <- aws.iam.OpenIdConnectProvider(
-        "eks-oidc-provider",
-        aws.iam.OpenIdConnectProviderArgs(
-          url = clusterOidcIssuer,
-          clientIdLists = List("sts.amazonaws.com"),
-          thumbprintLists = List("9e99a48a9960b14926bb7f3b02e22da2b0ab7280") // AWS EKS thumbprint
-        )
+  private def createOidcProvider(params: AlbIngressInput)(using Context): Output[aws.iam.OpenIdConnectProvider] =
+    aws.iam.OpenIdConnectProvider(
+      "eks-oidc-provider",
+      aws.iam.OpenIdConnectProviderArgs(
+        url = params.clusterOidcIssuer,
+        clientIdLists = Output(List("sts.amazonaws.com")),
+        thumbprintLists = Output(List("9e99a48a9960b14926bb7f3b02e22da2b0ab7280")) // AWS EKS thumbprint
       )
+    )
 
-      // 3. Create IAM Role with OIDC trust relationship
-      role <- aws.iam.Role(
-        "alb-controller-role",
-        aws.iam.RoleArgs(
-          name = s"AWSLoadBalancerControllerRole-$stackName",
-          assumeRolePolicy = for
-            issuer <- clusterOidcIssuer
-            ns <- namespace
-          yield s"""{
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "Federated": "${clusterOidcIssuerArn}"
-                },
-                "Action": "sts:AssumeRoleWithWebIdentity",
-                "Condition": {
-                  "StringEquals": {
-                    "${issuer.stripPrefix("https://")}:sub": "system:serviceaccount:$ns:aws-load-balancer-controller",
-                    "${issuer.stripPrefix("https://")}:aud": "sts.amazonaws.com"
-                  }
+  private def createRole(params: AlbIngressInput)(using Context): Output[aws.iam.Role] =
+    aws.iam.Role(
+      "alb-controller-role",
+      aws.iam.RoleArgs(
+        name = s"AWSLoadBalancerControllerRole-${params.stackName}",
+        assumeRolePolicy = for
+          issuer <- params.clusterOidcIssuer
+          arn <- params.clusterOidcIssuerArn
+          ns <- params.namespace
+        yield s"""{
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "$arn"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "StringEquals": {
+                  "${issuer.stripPrefix("https://")}:sub": "system:serviceaccount:$ns:aws-load-balancer-controller",
+                  "${issuer.stripPrefix("https://")}:aud": "sts.amazonaws.com"
                 }
               }
-            ]
-          }""",
-          description = "IAM role for AWS Load Balancer Controller with OIDC"
-        )
+            }
+          ]
+        }""",
+        description = "IAM role for AWS Load Balancer Controller with OIDC"
       )
+    )
 
-      // 4. Attach policy to role
-      _ <- aws.iam.RolePolicyAttachment(
-        "alb-controller-policy-attachment",
-        aws.iam.RolePolicyAttachmentArgs(
-          role = role.name,
-          policyArn = policy.arn
-        )
+  private def attachPolicyToRole(
+    role: aws.iam.Role,
+    policy: aws.iam.Policy
+  )(using Context): Output[aws.iam.RolePolicyAttachment] =
+    aws.iam.RolePolicyAttachment(
+      "alb-controller-policy-attachment",
+      aws.iam.RolePolicyAttachmentArgs(
+        role = role.name,
+        policyArn = policy.arn
       )
+    )
 
-      // 5. Create Kubernetes ServiceAccount with IAM role annotation
-      serviceAccount <- k8s.core.v1.ServiceAccount(
-        "aws-load-balancer-controller-sa",
-        k8s.core.v1.ServiceAccountArgs(
-          metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
-            name = "aws-load-balancer-controller",
-            namespace = namespace,
-            annotations = role.arn.map(arn => Map("eks.amazonaws.com/role-arn" -> arn))
-          )
-        )
-      )
-
-      // 6. Install AWS Load Balancer Controller via Helm
-      helmRelease <- k8s.helm.v3.Release(
-        "aws-load-balancer-controller",
-        k8s.helm.v3.ReleaseArgs(
+  private def createServiceAccount(
+    params: AlbIngressInput,
+    role: aws.iam.Role
+  )(using Context): Output[k8s.core.v1.ServiceAccount] =
+    k8s.core.v1.ServiceAccount(
+      "aws-load-balancer-controller-sa",
+      k8s.core.v1.ServiceAccountArgs(
+        metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
           name = "aws-load-balancer-controller",
-          namespace = namespace,
-          chart = "aws-load-balancer-controller",
-          repositoryOpts = k8s.helm.v3.inputs.RepositoryOptsArgs(
-            repo = "https://aws.github.io/eks-charts"
-          ),
-          values = for
-            cn <- clusterName
-            sa <- serviceAccount.metadata.name
-            ns <- namespace
-          yield Map[String, Any](
-            "clusterName" -> cn,
-            "serviceAccount" -> Map[String, Any](
-              "create" -> false,
-              "name" -> sa.getOrElse("aws-load-balancer-controller")
-            ),
-            "region" -> "us-east-1", // TODO: Make this configurable
-            "vpcId" -> "" // This will be auto-discovered by the controller
-          ).asInstanceOf[Map[String, Input[besom.types.PulumiAny]]]
+          namespace = params.namespace,
+          annotations = role.arn.map(arn => Map("eks.amazonaws.com/role-arn" -> arn))
         )
+      ),
+      opts(dependsOn = params.eksCluster)
+    )
+
+  private def installHelmRelease(
+    params: AlbIngressInput,
+    serviceAccount: k8s.core.v1.ServiceAccount
+  )(using Context): Output[k8s.helm.v3.Release] =
+    k8s.helm.v3.Release(
+      "aws-load-balancer-controller",
+      k8s.helm.v3.ReleaseArgs(
+        name = "aws-load-balancer-controller",
+        namespace = params.namespace,
+        chart = "aws-load-balancer-controller",
+        repositoryOpts = k8s.helm.v3.inputs.RepositoryOptsArgs(
+          repo = "https://aws.github.io/eks-charts"
+        ),
+        values = for
+          cn <- params.clusterName
+          sa <- serviceAccount.metadata.name
+        yield {
+          import besom.json.*
+          val innerMap: JsObject = JsObject(
+            "create" -> JsBoolean(false),
+            "name" -> JsString(sa.getOrElse {
+              throw new RuntimeException("Failed to get service account name from created ServiceAccount resource")
+            })
+          )
+          Map[String, JsValue](
+            "clusterName" -> JsString(cn),
+            "serviceAccount" -> innerMap,
+            "region" -> JsString("us-east-1"), // TODO: Make this configurable
+            "vpcId" -> JsString("") // This will be auto-discovered by the controller
+          )
+        }
+      ),
+      opts(dependsOn = params.eksCluster)
+    )
+
+  private def createIngress(
+    params: AlbIngressInput
+  )(using Context): Output[k8s.networking.v1.Ingress] =
+    params.certificateArnConfig.flatMap { certArnOpt =>
+      // Build annotations based on whether certificate is configured
+      val baseAnnotations = Map(
+        "kubernetes.io/ingress.class" -> "alb",
+        "alb.ingress.kubernetes.io/scheme" -> "internet-facing",
+        "alb.ingress.kubernetes.io/target-type" -> "ip",
+        "alb.ingress.kubernetes.io/healthcheck-path" -> "/health",
+        "alb.ingress.kubernetes.io/healthcheck-interval-seconds" -> "15",
+        "alb.ingress.kubernetes.io/healthcheck-timeout-seconds" -> "5",
+        "alb.ingress.kubernetes.io/healthy-threshold-count" -> "2",
+        "alb.ingress.kubernetes.io/unhealthy-threshold-count" -> "2"
       )
 
-      // 7. Create Ingress resource with ALB annotations
-      ingress <- k8s.networking.v1.Ingress(
+      val annotations = certArnOpt match
+        case Some(certArn) =>
+          // HTTPS with SSL certificate
+          baseAnnotations ++ Map(
+            "alb.ingress.kubernetes.io/listen-ports" -> """[{"HTTP": 80}, {"HTTPS": 443}]""",
+            "alb.ingress.kubernetes.io/certificate-arn" -> certArn,
+            "alb.ingress.kubernetes.io/ssl-redirect" -> "443"
+          )
+        case None =>
+          // HTTP only (for testing/local)
+          baseAnnotations + ("alb.ingress.kubernetes.io/listen-ports" -> """[{"HTTP": 80}]""")
+
+      k8s.networking.v1.Ingress(
         "zio-lucene-ingress",
         k8s.networking.v1.IngressArgs(
           metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
             name = "zio-lucene-ingress",
-            namespace = namespace,
-            annotations = Map(
-              "kubernetes.io/ingress.class" -> "alb",
-              "alb.ingress.kubernetes.io/scheme" -> "internet-facing",
-              "alb.ingress.kubernetes.io/target-type" -> "ip",
-              "alb.ingress.kubernetes.io/listen-ports" -> """[{"HTTP": 80}]""",
-              "alb.ingress.kubernetes.io/healthcheck-path" -> "/health",
-              "alb.ingress.kubernetes.io/healthcheck-interval-seconds" -> "15",
-              "alb.ingress.kubernetes.io/healthcheck-timeout-seconds" -> "5",
-              "alb.ingress.kubernetes.io/healthy-threshold-count" -> "2",
-              "alb.ingress.kubernetes.io/unhealthy-threshold-count" -> "2"
-            )
+            namespace = params.namespace,
+            annotations = annotations
           ),
           spec = k8s.networking.v1.inputs.IngressSpecArgs(
             rules = List(
@@ -393,7 +467,7 @@ object AlbIngress:
                       pathType = "Prefix",
                       backend = k8s.networking.v1.inputs.IngressBackendArgs(
                         service = k8s.networking.v1.inputs.IngressServiceBackendArgs(
-                          name = readerServiceName,
+                          name = params.readerServiceName,
                           port = k8s.networking.v1.inputs.ServiceBackendPortArgs(
                             number = 80
                           )
@@ -405,6 +479,52 @@ object AlbIngress:
               )
             )
           )
-        )
+        ),
+        opts(dependsOn = params.eksCluster)
       )
-    yield AlbIngressOutput(policy, oidcProvider, role, serviceAccount, helmRelease, ingress)
+    }
+
+  private def createDnsRecord(
+    params: AlbIngressInput,
+    ingress: k8s.networking.v1.Ingress
+  )(using Context): Output[Option[aws.route53.Record]] =
+    params.hostedZoneIdConfig.flatMap { zoneIdOpt =>
+      params.baseDomainConfig.flatMap { domainOpt =>
+        (zoneIdOpt, domainOpt) match
+          case (Some(zoneId), Some(baseDomain)) =>
+            // Determine full domain name based on stack
+            val domain = if (params.stackName == "prod") baseDomain else s"${params.stackName}.$baseDomain"
+
+            // Extract ALB hostname from ingress status
+            ingress.status.loadBalancer.ingress.flatMap { maybeIngressList =>
+              maybeIngressList
+                .flatMap(_.headOption)  // Get first element from Iterable
+                .map(_.hostname)         // Get the Output[Option[String]] field
+                .getOrElse(Output(None)) // If no ingress, return None
+                .flatMap {
+                  case Some(hostname) =>
+                    // Create Route53 A record (alias) pointing to the ALB
+                    aws.route53.Record(
+                      "alb-dns-record",
+                      aws.route53.RecordArgs(
+                        zoneId = zoneId,
+                        name = domain,
+                        `type` = "A",
+                        aliases = List(
+                          aws.route53.inputs.RecordAliasArgs(
+                            name = hostname,
+                            zoneId = "Z35SXDOTRQ7X7K", // us-east-1 ALB hosted zone ID
+                            evaluateTargetHealth = true
+                          )
+                        )
+                      )
+                    ).map(Some(_))
+                  case None =>
+                    // ALB hostname not available yet, skip DNS record for now
+                    Output(None)
+                }
+            }
+          case _ =>
+            Output(None)
+      }
+    }

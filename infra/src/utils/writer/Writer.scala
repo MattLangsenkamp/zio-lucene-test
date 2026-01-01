@@ -39,6 +39,7 @@ object Writer:
     serviceName: String = "writer",
     replicas: Int = 1,
     image: String = "writer-server:latest",
+    imagePullPolicy: String = "IfNotPresent",
     storageSize: String = "1Gi"
   )(using Context): Output[k8s.apps.v1.StatefulSet] =
     k8s.apps.v1.StatefulSet(
@@ -63,7 +64,7 @@ object Writer:
                 k8s.core.v1.inputs.ContainerArgs(
                   name = "writer",
                   image = image,
-                  imagePullPolicy = "IfNotPresent",
+                  imagePullPolicy = imagePullPolicy,
                   ports = List(
                     k8s.core.v1.inputs.ContainerPortArgs(
                       containerPort = 8080,

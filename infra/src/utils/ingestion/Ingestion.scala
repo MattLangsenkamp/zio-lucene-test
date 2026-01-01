@@ -37,7 +37,8 @@ object Ingestion:
     kafkaBootstrapServers: Output[String],
     bucketName: Output[String],
     replicas: Int = 1,
-    image: String = "ingestion-server:latest"
+    image: String = "ingestion-server:latest",
+    imagePullPolicy: String = "IfNotPresent"
   )(using Context): Output[k8s.apps.v1.Deployment] =
     k8s.apps.v1.Deployment(
       "ingestion-deployment",
@@ -60,7 +61,7 @@ object Ingestion:
                 k8s.core.v1.inputs.ContainerArgs(
                   name = "ingestion",
                   image = image,
-                  imagePullPolicy = "IfNotPresent",
+                  imagePullPolicy = imagePullPolicy,
                   ports = List(
                     k8s.core.v1.inputs.ContainerPortArgs(
                       containerPort = 8080,
