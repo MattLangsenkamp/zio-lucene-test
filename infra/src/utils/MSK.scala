@@ -10,9 +10,9 @@ case class MskInput(
   privateSubnet1Id: Output[String],
   privateSubnet2Id: Output[String],
   vpcCidrBlock: String = "10.0.0.0/16",
-  kafkaVersion: String = "4.1.x.kraft",
+  kafkaVersion: String = "3.9.x",
   numberOfBrokerNodes: Int = 2,
-  instanceType: String = "kafka.m5.large",
+  instanceType: String = "kafka.t3.small",
   volumeSize: Int = 10
 )
 

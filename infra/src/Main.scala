@@ -6,6 +6,7 @@
 
 import besom.*
 import besom.internal.Context
+import besom.api.kubernetes as k8s
 import utils.*
 import utils.ingestion.Ingestion
 import utils.reader.Reader
@@ -64,21 +65,54 @@ import utils.writer.Writer
     } yield eks
     val clusterName = eksCluster.map(_.clusterName)
 
+    // Create explicit Kubernetes provider from EKS outputs
+    val k8sProvider = eksCluster.flatMap { eks =>
+      val kubeconfig = Kubeconfig.generateKubeconfigYaml(
+        clusterName = eks.clusterName,
+        clusterEndpoint = eks.clusterEndpoint,
+        clusterCertificateAuthority = eks.clusterCertificateAuthority
+      )
+
+      kubeconfig.flatMap { config =>
+        k8s.Provider(
+          "eks-k8s-provider",
+          k8s.ProviderArgs(
+            kubeconfig = config
+          )
+        )
+      }
+    }
+
     // 5. Create aws-auth ConfigMap so nodes can join the cluster
     val awsAuthConfigMap =
       for {
         eks <- eksCluster
         configMap <- K8s.createAwsAuthConfigMap(
           eks.nodeRoleArn,
-          eks.nodeGroup
+          eks.nodeGroup,
+          k8sProvider
         )
       } yield configMap
+
+    // 5b. Install EBS CSI driver for persistent volume support
+    val ebsCsiDriver =
+      for {
+        eks <- eksCluster
+        driver <- EbsCsiDriver.make(
+          EbsCsiDriverInput(
+            eksCluster = eks.cluster,
+            clusterOidcIssuer = eks.oidcProviderUrl,
+            clusterOidcIssuerArn = eks.oidcProviderArn,
+            k8sProvider = k8sProvider
+          )
+        )
+      } yield driver
 
     // 6. Create Kubernetes namespace (for EKS cluster)
     val namespace =
       for {
         eks <- eksCluster
-        ns <- K8s.createNamespace("zio-lucene", eks.cluster, eks.nodeGroup)
+        ns <- K8s.createNamespace("zio-lucene", eks.cluster, eks.nodeGroup, k8sProvider)
       } yield ns
     val namespaceNameOpt = namespace.flatMap(_.metadata.flatMap(_.name))
     val namespaceNameOutput = namespaceNameOpt.getOrElse {
@@ -89,7 +123,8 @@ import utils.writer.Writer
 
     // 7. Deploy application services with Docker Hub images
     val ingestionService = Ingestion.createService(
-      namespace = namespaceNameOutput
+      namespace = namespaceNameOutput,
+      provider = k8sProvider
     )
 
     val ingestionDeployment = Ingestion.createDeployment(
@@ -97,22 +132,26 @@ import utils.writer.Writer
       kafkaBootstrapServers = bootstrapServers,
       bucketName = bucketId,
       image = "mattlangsenkamp/ingestion-server:latest",
-      imagePullPolicy = "Always"
+      imagePullPolicy = "Always",
+      provider = k8sProvider
     )
 
     val readerService = Reader.createService(
-      namespace = namespaceNameOutput
+      namespace = namespaceNameOutput,
+      provider = k8sProvider
     )
 
     val readerDeployment = Reader.createDeployment(
       namespace = namespaceNameOutput,
       bucketName = bucketId,
       image = "mattlangsenkamp/reader-server:latest",
-      imagePullPolicy = "Always"
+      imagePullPolicy = "Always",
+      provider = k8sProvider
     )
 
     val writerService = Writer.createService(
-      namespace = namespaceNameOutput
+      namespace = namespaceNameOutput,
+      provider = k8sProvider
     )
 
     val writerStatefulSet = Writer.createStatefulSet(
@@ -120,7 +159,9 @@ import utils.writer.Writer
       kafkaBootstrapServers = bootstrapServers,
       bucketName = bucketId,
       image = "mattlangsenkamp/writer-server:latest",
-      imagePullPolicy = "Always"
+      imagePullPolicy = "Always",
+      provider = k8sProvider,
+      dependencies = ebsCsiDriver.map(_.addon)
     )
 
     // 8. Set up ALB Ingress for public access
@@ -134,9 +175,12 @@ import utils.writer.Writer
     val albIngress =
       for {
         eks <- eksCluster
+        vpc <- vpcOutput
         albIngress <- AlbIngress.make(
           AlbIngressInput(
             eksCluster = eks.cluster,
+            nodeGroup = eks.nodeGroup,
+            vpcId = vpc.vpc.id,
             clusterName = eks.clusterName,
             clusterOidcIssuer = eks.oidcProviderUrl,
             clusterOidcIssuerArn = eks.oidcProviderArn,
@@ -145,7 +189,8 @@ import utils.writer.Writer
             stackName = stackName,
             hostedZoneIdConfig = hostedZoneId,
             baseDomainConfig = baseDomain,
-            certificateArnConfig = certificateArn
+            certificateArnConfig = certificateArn,
+            k8sProvider = k8sProvider
           )
         )
       } yield albIngress
@@ -166,6 +211,8 @@ import utils.writer.Writer
       eksCluster.map(_.cluster),
       awsAuthConfigMap,
       eksCluster.map(_.nodeGroup),
+      ebsCsiDriver.map(_.role),
+      ebsCsiDriver.map(_.addon),
       albIngress.map(_.oidcProvider),
       namespace,
       ingestionService,
@@ -194,8 +241,14 @@ import utils.writer.Writer
     val bucket = S3.createBucket("segments")
     val bucketId = bucket.flatMap(_.id)
 
-    // 2. Create Kubernetes namespace (for k3d cluster)
-    val namespace = K8s.createNamespace("zio-lucene", None)
+    // 2. Create k3d Kubernetes provider (uses default kubeconfig)
+    val k8sProvider = k8s.Provider(
+      "k3d-k8s-provider",
+      k8s.ProviderArgs()  // Empty args = use default kubeconfig
+    )
+
+    // 3. Create Kubernetes namespace (for k3d cluster)
+    val namespace = K8s.createNamespace("zio-lucene", None, None, k8sProvider)
     val namespaceNameOpt = namespace.metadata.name
     val namespaceNameOut = namespaceNameOpt.getOrElse {
       throw new RuntimeException(
@@ -203,52 +256,61 @@ import utils.writer.Writer
       )
     }
 
-    // 3. Create Kafka Service
+    // 4. Create Kafka Service
     val kafkaService = K8s.createHeadlessService(
       name = "kafka",
       namespace = namespaceNameOut,
       selector = Map("app" -> "kafka"),
       port = 9092,
-      portName = "kafka"
+      portName = "kafka",
+      provider = k8sProvider
     )
 
-    // 4. Create Kafka StatefulSet (KRaft mode - no ZooKeeper needed for Kafka 4.x)
+    // 5. Create Kafka StatefulSet (KRaft mode - no ZooKeeper needed for Kafka 4.x)
     val kafkaStatefulSet = K8s.createKafkaStatefulSet(
       name = "kafka",
       namespace = namespaceNameOut,
-      serviceName = "kafka"
+      serviceName = "kafka",
+      provider = k8sProvider
     )
 
     val bootstrapServers = "kafka-0.kafka.zio-lucene.svc.cluster.local:9092"
 
-    // 5. Deploy application services
+    // 6. Deploy application services
     val ingestionService = Ingestion.createService(
-      namespace = namespaceNameOut
+      namespace = namespaceNameOut,
+      provider = k8sProvider
     )
 
     val ingestionDeployment = Ingestion.createDeployment(
       namespace = namespaceNameOut,
       kafkaBootstrapServers = Output(bootstrapServers),
-      bucketName = bucketId
+      bucketName = bucketId,
+      provider = k8sProvider
     )
 
     val readerService = Reader.createService(
-      namespace = namespaceNameOut
+      namespace = namespaceNameOut,
+      provider = k8sProvider
     )
 
     val readerDeployment = Reader.createDeployment(
       namespace = namespaceNameOut,
-      bucketName = bucketId
+      bucketName = bucketId,
+      provider = k8sProvider
     )
 
     val writerService = Writer.createService(
-      namespace = namespaceNameOut
+      namespace = namespaceNameOut,
+      provider = k8sProvider
     )
 
     val writerStatefulSet = Writer.createStatefulSet(
       namespace = namespaceNameOut,
       kafkaBootstrapServers = Output(bootstrapServers),
-      bucketName = bucketId
+      bucketName = bucketId,
+      storageClassName = "local-path",
+      provider = k8sProvider
     )
     Stack(
       bucket,

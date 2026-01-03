@@ -6,6 +6,8 @@ import besom.api.kubernetes as k8s
 
 case class AlbIngressInput(
   eksCluster: besom.api.aws.eks.Cluster,
+  nodeGroup: besom.api.aws.eks.NodeGroup,
+  vpcId: Output[String],
   clusterName: Output[String],
   clusterOidcIssuer: Output[String],
   clusterOidcIssuerArn: Output[String],
@@ -14,7 +16,8 @@ case class AlbIngressInput(
   stackName: String,
   hostedZoneIdConfig: Output[Option[String]],
   baseDomainConfig: Output[Option[String]],
-  certificateArnConfig: Output[Option[String]]
+  certificateArnConfig: Output[Option[String]],
+  k8sProvider: Output[k8s.Provider]
 )
 
 case class AlbIngressOutput(
@@ -37,7 +40,7 @@ object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit
       _ <- attachPolicyToRole(role, policy)
       serviceAccount <- createServiceAccount(inputParams, role)
       helmRelease <- installHelmRelease(inputParams, serviceAccount)
-      ingress <- createIngress(inputParams)
+      ingress <- createIngress(inputParams, helmRelease)
       dnsRecord <- createDnsRecord(inputParams, ingress)
     } yield AlbIngressOutput(
       policy = policy,
@@ -99,6 +102,7 @@ object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit
           "elasticloadbalancing:DescribeLoadBalancers",
           "elasticloadbalancing:DescribeLoadBalancerAttributes",
           "elasticloadbalancing:DescribeListeners",
+          "elasticloadbalancing:DescribeListenerAttributes",
           "elasticloadbalancing:DescribeListenerCertificates",
           "elasticloadbalancing:DescribeSSLPolicies",
           "elasticloadbalancing:DescribeRules",
@@ -335,7 +339,6 @@ object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit
         assumeRolePolicy = for
           issuer <- params.clusterOidcIssuer
           arn <- params.clusterOidcIssuerArn
-          ns <- params.namespace
         yield s"""{
           "Version": "2012-10-17",
           "Statement": [
@@ -347,7 +350,7 @@ object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit
               "Action": "sts:AssumeRoleWithWebIdentity",
               "Condition": {
                 "StringEquals": {
-                  "${issuer.stripPrefix("https://")}:sub": "system:serviceaccount:$ns:aws-load-balancer-controller",
+                  "${issuer.stripPrefix("https://")}:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller",
                   "${issuer.stripPrefix("https://")}:aud": "sts.amazonaws.com"
                 }
               }
@@ -374,33 +377,39 @@ object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit
     params: AlbIngressInput,
     role: aws.iam.Role
   )(using Context): Output[k8s.core.v1.ServiceAccount] =
-    k8s.core.v1.ServiceAccount(
-      "aws-load-balancer-controller-sa",
-      k8s.core.v1.ServiceAccountArgs(
-        metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
-          name = "aws-load-balancer-controller",
-          namespace = params.namespace,
-          annotations = role.arn.map(arn => Map("eks.amazonaws.com/role-arn" -> arn))
-        )
-      ),
-      opts(dependsOn = params.eksCluster)
-    )
+    params.k8sProvider.flatMap { prov =>
+      k8s.core.v1.ServiceAccount(
+        "aws-load-balancer-controller-sa",
+        k8s.core.v1.ServiceAccountArgs(
+          metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+            name = "aws-load-balancer-controller",
+            namespace = "kube-system",
+            annotations = role.arn.map(arn => Map("eks.amazonaws.com/role-arn" -> arn))
+          )
+        ),
+        opts(dependsOn = params.eksCluster, provider = prov)
+      )
+    }
 
   private def installHelmRelease(
     params: AlbIngressInput,
     serviceAccount: k8s.core.v1.ServiceAccount
   )(using Context): Output[k8s.helm.v3.Release] =
-    k8s.helm.v3.Release(
+    params.k8sProvider.flatMap { prov =>
+      k8s.helm.v3.Release(
       "aws-load-balancer-controller",
       k8s.helm.v3.ReleaseArgs(
         name = "aws-load-balancer-controller",
-        namespace = params.namespace,
+        namespace = "kube-system",
         chart = "aws-load-balancer-controller",
         repositoryOpts = k8s.helm.v3.inputs.RepositoryOptsArgs(
           repo = "https://aws.github.io/eks-charts"
         ),
+        timeout = 300, // 5 minutes should be enough once nodes are ready
+        waitForJobs = true,
         values = for
           cn <- params.clusterName
+          vpc <- params.vpcId
           sa <- serviceAccount.metadata.name
         yield {
           import besom.json.*
@@ -414,15 +423,17 @@ object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit
             "clusterName" -> JsString(cn),
             "serviceAccount" -> innerMap,
             "region" -> JsString("us-east-1"), // TODO: Make this configurable
-            "vpcId" -> JsString("") // This will be auto-discovered by the controller
+            "vpcId" -> JsString(vpc)
           )
         }
       ),
-      opts(dependsOn = params.eksCluster)
+      opts(dependsOn = List(params.eksCluster, params.nodeGroup), provider = prov)
     )
+  }
 
   private def createIngress(
-    params: AlbIngressInput
+    params: AlbIngressInput,
+    helmRelease: k8s.helm.v3.Release
   )(using Context): Output[k8s.networking.v1.Ingress] =
     params.certificateArnConfig.flatMap { certArnOpt =>
       // Build annotations based on whether certificate is configured
@@ -449,27 +460,29 @@ object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit
           // HTTP only (for testing/local)
           baseAnnotations + ("alb.ingress.kubernetes.io/listen-ports" -> """[{"HTTP": 80}]""")
 
-      k8s.networking.v1.Ingress(
-        "zio-lucene-ingress",
-        k8s.networking.v1.IngressArgs(
-          metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
-            name = "zio-lucene-ingress",
-            namespace = params.namespace,
-            annotations = annotations
-          ),
-          spec = k8s.networking.v1.inputs.IngressSpecArgs(
-            rules = List(
-              k8s.networking.v1.inputs.IngressRuleArgs(
-                http = k8s.networking.v1.inputs.HttpIngressRuleValueArgs(
-                  paths = List(
-                    k8s.networking.v1.inputs.HttpIngressPathArgs(
-                      path = "/search",
-                      pathType = "Prefix",
-                      backend = k8s.networking.v1.inputs.IngressBackendArgs(
-                        service = k8s.networking.v1.inputs.IngressServiceBackendArgs(
-                          name = params.readerServiceName,
-                          port = k8s.networking.v1.inputs.ServiceBackendPortArgs(
-                            number = 80
+      params.k8sProvider.flatMap { prov =>
+        k8s.networking.v1.Ingress(
+          "zio-lucene-ingress",
+          k8s.networking.v1.IngressArgs(
+            metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+              name = "zio-lucene-ingress",
+              namespace = params.namespace,
+              annotations = annotations
+            ),
+            spec = k8s.networking.v1.inputs.IngressSpecArgs(
+              rules = List(
+                k8s.networking.v1.inputs.IngressRuleArgs(
+                  http = k8s.networking.v1.inputs.HttpIngressRuleValueArgs(
+                    paths = List(
+                      k8s.networking.v1.inputs.HttpIngressPathArgs(
+                        path = "/search",
+                        pathType = "Prefix",
+                        backend = k8s.networking.v1.inputs.IngressBackendArgs(
+                          service = k8s.networking.v1.inputs.IngressServiceBackendArgs(
+                            name = params.readerServiceName,
+                            port = k8s.networking.v1.inputs.ServiceBackendPortArgs(
+                              number = 80
+                            )
                           )
                         )
                       )
@@ -478,10 +491,10 @@ object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit
                 )
               )
             )
-          )
-        ),
-        opts(dependsOn = params.eksCluster)
-      )
+          ),
+          opts(dependsOn = List(params.eksCluster, helmRelease), provider = prov)
+        )
+      }
     }
 
   private def createDnsRecord(

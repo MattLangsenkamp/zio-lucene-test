@@ -8,29 +8,33 @@ object Writer:
     namespace: Output[String],
     port: Int = 8082,
     replicas: Int = 1,
-    image: String = "writer-server:latest"
+    image: String = "writer-server:latest",
+    provider: Output[k8s.Provider]
   )(using Context): Output[k8s.core.v1.Service] =
-    k8s.core.v1.Service(
-      "writer-service",
-      k8s.core.v1.ServiceArgs(
-        metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
-          name = "writer",
-          namespace = namespace,
-          labels = Map("app" -> "writer")
-        ),
-        spec = k8s.core.v1.inputs.ServiceSpecArgs(
-          selector = Map("app" -> "writer"),
-          ports = List(
-            k8s.core.v1.inputs.ServicePortArgs(
-              name = "http",
-              port = port,
-              targetPort = 8080
-            )
+    provider.flatMap { prov =>
+      k8s.core.v1.Service(
+        "writer-service",
+        k8s.core.v1.ServiceArgs(
+          metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+            name = "writer",
+            namespace = namespace,
+            labels = Map("app" -> "writer")
           ),
-          clusterIP = "None"  // Headless service for StatefulSet
-        )
+          spec = k8s.core.v1.inputs.ServiceSpecArgs(
+            selector = Map("app" -> "writer"),
+            ports = List(
+              k8s.core.v1.inputs.ServicePortArgs(
+                name = "http",
+                port = port,
+                targetPort = 8080
+              )
+            ),
+            clusterIP = "None"  // Headless service for StatefulSet
+          )
+        ),
+        opts(provider = prov)
       )
-    )
+    }
 
   def createStatefulSet(
     namespace: Output[String],
@@ -40,9 +44,13 @@ object Writer:
     replicas: Int = 1,
     image: String = "writer-server:latest",
     imagePullPolicy: String = "IfNotPresent",
-    storageSize: String = "1Gi"
+    storageSize: String = "1Gi",
+    storageClassName: String = "gp2",
+    provider: Output[k8s.Provider],
+    dependencies: Output[besom.api.aws.eks.Addon]*
   )(using Context): Output[k8s.apps.v1.StatefulSet] =
-    k8s.apps.v1.StatefulSet(
+    provider.flatMap { prov =>
+      k8s.apps.v1.StatefulSet(
       "writer-statefulset",
       k8s.apps.v1.StatefulSetArgs(
         metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
@@ -98,6 +106,7 @@ object Writer:
               ),
               spec = k8s.core.v1.inputs.PersistentVolumeClaimSpecArgs(
                 accessModes = List("ReadWriteOnce"),
+                storageClassName = storageClassName,
                 resources = k8s.core.v1.inputs.VolumeResourceRequirementsArgs(
                   requests = Map("storage" -> storageSize)
                 )
@@ -105,5 +114,7 @@ object Writer:
             )
           )
         )
-      )
+      ),
+      opts(provider = prov, dependsOn = dependencies)
     )
+  }

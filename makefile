@@ -1,4 +1,4 @@
-.PHONY: local-dev local-down dev dev-down prod prod-down dev-preview check-local-deps start-local-env delete-local-volume import-images logs health build-apps dockerhub-push dockerhub-full kubeconfig-dev kubeconfig-prod list-eks-clusters list-nodegroups check-aws-resources
+.PHONY: local-dev local-down dev dev-down prod prod-down dev-preview check-local-deps start-local-env delete-local-volume import-images logs health build-apps dockerhub-push dockerhub-full kubeconfig-local kubeconfig-dev kubeconfig-prod list-eks-clusters list-nodegroups check-aws-resources
 
 # Configuration
 LOCALSTACK_VOLUME = zio-lucene-localstack-data
@@ -130,7 +130,7 @@ dockerhub-push:
 # Build and push Docker images to Docker Hub in one command
 dockerhub-full: build-apps dockerhub-push
 
-local-dev-up:
+local-dev-up: kubeconfig-local
 	@echo "Deploying to local environment..."
 	cd infra && pulumi stack select local
 	cd infra && pulumi up
@@ -162,6 +162,16 @@ dev-preview:
 	@echo "Previewing to dev environment..."
 	cd infra && pulumi stack select dev
 	cd infra && pulumi preview
+
+# Set kubeconfig for local k3d cluster
+kubeconfig-local:
+	@echo "Setting kubeconfig for local k3d cluster..."
+	kubectl config use-context k3d-$(K3D_CLUSTER_NAME)
+	@echo "✅ Kubeconfig updated for local cluster"
+	@echo ""
+	kubectl config current-context
+	@echo ""
+	kubectl get nodes
 
 # Set kubeconfig for dev EKS cluster
 kubeconfig-dev:
@@ -203,12 +213,13 @@ check-aws-resources:
 	@AWS_REGION=$(AWS_REGION) PROJECT_NAME=zio-lucene ./bin/check-aws-resources.sh
 
 # Helper targets
-local-preview: start-local-env
+local-preview: start-local-env kubeconfig-local
 	cd infra && pulumi stack select local
 	cd infra && pulumi preview
 
 local-destroy:
 	@echo "Destroying local stack..."
+	@kubectl config use-context k3d-$(K3D_CLUSTER_NAME) 2>/dev/null || true
 	cd infra && pulumi stack select local
 	cd infra && pulumi destroy
 
