@@ -22,7 +22,9 @@ case class EksOutput(
   nodeRoleArn: Output[String],
   clusterName: Output[String],
   oidcProviderUrl: Output[String],
-  oidcProviderArn: Output[String]
+  oidcProviderArn: Output[String],
+  clusterEndpoint: Output[String],
+  clusterCertificateAuthority: Output[String]
 )
 
 object EKS extends Resource[EksInput, EksOutput, Unit, Unit]:
@@ -44,13 +46,25 @@ object EKS extends Resource[EksInput, EksOutput, Unit, Unit]:
         s"arn:aws:iam::${account}:oidc-provider/${issuerPath}"
       }
 
+      // Extract cluster endpoint
+      val clusterEndpoint = cluster.endpoint
+
+      // Extract certificate authority data
+      val clusterCertificateAuthority = cluster.certificateAuthority.flatMap { certAuth =>
+        certAuth.data.map(_.getOrElse {
+          throw new RuntimeException("EKS cluster certificate authority data is missing")
+        })
+      }
+
       EksOutput(
         cluster = cluster,
         nodeGroup = nodeGroup,
         nodeRoleArn = nodeRole.arn,
         clusterName = cluster.name,
         oidcProviderUrl = oidcIssuerUrl,
-        oidcProviderArn = oidcProviderArn
+        oidcProviderArn = oidcProviderArn,
+        clusterEndpoint = clusterEndpoint,
+        clusterCertificateAuthority = clusterCertificateAuthority
       )
     }
 
