@@ -39,18 +39,18 @@ import utils.writer.Writer
     val vpcOutput = Vpc.make(VpcInput())
 
     // 3. Create MSK cluster in private subnets
-    val mskOutput =
+    val kafkaOutput =
       for {
         vpcDetails <- vpcOutput
-        mskDetails <- MSK.make(
-          MskInput(
+        kafkaDetails <- Kafka.make(
+          KafkaInput(
             vpcId = vpcDetails.vpc.id,
             privateSubnet1Id = vpcDetails.privateSubnet1.id,
             privateSubnet2Id = vpcDetails.privateSubnet2.id
           )
         )
-      } yield mskDetails
-    val bootstrapServers = mskOutput.flatMap(_.cluster.bootstrapBrokers)
+      } yield kafkaDetails
+    val bootstrapServers = kafkaOutput.flatMap(_.cluster.bootstrapBrokers)
 
     // 4. Create EKS cluster with public subnets (for worker nodes)
     val eksCluster = for {
@@ -206,8 +206,8 @@ import utils.writer.Writer
       vpcOutput.map(_.natGateway),
       vpcOutput.map(_.publicRouteTable),
       vpcOutput.map(_.privateRouteTable),
-      mskOutput.map(_.securityGroup),
-      mskOutput.map(_.cluster),
+      kafkaOutput.map(_.securityGroup),
+      kafkaOutput.map(_.cluster),
       eksCluster.map(_.cluster),
       awsAuthConfigMap,
       eksCluster.map(_.nodeGroup),
@@ -229,8 +229,8 @@ import utils.writer.Writer
     )
       .exports(
         bucketName = bucketId,
-        mskClusterArn = mskOutput.map(_.cluster.arn),
-        mskBootstrapServers = bootstrapServers,
+        kafkaClusterArn = kafkaOutput.map(_.cluster.arn),
+        kafkaBootstrapServers = bootstrapServers,
         k8sNamespace = namespaceNameOutput,
         eksClusterName = clusterName
       )
@@ -247,6 +247,9 @@ import utils.writer.Writer
       k8s.ProviderArgs()  // Empty args = use default kubeconfig
     )
 
+    // 2b. Install local-path provisioner for persistent volume support
+    val localCsiDriver = EbsCsiDriver.makeLocal(())
+
     // 3. Create Kubernetes namespace (for k3d cluster)
     val namespace = K8s.createNamespace("zio-lucene", None, None, k8sProvider)
     val namespaceNameOpt = namespace.metadata.name
@@ -256,22 +259,12 @@ import utils.writer.Writer
       )
     }
 
-    // 4. Create Kafka Service
-    val kafkaService = K8s.createHeadlessService(
-      name = "kafka",
-      namespace = namespaceNameOut,
-      selector = Map("app" -> "kafka"),
-      port = 9092,
-      portName = "kafka",
-      provider = k8sProvider
-    )
-
-    // 5. Create Kafka StatefulSet (KRaft mode - no ZooKeeper needed for Kafka 4.x)
-    val kafkaStatefulSet = K8s.createKafkaStatefulSet(
-      name = "kafka",
-      namespace = namespaceNameOut,
-      serviceName = "kafka",
-      provider = k8sProvider
+    // 4. Create Kafka Service and StatefulSet
+    val kafkaOutput = Kafka.makeLocal(
+      KafkaLocalInput(
+        namespace = namespaceNameOut,
+        provider = k8sProvider
+      )
     )
 
     val bootstrapServers = "kafka-0.kafka.zio-lucene.svc.cluster.local:9092"
@@ -314,9 +307,10 @@ import utils.writer.Writer
     )
     Stack(
       bucket,
+      localCsiDriver,
       namespace,
-      kafkaService,
-      kafkaStatefulSet,
+      kafkaOutput.map(_.service),
+      kafkaOutput.map(_.statefulSet),
       ingestionService,
       ingestionDeployment,
       readerService,
