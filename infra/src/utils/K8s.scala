@@ -32,9 +32,7 @@ object K8s:
             name = name
           )
         ),
-        if (dependencies.nonEmpty)
-          opts(dependsOn = dependencies, provider = prov)
-        else opts(provider = prov)
+        opts(dependsOn = dependencies, provider = prov)
       )
     }
 
@@ -71,13 +69,16 @@ object K8s:
       )
     }
 
-  def createKafkaStatefulSet(
+  def createStatefulSet(
       name: String,
       namespace: Output[String],
       serviceName: String,
-      image: String = "apache/kafka:4.1.0",
+      image: String,
       replicas: Int = 1,
       storageSize: String = "1Gi",
+      ports: Map[String, Int],
+      envVars: Map[String, String],
+      volumeMounts: Map[String, String],
       provider: Output[k8s.Provider]
   )(using Context): Output[k8s.apps.v1.StatefulSet] =
     provider.flatMap { prov =>
@@ -103,67 +104,22 @@ object K8s:
                   k8s.core.v1.inputs.ContainerArgs(
                     name = name,
                     image = image,
-                    ports = List(
+                    ports = ports.map((name, value) =>
                       k8s.core.v1.inputs.ContainerPortArgs(
-                        containerPort = 9092,
-                        name = "kafka"
+                        containerPort = value,
+                        name = name
                       )
                     ),
-                    env = List(
+                    env = envVars.map((name, value) =>
                       k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_NODE_ID",
-                        value = "1"
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_PROCESS_ROLES",
-                        value = "broker,controller"
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_LISTENERS",
-                        value =
-                          "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_ADVERTISED_LISTENERS",
-                        value = namespace.map(ns =>
-                          s"PLAINTEXT://$name-0.$serviceName.$ns.svc.cluster.local:9092"
-                        )
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_CONTROLLER_QUORUM_VOTERS",
-                        value = namespace.map(ns =>
-                          s"1@$name-0.$serviceName.$ns.svc.cluster.local:9093"
-                        )
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_CONTROLLER_LISTENER_NAMES",
-                        value = "CONTROLLER"
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP",
-                        value = "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR",
-                        value = "1"
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR",
-                        value = "1"
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR",
-                        value = "1"
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "CLUSTER_ID",
-                        value = "zio-lucene-kafka-cluster"
+                        name = name,
+                        value = value
                       )
                     ),
-                    volumeMounts = List(
+                    volumeMounts = volumeMounts.map((name, value) =>
                       k8s.core.v1.inputs.VolumeMountArgs(
-                        name = s"$name-data",
-                        mountPath = "/var/lib/kafka/data"
+                        name = name,
+                        mountPath = value
                       )
                     )
                   )
