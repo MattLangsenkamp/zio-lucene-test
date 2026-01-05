@@ -27,8 +27,7 @@ object AwsProvider
         aws.inputs.ProviderDefaultTagsArgs.apply(
           Output(Some(
             Map(
-              "yes" -> "no",
-              "envName" -> inputParams.envName
+              "env_name" -> inputParams.envName
             )
           ))
         )

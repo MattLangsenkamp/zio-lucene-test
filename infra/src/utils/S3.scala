@@ -30,7 +30,7 @@ object S3 extends Resource[S3Input, S3Output, S3Input, S3Output]:
   private def createBucket(
       params: S3Input
   )(using c: Context): Output[s3.Bucket] = {
-    val um: Output[Option[ProviderResource]] =
+    val prov: Output[Option[ProviderResource]] =
       params.awsProvider.flatMap(ok => ok.provider)
     s3.Bucket(
       NonEmptyString(params.name).getOrElse {
@@ -39,6 +39,6 @@ object S3 extends Resource[S3Input, S3Output, S3Input, S3Output]:
         )
       },
       s3.BucketArgs(),
-      opts = opts(provider = um)
+      opts = opts(provider = prov)
     )
   }
