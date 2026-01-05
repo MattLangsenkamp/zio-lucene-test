@@ -2,9 +2,7 @@ package utils
 
 import besom.*
 import besom.api.aws
-import besom.api.aws.eks
-import besom.api.aws.ec2
-import besom.api.aws.iam
+import besom.api.aws.{Provider, ec2, eks, iam}
 
 case class EksInput(
   namePrefix: String = "zio-lucene",
@@ -29,7 +27,7 @@ case class EksOutput(
 
 object EKS extends Resource[EksInput, EksOutput, Unit, Unit]:
 
-  override def make(inputParams: EksInput)(using Context): Output[EksOutput] =
+  override def make(inputParams: EksInput)(using c: Context): Output[EksOutput] =
     for {
       clusterRole <- createClusterRole(inputParams)
       clusterPolicyAttachment <- attachClusterPolicy(inputParams, clusterRole)
@@ -68,7 +66,7 @@ object EKS extends Resource[EksInput, EksOutput, Unit, Unit]:
       )
     }
 
-  override def makeLocal(inputParams: Unit)(using Context): Output[Unit] =
+  override def makeLocal(inputParams: Unit)(using c: Context): Output[Unit] =
     throw new IllegalStateException("no eks needed locally due to usage of k3d")
 
   private def createClusterRole(params: EksInput)(using Context): Output[iam.Role] =

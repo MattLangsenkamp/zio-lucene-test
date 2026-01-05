@@ -5,8 +5,14 @@
 //> using dep "org.virtuslab::besom-kubernetes:4.19.0-core.0.5"
 
 import besom.*
-import besom.internal.Context
+import besom.api.aws
 import besom.api.kubernetes as k8s
+import explicit.providers.{
+  K8Provider,
+  K8sInputs,
+  AwsProvider,
+  AwsProviderInputs
+}
 import utils.*
 import utils.ingestion.Ingestion
 import utils.reader.Reader
@@ -31,9 +37,13 @@ import utils.writer.Writer
   // Only create MSK resources for non-local environments (dev/prod)
   // For local development, use plain Kafka in k3d instead
   if (!isLocal) {
+
+    // Create explicit Kubernetes provider from EKS outputs
+    val awsProvider = AwsProvider.make(AwsProviderInputs(stackName))
+
     // 1. Create S3 bucket
-    val bucket = S3.createBucket("segments")
-    val bucketId = bucket.flatMap(_.id)
+    val bucket = S3.make(S3Input("segments", awsProvider))
+    val bucketId = bucket.flatMap(_.bucket.id)
 
     // 2. Create VPC with public/private subnets, IGW, NAT
     val vpcOutput = Vpc.make(VpcInput())
@@ -66,22 +76,7 @@ import utils.writer.Writer
     val clusterName = eksCluster.map(_.clusterName)
 
     // Create explicit Kubernetes provider from EKS outputs
-    val k8sProvider = eksCluster.flatMap { eks =>
-      val kubeconfig = Kubeconfig.generateKubeconfigYaml(
-        clusterName = eks.clusterName,
-        clusterEndpoint = eks.clusterEndpoint,
-        clusterCertificateAuthority = eks.clusterCertificateAuthority
-      )
-
-      kubeconfig.flatMap { config =>
-        k8s.Provider(
-          "eks-k8s-provider",
-          k8s.ProviderArgs(
-            kubeconfig = config
-          )
-        )
-      }
-    }
+    val k8sProvider = K8Provider.make(K8sInputs(eksCluster))
 
     // 5. Create aws-auth ConfigMap so nodes can join the cluster
     val awsAuthConfigMap =
@@ -112,7 +107,12 @@ import utils.writer.Writer
     val namespace =
       for {
         eks <- eksCluster
-        ns <- K8s.createNamespace("zio-lucene", eks.cluster, eks.nodeGroup, k8sProvider)
+        ns <- K8s.createNamespace(
+          "zio-lucene",
+          eks.cluster,
+          eks.nodeGroup,
+          k8sProvider
+        )
       } yield ns
     val namespaceNameOpt = namespace.flatMap(_.metadata.flatMap(_.name))
     val namespaceNameOutput = namespaceNameOpt.getOrElse {
@@ -236,16 +236,15 @@ import utils.writer.Writer
       )
   } else {
     // Local stack - S3, K8s namespace, and Kafka in k3d
+    // Create explicit Kubernetes provider from EKS outputs
+    val awsProvider = AwsProvider.makeLocal(AwsProviderInputs(stackName))
 
     // 1. Create S3 bucket
-    val bucket = S3.createBucket("segments")
-    val bucketId = bucket.flatMap(_.id)
+    val bucket = S3.makeLocal(S3Input("segments", awsProvider))
+    val bucketId = bucket.flatMap(_.bucket.id)
 
     // 2. Create k3d Kubernetes provider (uses default kubeconfig)
-    val k8sProvider = k8s.Provider(
-      "k3d-k8s-provider",
-      k8s.ProviderArgs()  // Empty args = use default kubeconfig
-    )
+    val k8sProvider = K8Provider.makeLocal(())
 
     // 2b. Install local-path provisioner for persistent volume support
     val localCsiDriver = EbsCsiDriver.makeLocal(())
