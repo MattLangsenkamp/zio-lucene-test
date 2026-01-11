@@ -2,3 +2,9 @@ config:
   zio-lucene-infra:hostedZoneId: Z09722571DSCDPR3Y2KK1
   zio-lucene-infra:domain: zio-lucent-test.com
   zio-lucene-infra:certificateArn: arn:aws:acm:us-east-1:853236864732:certificate/36ddc249-98fd-431f-8606-a26e56b2f343
+  zio-lucene-infra:datadogApiKey:
+    secure: AAABALyUPrDlS++sWcaF/R8TVZKS0KxGwKUgnGYHkMR5YAOO1w==
+  zio-lucene-infra:grafanaCloudInstanceId: "1490054"
+  zio-lucene-infra:grafanaCloudApiKey:
+    secure: AAABAEj15MIPlmHUIcYjYjIdMaskqr8d1dgmoF481EjHlJaJTHl5t0hqRhhP8ew3hqRvdNHpBqvEonHSkdfXyue274Id7i4OC3MCOfTKxbNhY29fidfgfbnLOYnkhC+wofD5w6OkYhYcbVJp+Qy0M/E929GM2qdeoMlJyehK7xbnGNh3Abccc3yvGo902o1DDslzrMAh5QQlK2zz5vxsR3UFJgg=
+  zio-lucene-infra:grafanaCloudOtlpEndpoint: https://otlp-gateway-prod-us-east-3.grafana.net/otlp
