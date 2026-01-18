@@ -5,7 +5,7 @@ import besom.api.aws
 import besom.api.kubernetes as k8s
 
 case class EbsCsiDriverInput(
-  eksCluster: besom.api.aws.eks.Cluster,
+  eksCluster: Output[besom.api.aws.eks.Cluster],
   clusterOidcIssuer: Output[String],
   clusterOidcIssuerArn: Output[String],
   k8sProvider: Output[k8s.Provider]

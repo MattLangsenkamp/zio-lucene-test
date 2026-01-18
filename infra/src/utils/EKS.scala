@@ -3,6 +3,7 @@ package utils
 import besom.*
 import besom.api.aws
 import besom.api.aws.{Provider, ec2, eks, iam}
+import besom.api.kubernetes as k8s
 
 case class EksInput(
   namePrefix: String = "zio-lucene",
@@ -22,19 +23,36 @@ case class EksOutput(
   oidcProviderUrl: Output[String],
   oidcProviderArn: Output[String],
   clusterEndpoint: Output[String],
-  clusterCertificateAuthority: Output[String]
+  clusterCertificateAuthority: Output[String],
+  k8sProvider: k8s.Provider,
+  awsAuthConfigMap: k8s.core.v1.ConfigMap
 )
 
 object EKS extends Resource[EksInput, EksOutput, Unit, Unit]:
 
   override def make(inputParams: EksInput)(using c: Context): Output[EksOutput] =
     for {
+      // 1. Create cluster role and policies
       clusterRole <- createClusterRole(inputParams)
       clusterPolicyAttachment <- attachClusterPolicy(inputParams, clusterRole)
       cluster <- createClusterResource(inputParams, clusterRole, clusterPolicyAttachment)
+
+      // 2. Create node role and policies (needed for aws-auth ConfigMap)
       nodeRole <- createNodeRole(inputParams)
       nodePolicyAttachments <- attachNodePolicies(inputParams, nodeRole)
-      nodeGroup <- createNodeGroupResource(inputParams, cluster, nodeRole, nodePolicyAttachments)
+
+      // 3. Create K8s provider from cluster outputs
+      k8sProvider <- createK8sProvider(cluster)
+
+      // 4. Create aws-auth ConfigMap BEFORE node group (so nodes can join)
+      awsAuthConfigMap <- K8s.createAwsAuthConfigMap(
+        nodeRoleArn = nodeRole.arn,
+        cluster = Output(cluster),
+        provider = Output(k8sProvider)
+      )
+
+      // 5. Create node group (depends on aws-auth ConfigMap)
+      nodeGroup <- createNodeGroupResource(inputParams, cluster, nodeRole, nodePolicyAttachments, awsAuthConfigMap)
     } yield {
       val oidcIssuerUrl = extractOidcIssuerUrl(cluster)
       val oidcProviderArn = cluster.arn.zip(oidcIssuerUrl).map { case (arn, issuerUrl) =>
@@ -62,7 +80,9 @@ object EKS extends Resource[EksInput, EksOutput, Unit, Unit]:
         oidcProviderUrl = oidcIssuerUrl,
         oidcProviderArn = oidcProviderArn,
         clusterEndpoint = clusterEndpoint,
-        clusterCertificateAuthority = clusterCertificateAuthority
+        clusterCertificateAuthority = clusterCertificateAuthority,
+        k8sProvider = k8sProvider,
+        awsAuthConfigMap = awsAuthConfigMap
       )
     }
 
@@ -171,7 +191,8 @@ object EKS extends Resource[EksInput, EksOutput, Unit, Unit]:
     params: EksInput,
     cluster: eks.Cluster,
     nodeRole: iam.Role,
-    nodePolicyAttachments: List[iam.RolePolicyAttachment]
+    nodePolicyAttachments: List[iam.RolePolicyAttachment],
+    awsAuthConfigMap: k8s.core.v1.ConfigMap
   )(using Context): Output[eks.NodeGroup] =
     eks.NodeGroup(
       s"${params.namePrefix}-eks-node-group",
@@ -188,9 +209,33 @@ object EKS extends Resource[EksInput, EksOutput, Unit, Unit]:
       ),
       opts(
         parent = cluster,
-        dependsOn = nodePolicyAttachments
+        dependsOn = nodePolicyAttachments :+ awsAuthConfigMap
       )
     )
+
+  private def createK8sProvider(cluster: eks.Cluster)(using Context): Output[k8s.Provider] =
+    val clusterEndpoint = cluster.endpoint
+    val clusterCertificateAuthority = cluster.certificateAuthority.flatMap { certAuth =>
+      certAuth.data.map(_.getOrElse {
+        throw new RuntimeException("EKS cluster certificate authority data is missing")
+      })
+    }
+
+    val kubeconfig = Kubeconfig.generateKubeconfigYaml(
+      clusterName = cluster.name,
+      clusterEndpoint = clusterEndpoint,
+      clusterCertificateAuthority = clusterCertificateAuthority
+    )
+
+    kubeconfig.flatMap { config =>
+      k8s.Provider(
+        "eks-k8s-provider",
+        k8s.ProviderArgs(
+          kubeconfig = config
+        ),
+        opts(dependsOn = cluster)
+      )
+    }
 
   private def extractOidcIssuerUrl(cluster: eks.Cluster)(using Context): Output[String] =
     cluster.identities.flatMap { identities =>

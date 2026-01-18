@@ -64,7 +64,6 @@ object OtelCollector extends Resource[OtelCollectorInput, OtelCollectorOutput, O
     namespace: k8s.core.v1.Namespace
   )(using Context): Output[k8s.core.v1.Secret] =
     for {
-      prov <- params.k8sProvider
       nsName <- namespace.metadata.name.map(_.getOrElse("opentelemetry-operator-system"))
       instanceId <- params.grafanaCloudConfig.instanceId
       apiKey <- params.grafanaCloudConfig.apiKey
@@ -85,7 +84,7 @@ object OtelCollector extends Resource[OtelCollectorInput, OtelCollectorOutput, O
               "GRAFANA_CLOUD_OTLP_ENDPOINT" -> endpoint
             )
           ),
-          opts(provider = prov, dependsOn = dependencies)
+          opts(provider = params.k8sProvider, dependsOn = dependencies)
         )
       }
     } yield secret
@@ -122,56 +121,10 @@ object OtelCollector extends Resource[OtelCollectorInput, OtelCollectorOutput, O
                   )
                 )
               ),
-              // Configure the DaemonSet collector to send to Grafana Cloud
+              // Configure OpenTelemetry Collector
               "opentelemetry-collector" -> besom.json.JsObject(
                 "mode" -> besom.json.JsString("daemonset"),
-                "config" -> besom.json.JsObject(
-                  "receivers" -> besom.json.JsObject(
-                    "otlp" -> besom.json.JsObject(
-                      "protocols" -> besom.json.JsObject(
-                        "grpc" -> besom.json.JsObject(
-                          "endpoint" -> besom.json.JsString("0.0.0.0:4317")
-                        ),
-                        "http" -> besom.json.JsObject(
-                          "endpoint" -> besom.json.JsString("0.0.0.0:4318")
-                        )
-                      )
-                    )
-                  ),
-                  "processors" -> besom.json.JsObject(
-                    "batch" -> besom.json.JsObject()
-                  ),
-                  "exporters" -> besom.json.JsObject(
-                    "otlphttp/grafana" -> besom.json.JsObject(
-                      "endpoint" -> besom.json.JsString("${env:GRAFANA_CLOUD_OTLP_ENDPOINT}"),
-                      "headers" -> besom.json.JsObject(
-                        "Authorization" -> besom.json.JsString("Basic ${env:GRAFANA_CLOUD_INSTANCE_ID}:${env:GRAFANA_CLOUD_API_KEY}")
-                      )
-                    ),
-                    "debug" -> besom.json.JsObject(
-                      "verbosity" -> besom.json.JsString("detailed")
-                    )
-                  ),
-                  "service" -> besom.json.JsObject(
-                    "pipelines" -> besom.json.JsObject(
-                      "traces" -> besom.json.JsObject(
-                        "receivers" -> besom.json.JsArray(Vector(besom.json.JsString("otlp"))),
-                        "processors" -> besom.json.JsArray(Vector(besom.json.JsString("batch"))),
-                        "exporters" -> besom.json.JsArray(Vector(besom.json.JsString("otlphttp/grafana"), besom.json.JsString("debug")))
-                      ),
-                      "metrics" -> besom.json.JsObject(
-                        "receivers" -> besom.json.JsArray(Vector(besom.json.JsString("otlp"))),
-                        "processors" -> besom.json.JsArray(Vector(besom.json.JsString("batch"))),
-                        "exporters" -> besom.json.JsArray(Vector(besom.json.JsString("otlphttp/grafana"), besom.json.JsString("debug")))
-                      ),
-                      "logs" -> besom.json.JsObject(
-                        "receivers" -> besom.json.JsArray(Vector(besom.json.JsString("otlp"))),
-                        "processors" -> besom.json.JsArray(Vector(besom.json.JsString("batch"))),
-                        "exporters" -> besom.json.JsArray(Vector(besom.json.JsString("otlphttp/grafana"), besom.json.JsString("debug")))
-                      )
-                    )
-                  )
-                ),
+                // Add Grafana Cloud environment variables
                 "env" -> besom.json.JsArray(Vector(
                   besom.json.JsObject(
                     "name" -> besom.json.JsString("GRAFANA_CLOUD_OTLP_ENDPOINT"),
@@ -200,7 +153,75 @@ object OtelCollector extends Resource[OtelCollectorInput, OtelCollectorOutput, O
                       )
                     )
                   )
-                ))
+                )),
+                // Disable presets - we'll configure everything manually
+                "presets" -> besom.json.JsObject(
+                  "logsCollection" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
+                  "hostMetrics" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
+                  "kubernetesAttributes" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
+                  "kubeletMetrics" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
+                  "kubernetesEvents" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
+                  "clusterMetrics" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false))
+                ),
+                // Configure collector manually with Grafana Cloud integration
+                "config" -> besom.json.JsObject(
+                  "extensions" -> besom.json.JsObject(
+                    "basicauth/grafana" -> besom.json.JsObject(
+                      "client_auth" -> besom.json.JsObject(
+                        "username" -> besom.json.JsString("${env:GRAFANA_CLOUD_INSTANCE_ID}"),
+                        "password" -> besom.json.JsString("${env:GRAFANA_CLOUD_API_KEY}")
+                      )
+                    )
+                  ),
+                  "receivers" -> besom.json.JsObject(
+                    "otlp" -> besom.json.JsObject(
+                      "protocols" -> besom.json.JsObject(
+                        "grpc" -> besom.json.JsObject(
+                          "endpoint" -> besom.json.JsString("0.0.0.0:4317")
+                        ),
+                        "http" -> besom.json.JsObject(
+                          "endpoint" -> besom.json.JsString("0.0.0.0:4318")
+                        )
+                      )
+                    )
+                  ),
+                  "processors" -> besom.json.JsObject(
+                    "batch" -> besom.json.JsObject()
+                  ),
+                  "exporters" -> besom.json.JsObject(
+                    "otlphttp/grafana" -> besom.json.JsObject(
+                      "endpoint" -> besom.json.JsString("${env:GRAFANA_CLOUD_OTLP_ENDPOINT}"),
+                      "auth" -> besom.json.JsObject(
+                        "authenticator" -> besom.json.JsString("basicauth/grafana")
+                      )
+                    ),
+                    "debug" -> besom.json.JsObject(
+                      "verbosity" -> besom.json.JsString("detailed")
+                    )
+                  ),
+                  "service" -> besom.json.JsObject(
+                    "extensions" -> besom.json.JsArray(Vector(
+                      besom.json.JsString("basicauth/grafana")
+                    )),
+                    "pipelines" -> besom.json.JsObject(
+                      "traces" -> besom.json.JsObject(
+                        "receivers" -> besom.json.JsArray(Vector(besom.json.JsString("otlp"))),
+                        "processors" -> besom.json.JsArray(Vector(besom.json.JsString("batch"))),
+                        "exporters" -> besom.json.JsArray(Vector(besom.json.JsString("otlphttp/grafana"), besom.json.JsString("debug")))
+                      ),
+                      "metrics" -> besom.json.JsObject(
+                        "receivers" -> besom.json.JsArray(Vector(besom.json.JsString("otlp"))),
+                        "processors" -> besom.json.JsArray(Vector(besom.json.JsString("batch"))),
+                        "exporters" -> besom.json.JsArray(Vector(besom.json.JsString("otlphttp/grafana"), besom.json.JsString("debug")))
+                      ),
+                      "logs" -> besom.json.JsObject(
+                        "receivers" -> besom.json.JsArray(Vector(besom.json.JsString("otlp"))),
+                        "processors" -> besom.json.JsArray(Vector(besom.json.JsString("batch"))),
+                        "exporters" -> besom.json.JsArray(Vector(besom.json.JsString("otlphttp/grafana"), besom.json.JsString("debug")))
+                      )
+                    )
+                  )
+                )
               )
             )
           ),

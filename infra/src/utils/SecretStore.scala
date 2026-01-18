@@ -6,30 +6,44 @@ import besom.api.aws.Provider as AwsProvider
 import besom.internal.Context
 
 final case class SecretStoreInput(
-  dataDogApiKey: Output[String],
-  awsProvider: Output[AwsProvider]
+    dataDogApiKey: Output[String],
+    awsProvider: Output[AwsProvider]
 )
 
 final case class SecretStoreOutput(
-  secret: secretsmanager.Secret,
-  secretVersion: secretsmanager.SecretVersion
+    secret: Output[secretsmanager.Secret],
+    secretVersion: Output[secretsmanager.SecretVersion]
 )
 
-object SecretStore extends Resource[SecretStoreInput, SecretStoreOutput, SecretStoreInput, SecretStoreOutput]:
+object SecretStore
+    extends Resource[
+      SecretStoreInput,
+      SecretStoreOutput,
+      SecretStoreInput,
+      SecretStoreOutput
+    ]:
 
-  override def make(inputParams: SecretStoreInput)(using c: Context): Output[SecretStoreOutput] =
-    for {
-      secret <- createSecret(inputParams)
-      secretVersion <- createSecretVersion(secret, inputParams)
-    } yield SecretStoreOutput(
-      secret = secret,
-      secretVersion = secretVersion
+  override def make(inputParams: SecretStoreInput)(using
+      c: Context
+  ): Output[SecretStoreOutput] = {
+    val secret = createSecret(inputParams)
+    val secretVersion = createSecretVersion(secret, inputParams)
+    Output(
+      SecretStoreOutput(
+        secret = secret,
+        secretVersion = secretVersion
+      )
     )
+  }
 
-  override def makeLocal(inputParams: SecretStoreInput)(using c: Context): Output[SecretStoreOutput] =
+  override def makeLocal(inputParams: SecretStoreInput)(using
+      c: Context
+  ): Output[SecretStoreOutput] =
     make(inputParams)
 
-  private def createSecret(params: SecretStoreInput)(using Context): Output[secretsmanager.Secret] =
+  private def createSecret(params: SecretStoreInput)(using
+      Context
+  ): Output[secretsmanager.Secret] =
     val providerResource: Output[Option[ProviderResource]] =
       params.awsProvider.flatMap(provider => provider.provider)
 
@@ -38,14 +52,14 @@ object SecretStore extends Resource[SecretStoreInput, SecretStoreOutput, SecretS
       secretsmanager.SecretArgs(
         name = "zio-lucene/datadog-api-key",
         description = "Datadog API key for monitoring",
-        recoveryWindowInDays = 0  // Immediate deletion when destroyed
+        recoveryWindowInDays = 0 // Immediate deletion when destroyed
       ),
       opts(provider = providerResource)
     )
 
   private def createSecretVersion(
-    secret: secretsmanager.Secret,
-    params: SecretStoreInput
+      secret: Output[secretsmanager.Secret],
+      params: SecretStoreInput
   )(using Context): Output[secretsmanager.SecretVersion] =
     val providerResource: Output[Option[ProviderResource]] =
       params.awsProvider.flatMap(provider => provider.provider)

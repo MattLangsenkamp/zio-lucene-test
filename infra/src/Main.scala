@@ -58,97 +58,77 @@ import utils.writer.Writer
     val vpcOutput = Vpc.make(VpcInput())
 
     // 3. Create MSK cluster in private subnets
-    val kafkaOutput =
-      for {
-        vpcDetails <- vpcOutput
-        kafkaDetails <- Kafka.make(
-          KafkaInput(
-            vpcId = vpcDetails.vpc.id,
-            privateSubnet1Id = vpcDetails.privateSubnet1.id,
-            privateSubnet2Id = vpcDetails.privateSubnet2.id
-          )
-        )
-      } yield kafkaDetails
+    val kafkaOutput = Kafka.make(
+      KafkaInput(
+        vpcId = vpcOutput.flatMap(_.vpc.id),
+        privateSubnet1Id = vpcOutput.flatMap(_.privateSubnet1.id),
+        privateSubnet2Id = vpcOutput.flatMap(_.privateSubnet2.id)
+      )
+    )
+
     val bootstrapServers = kafkaOutput.flatMap(_.cluster.bootstrapBrokers)
 
     // 4. Create EKS cluster with public subnets (for worker nodes)
-    val eksCluster = for {
-      vpcOut <- vpcOutput
-      eks <- EKS.make(
+    val eksCluster =
+      EKS.make(
         EksInput(
           namePrefix = "zio-lucene",
-          vpcId = vpcOut.vpc.id,
-          subnetIds = List(vpcOut.publicSubnet1.id, vpcOut.publicSubnet2.id)
-        )
-      )
-    } yield eks
-    val clusterName = eksCluster.map(_.clusterName)
-
-    // Create explicit Kubernetes provider from EKS outputs
-    val k8sProvider = K8Provider.make(K8sInputs(eksCluster))
-
-    // 5. Create aws-auth ConfigMap so nodes can join the cluster
-    val awsAuthConfigMap =
-      for {
-        eks <- eksCluster
-        configMap <- K8s.createAwsAuthConfigMap(
-          eks.nodeRoleArn,
-          eks.nodeGroup,
-          k8sProvider
-        )
-      } yield configMap
-
-    // 5b. Install EBS CSI driver for persistent volume support
-    val ebsCsiDriver =
-      for {
-        eks <- eksCluster
-        driver <- EbsCsiDriver.make(
-          EbsCsiDriverInput(
-            eksCluster = eks.cluster,
-            clusterOidcIssuer = eks.oidcProviderUrl,
-            clusterOidcIssuerArn = eks.oidcProviderArn,
-            k8sProvider = k8sProvider
+          vpcId = vpcOutput.flatMap(_.vpc.id),
+          subnetIds = List(
+            vpcOutput.flatMap(_.publicSubnet1.id),
+            vpcOutput.flatMap(_.publicSubnet2.id)
           )
         )
-      } yield driver
+      )
+    val clusterName = eksCluster.map(_.clusterName)
+
+    // Extract K8s provider from EKS output (created inside EKS.make along with aws-auth)
+    val k8sProvider = eksCluster.map(_.k8sProvider)
+
+    // 5b. Install EBS CSI driver for persistent volume support
+    // todo make depend on node group
+    val ebsCsiDriver =
+      EbsCsiDriver.make(
+        EbsCsiDriverInput(
+          eksCluster = eksCluster.map(_.cluster),
+          clusterOidcIssuer = eksCluster.flatMap(_.oidcProviderUrl),
+          clusterOidcIssuerArn = eksCluster.flatMap(_.oidcProviderArn),
+          k8sProvider = k8sProvider
+        )
+      )
 
     // 5c. Install External Secrets Operator
-    val externalSecretsOperator = eksCluster.flatMap { eks =>
+    val externalSecretsOperator =
       ExternalSecretsOperator.make(
         ExternalSecretsOperatorInput(
           k8sProvider = k8sProvider,
-          cluster = Some(eks.cluster),
-          nodeGroup = Some(eks.nodeGroup)
+          cluster = Some(eksCluster.map(_.cluster)),
+          nodeGroup = Some(eksCluster.map(_.nodeGroup))
         )
       )
-    }
 
-    // 5d. Create IRSA role for External Secrets Operator
+    // 5d. Create IAM Roles for Service Account (IRSA) role for External Secrets Operator
     val externalSecretsIrsa = for {
-      eks <- eksCluster
       eso <- externalSecretsOperator
       esNamespace <- eso.namespace.metadata.name
     } yield ExternalSecretsIrsa.make(
       ExternalSecretsIrsaInput(
-        externalSecretsNamespace = Output(esNamespace.getOrElse("external-secrets")),
-        clusterOidcIssuer = eks.oidcProviderUrl,
-        clusterOidcIssuerArn = eks.oidcProviderArn,
+        externalSecretsNamespace =
+          Output(esNamespace.getOrElse("external-secrets")),
+        clusterOidcIssuer = eksCluster.flatMap(_.oidcProviderUrl),
+        clusterOidcIssuerArn = eksCluster.flatMap(_.oidcProviderArn),
         awsProvider = awsProvider
       )
     )
     val externalSecretsIrsaFlattened = externalSecretsIrsa.flatten
 
     // 6. Create Kubernetes namespace (for EKS cluster)
-    val namespace =
-      for {
-        eks <- eksCluster
-        ns <- K8s.createNamespace(
-          "zio-lucene",
-          eks.cluster,
-          eks.nodeGroup,
-          k8sProvider
-        )
-      } yield ns
+    val namespace = K8s.createNamespace(
+      "zio-lucene",
+      eksCluster.map(_.cluster),
+      eksCluster.map(_.nodeGroup),
+      k8sProvider
+    )
     val namespaceNameOpt = namespace.flatMap(_.metadata.flatMap(_.name))
     val namespaceNameOutput = namespaceNameOpt.getOrElse {
       throw new RuntimeException(
@@ -276,7 +256,7 @@ import utils.writer.Writer
       kafkaOutput.map(_.securityGroup),
       kafkaOutput.map(_.cluster),
       eksCluster.map(_.cluster),
-      awsAuthConfigMap,
+      eksCluster.map(_.awsAuthConfigMap),
       eksCluster.map(_.nodeGroup),
       ebsCsiDriver.map(_.role),
       ebsCsiDriver.map(_.addon),

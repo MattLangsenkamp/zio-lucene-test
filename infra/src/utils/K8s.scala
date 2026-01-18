@@ -7,16 +7,16 @@ object K8s:
 
   def createNamespace(
       name: String,
-      cluster: besom.api.aws.eks.Cluster,
-      nodeGroup: besom.api.aws.eks.NodeGroup,
+      cluster: Output[besom.api.aws.eks.Cluster],
+      nodeGroup: Output[besom.api.aws.eks.NodeGroup],
       provider: Output[k8s.Provider]
   )(using Context): Output[k8s.core.v1.Namespace] =
     createNamespace(name, Some(cluster), Some(nodeGroup), provider)
 
   def createNamespace(
       name: String,
-      cluster: Option[besom.api.aws.eks.Cluster],
-      nodeGroup: Option[besom.api.aws.eks.NodeGroup] = None,
+      cluster: Option[Output[besom.api.aws.eks.Cluster]],
+      nodeGroup: Option[Output[besom.api.aws.eks.NodeGroup]] = None,
       provider: Output[k8s.Provider]
   )(using Context): Output[k8s.core.v1.Namespace] =
     provider.flatMap { prov =>
@@ -145,32 +145,35 @@ object K8s:
       )
     }
 
-  /** Creates the aws-auth ConfigMap for EKS to allow nodes to join the cluster
+  /** Creates the aws-auth ConfigMap for EKS to allow nodes to join the cluster.
+    * This must be created BEFORE the node group so nodes can successfully join.
     */
   def createAwsAuthConfigMap(
       nodeRoleArn: Output[String],
-      nodeGroup: besom.api.aws.eks.NodeGroup,
+      cluster: Output[besom.api.aws.eks.Cluster],
       provider: Output[k8s.Provider]
   )(using Context): Output[k8s.core.v1.ConfigMap] =
     provider.flatMap { prov =>
-      k8s.core.v1.ConfigMap(
-        "aws-auth",
-        k8s.core.v1.ConfigMapArgs(
-          metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
-            annotations = Map("pulumi.com/patchForce" -> "true"),
-            name = "aws-auth",
-            namespace = "kube-system"
-          ),
-          data = nodeRoleArn.map(arn =>
-            Map(
-              "mapRoles" -> s"""- rolearn: $arn
+      cluster.flatMap { clusterResource =>
+        k8s.core.v1.ConfigMap(
+          "aws-auth",
+          k8s.core.v1.ConfigMapArgs(
+            metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+              annotations = Map("pulumi.com/patchForce" -> "true"),
+              name = "aws-auth",
+              namespace = "kube-system"
+            ),
+            data = nodeRoleArn.map(arn =>
+              Map(
+                "mapRoles" -> s"""- rolearn: $arn
   username: system:node:{{EC2PrivateDNSName}}
   groups:
     - system:bootstrappers
     - system:nodes"""
+              )
             )
-          )
-        ),
-        opts(dependsOn = nodeGroup, provider = prov)
-      )
+          ),
+          opts(dependsOn = clusterResource, provider = prov)
+        )
+      }
     }
