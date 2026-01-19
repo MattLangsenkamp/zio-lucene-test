@@ -6,8 +6,7 @@ import besom.api.aws.Provider as AwsProvider
 
 case class ExternalSecretsIrsaInput(
   externalSecretsNamespace: Output[String],
-  clusterOidcIssuer: Output[String],
-  clusterOidcIssuerArn: Output[String],
+  oidcProvider: Output[OidcProviderOutput],
   awsProvider: Output[AwsProvider]
 )
 
@@ -43,8 +42,9 @@ object ExternalSecretsIrsa extends Resource[
       params.awsProvider.flatMap(provider => provider.provider)
 
     val assumeRolePolicy = for {
-      issuer <- params.clusterOidcIssuer
-      arn <- params.clusterOidcIssuerArn
+      oidc <- params.oidcProvider
+      issuer <- oidc.issuerUrl
+      arn <- oidc.providerArn
       ns <- params.externalSecretsNamespace
     } yield s"""{
       "Version": "2012-10-17",

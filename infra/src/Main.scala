@@ -85,14 +85,40 @@ import utils.writer.Writer
     // Extract K8s provider from EKS output (created inside EKS.make along with aws-auth)
     val k8sProvider = eksCluster.map(_.k8sProvider)
 
+    // 5. Create OIDC Provider (shared by all IRSA consumers)
+    val oidcProvider = eksCluster.flatMap { eks =>
+      OidcProvider.make(
+        OidcProviderInput(
+          clusterOidcIssuer = eks.oidcProviderUrl,
+          cluster = eks.cluster
+        )
+      )
+    }
+
+    // 5a. Create ALB Controller early (before any Services to avoid webhook issues)
+    val albController = for {
+      eks <- eksCluster
+      vpc <- vpcOutput
+      oidc <- oidcProvider
+      controller <- AlbController.make(
+        AlbControllerInput(
+          eksCluster = eks.cluster,
+          nodeGroup = eks.nodeGroup,
+          vpcId = vpc.vpc.id,
+          clusterName = eks.clusterName,
+          oidcProvider = oidc,
+          stackName = stackName,
+          k8sProvider = k8sProvider
+        )
+      )
+    } yield controller
+
     // 5b. Install EBS CSI driver for persistent volume support
-    // todo make depend on node group
     val ebsCsiDriver =
       EbsCsiDriver.make(
         EbsCsiDriverInput(
           eksCluster = eksCluster.map(_.cluster),
-          clusterOidcIssuer = eksCluster.flatMap(_.oidcProviderUrl),
-          clusterOidcIssuerArn = eksCluster.flatMap(_.oidcProviderArn),
+          oidcProvider = oidcProvider,
           k8sProvider = k8sProvider
         )
       )
@@ -115,8 +141,7 @@ import utils.writer.Writer
       ExternalSecretsIrsaInput(
         externalSecretsNamespace =
           Output(esNamespace.getOrElse("external-secrets")),
-        clusterOidcIssuer = eksCluster.flatMap(_.oidcProviderUrl),
-        clusterOidcIssuerArn = eksCluster.flatMap(_.oidcProviderArn),
+        oidcProvider = oidcProvider,
         awsProvider = awsProvider
       )
     )
@@ -155,16 +180,19 @@ import utils.writer.Writer
       otlpEndpoint = config.require[String]("grafanaCloudOtlpEndpoint")
     )
 
-    val otelCollector = eksCluster.flatMap { eks =>
-      OtelCollector.make(
+    val otelCollector = for {
+      eks <- eksCluster
+      alb <- albController
+      collector <- OtelCollector.make(
         OtelCollectorInput(
           k8sProvider = k8sProvider,
           grafanaCloudConfig = grafanaConfig,
           cluster = Some(eks.cluster),
-          nodeGroup = Some(eks.nodeGroup)
+          nodeGroup = Some(eks.nodeGroup),
+          albControllerHelmRelease = Some(alb.helmRelease)
         )
       )
-    }
+    } yield collector
 
     // 7. Deploy application services with Docker Hub images
     val ingestionService = Ingestion.createService(
@@ -220,22 +248,18 @@ import utils.writer.Writer
     val albIngress =
       for {
         eks <- eksCluster
-        vpc <- vpcOutput
+        alb <- albController
         albIngress <- AlbIngress.make(
           AlbIngressInput(
             eksCluster = eks.cluster,
-            nodeGroup = eks.nodeGroup,
-            vpcId = vpc.vpc.id,
-            clusterName = eks.clusterName,
-            clusterOidcIssuer = eks.oidcProviderUrl,
-            clusterOidcIssuerArn = eks.oidcProviderArn,
             namespace = namespaceNameOutput,
             readerServiceName = readerServiceName,
             stackName = stackName,
             hostedZoneIdConfig = hostedZoneId,
             baseDomainConfig = baseDomain,
             certificateArnConfig = certificateArn,
-            k8sProvider = k8sProvider
+            k8sProvider = k8sProvider,
+            albController = alb
           )
         )
       } yield albIngress
@@ -269,7 +293,7 @@ import utils.writer.Writer
       otelCollector.map(_.namespace),
       otelCollector.map(_.grafanaSecret),
       otelCollector.map(_.helmRelease),
-      albIngress.map(_.oidcProvider),
+      oidcProvider.map(_.provider),
       namespace,
       ingestionService,
       ingestionDeployment,
@@ -277,10 +301,10 @@ import utils.writer.Writer
       readerDeployment,
       writerService,
       writerStatefulSet,
-      albIngress.map(_.policy),
-      albIngress.map(_.role),
-      albIngress.map(_.serviceAccount),
-      albIngress.map(_.helmRelease),
+      albController.map(_.policy),
+      albController.map(_.role),
+      albController.map(_.serviceAccount),
+      albController.map(_.helmRelease),
       albIngress.map(_.ingress)
     )
       .exports(

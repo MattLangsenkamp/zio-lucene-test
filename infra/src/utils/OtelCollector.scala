@@ -7,7 +7,8 @@ case class OtelCollectorInput(
   k8sProvider: Output[k8s.Provider],
   grafanaCloudConfig: GrafanaCloudConfig,
   cluster: Option[besom.api.aws.eks.Cluster] = None,
-  nodeGroup: Option[besom.api.aws.eks.NodeGroup] = None
+  nodeGroup: Option[besom.api.aws.eks.NodeGroup] = None,
+  albControllerHelmRelease: Option[k8s.helm.v3.Release] = None
 )
 
 case class GrafanaCloudConfig(
@@ -47,7 +48,7 @@ object OtelCollector extends Resource[OtelCollectorInput, OtelCollectorOutput, O
     params: OtelCollectorInput
   )(using Context): Output[k8s.core.v1.Namespace] =
     params.k8sProvider.flatMap { prov =>
-      val dependencies = List(params.cluster, params.nodeGroup).flatten
+      val dependencies = List(params.cluster, params.nodeGroup, params.albControllerHelmRelease).flatten
       k8s.core.v1.Namespace(
         "otel-namespace",
         k8s.core.v1.NamespaceArgs(
@@ -69,7 +70,7 @@ object OtelCollector extends Resource[OtelCollectorInput, OtelCollectorOutput, O
       apiKey <- params.grafanaCloudConfig.apiKey
       endpoint <- params.grafanaCloudConfig.otlpEndpoint
       secret <- {
-        val dependencies = List(params.cluster, params.nodeGroup).flatten :+ namespace
+        val dependencies = List(params.cluster, params.nodeGroup, params.albControllerHelmRelease).flatten :+ namespace
         k8s.core.v1.Secret(
           "grafana-cloud-auth",
           k8s.core.v1.SecretArgs(
@@ -97,7 +98,7 @@ object OtelCollector extends Resource[OtelCollectorInput, OtelCollectorOutput, O
     params.k8sProvider.flatMap { prov =>
       namespace.metadata.name.flatMap { nsNameOpt =>
         val nsName = nsNameOpt.getOrElse("opentelemetry-operator-system")
-        val dependencies = List(namespace, secret) ++ List(params.cluster, params.nodeGroup).flatten
+        val dependencies = List(namespace, secret) ++ List(params.cluster, params.nodeGroup, params.albControllerHelmRelease).flatten
 
         k8s.helm.v3.Release(
           "opentelemetry-stack",
@@ -121,103 +122,80 @@ object OtelCollector extends Resource[OtelCollectorInput, OtelCollectorOutput, O
                   )
                 )
               ),
-              // Configure OpenTelemetry Collector
-              "opentelemetry-collector" -> besom.json.JsObject(
-                "mode" -> besom.json.JsString("daemonset"),
-                // Add Grafana Cloud environment variables
-                "env" -> besom.json.JsArray(Vector(
-                  besom.json.JsObject(
-                    "name" -> besom.json.JsString("GRAFANA_CLOUD_OTLP_ENDPOINT"),
-                    "valueFrom" -> besom.json.JsObject(
-                      "secretKeyRef" -> besom.json.JsObject(
-                        "name" -> besom.json.JsString("grafana-cloud-auth"),
-                        "key" -> besom.json.JsString("GRAFANA_CLOUD_OTLP_ENDPOINT")
+              // Configure the daemon collector via the collectors map (operator-managed CRD)
+              "collectors" -> besom.json.JsObject(
+                "daemon" -> besom.json.JsObject(
+                  // Add Grafana Cloud environment variables
+                  "env" -> besom.json.JsArray(Vector(
+                    besom.json.JsObject(
+                      "name" -> besom.json.JsString("GRAFANA_CLOUD_OTLP_ENDPOINT"),
+                      "valueFrom" -> besom.json.JsObject(
+                        "secretKeyRef" -> besom.json.JsObject(
+                          "name" -> besom.json.JsString("grafana-cloud-auth"),
+                          "key" -> besom.json.JsString("GRAFANA_CLOUD_OTLP_ENDPOINT")
+                        )
                       )
-                    )
-                  ),
-                  besom.json.JsObject(
-                    "name" -> besom.json.JsString("GRAFANA_CLOUD_INSTANCE_ID"),
-                    "valueFrom" -> besom.json.JsObject(
-                      "secretKeyRef" -> besom.json.JsObject(
-                        "name" -> besom.json.JsString("grafana-cloud-auth"),
-                        "key" -> besom.json.JsString("GRAFANA_CLOUD_INSTANCE_ID")
+                    ),
+                    besom.json.JsObject(
+                      "name" -> besom.json.JsString("GRAFANA_CLOUD_INSTANCE_ID"),
+                      "valueFrom" -> besom.json.JsObject(
+                        "secretKeyRef" -> besom.json.JsObject(
+                          "name" -> besom.json.JsString("grafana-cloud-auth"),
+                          "key" -> besom.json.JsString("GRAFANA_CLOUD_INSTANCE_ID")
+                        )
                       )
-                    )
-                  ),
-                  besom.json.JsObject(
-                    "name" -> besom.json.JsString("GRAFANA_CLOUD_API_KEY"),
-                    "valueFrom" -> besom.json.JsObject(
-                      "secretKeyRef" -> besom.json.JsObject(
-                        "name" -> besom.json.JsString("grafana-cloud-auth"),
-                        "key" -> besom.json.JsString("GRAFANA_CLOUD_API_KEY")
-                      )
-                    )
-                  )
-                )),
-                // Disable presets - we'll configure everything manually
-                "presets" -> besom.json.JsObject(
-                  "logsCollection" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
-                  "hostMetrics" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
-                  "kubernetesAttributes" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
-                  "kubeletMetrics" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
-                  "kubernetesEvents" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false)),
-                  "clusterMetrics" -> besom.json.JsObject("enabled" -> besom.json.JsBoolean(false))
-                ),
-                // Configure collector manually with Grafana Cloud integration
-                "config" -> besom.json.JsObject(
-                  "extensions" -> besom.json.JsObject(
-                    "basicauth/grafana" -> besom.json.JsObject(
-                      "client_auth" -> besom.json.JsObject(
-                        "username" -> besom.json.JsString("${env:GRAFANA_CLOUD_INSTANCE_ID}"),
-                        "password" -> besom.json.JsString("${env:GRAFANA_CLOUD_API_KEY}")
-                      )
-                    )
-                  ),
-                  "receivers" -> besom.json.JsObject(
-                    "otlp" -> besom.json.JsObject(
-                      "protocols" -> besom.json.JsObject(
-                        "grpc" -> besom.json.JsObject(
-                          "endpoint" -> besom.json.JsString("0.0.0.0:4317")
-                        ),
-                        "http" -> besom.json.JsObject(
-                          "endpoint" -> besom.json.JsString("0.0.0.0:4318")
+                    ),
+                    besom.json.JsObject(
+                      "name" -> besom.json.JsString("GRAFANA_CLOUD_API_KEY"),
+                      "valueFrom" -> besom.json.JsObject(
+                        "secretKeyRef" -> besom.json.JsObject(
+                          "name" -> besom.json.JsString("grafana-cloud-auth"),
+                          "key" -> besom.json.JsString("GRAFANA_CLOUD_API_KEY")
                         )
                       )
                     )
-                  ),
-                  "processors" -> besom.json.JsObject(
-                    "batch" -> besom.json.JsObject()
-                  ),
-                  "exporters" -> besom.json.JsObject(
-                    "otlphttp/grafana" -> besom.json.JsObject(
-                      "endpoint" -> besom.json.JsString("${env:GRAFANA_CLOUD_OTLP_ENDPOINT}"),
-                      "auth" -> besom.json.JsObject(
-                        "authenticator" -> besom.json.JsString("basicauth/grafana")
+                  )),
+                  // Add Grafana Cloud config (merged with chart defaults)
+                  "config" -> besom.json.JsObject(
+                    "extensions" -> besom.json.JsObject(
+                      "basicauth/grafana" -> besom.json.JsObject(
+                        "client_auth" -> besom.json.JsObject(
+                          "username" -> besom.json.JsString("${env:GRAFANA_CLOUD_INSTANCE_ID}"),
+                          "password" -> besom.json.JsString("${env:GRAFANA_CLOUD_API_KEY}")
+                        )
                       )
                     ),
-                    "debug" -> besom.json.JsObject(
-                      "verbosity" -> besom.json.JsString("detailed")
-                    )
-                  ),
-                  "service" -> besom.json.JsObject(
-                    "extensions" -> besom.json.JsArray(Vector(
-                      besom.json.JsString("basicauth/grafana")
-                    )),
-                    "pipelines" -> besom.json.JsObject(
-                      "traces" -> besom.json.JsObject(
-                        "receivers" -> besom.json.JsArray(Vector(besom.json.JsString("otlp"))),
-                        "processors" -> besom.json.JsArray(Vector(besom.json.JsString("batch"))),
-                        "exporters" -> besom.json.JsArray(Vector(besom.json.JsString("otlphttp/grafana"), besom.json.JsString("debug")))
-                      ),
-                      "metrics" -> besom.json.JsObject(
-                        "receivers" -> besom.json.JsArray(Vector(besom.json.JsString("otlp"))),
-                        "processors" -> besom.json.JsArray(Vector(besom.json.JsString("batch"))),
-                        "exporters" -> besom.json.JsArray(Vector(besom.json.JsString("otlphttp/grafana"), besom.json.JsString("debug")))
-                      ),
-                      "logs" -> besom.json.JsObject(
-                        "receivers" -> besom.json.JsArray(Vector(besom.json.JsString("otlp"))),
-                        "processors" -> besom.json.JsArray(Vector(besom.json.JsString("batch"))),
-                        "exporters" -> besom.json.JsArray(Vector(besom.json.JsString("otlphttp/grafana"), besom.json.JsString("debug")))
+                    "exporters" -> besom.json.JsObject(
+                      "otlphttp/grafana" -> besom.json.JsObject(
+                        "endpoint" -> besom.json.JsString("${env:GRAFANA_CLOUD_OTLP_ENDPOINT}"),
+                        "auth" -> besom.json.JsObject(
+                          "authenticator" -> besom.json.JsString("basicauth/grafana")
+                        )
+                      )
+                    ),
+                    "service" -> besom.json.JsObject(
+                      "extensions" -> besom.json.JsArray(Vector(
+                        besom.json.JsString("basicauth/grafana")
+                      )),
+                      "pipelines" -> besom.json.JsObject(
+                        "traces" -> besom.json.JsObject(
+                          "exporters" -> besom.json.JsArray(Vector(
+                            besom.json.JsString("otlphttp/grafana"),
+                            besom.json.JsString("debug")
+                          ))
+                        ),
+                        "metrics" -> besom.json.JsObject(
+                          "exporters" -> besom.json.JsArray(Vector(
+                            besom.json.JsString("otlphttp/grafana"),
+                            besom.json.JsString("debug")
+                          ))
+                        ),
+                        "logs" -> besom.json.JsObject(
+                          "exporters" -> besom.json.JsArray(Vector(
+                            besom.json.JsString("otlphttp/grafana"),
+                            besom.json.JsString("debug")
+                          ))
+                        )
                       )
                     )
                   )
