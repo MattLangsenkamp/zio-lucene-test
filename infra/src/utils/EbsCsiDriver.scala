@@ -5,9 +5,8 @@ import besom.api.aws
 import besom.api.kubernetes as k8s
 
 case class EbsCsiDriverInput(
-  eksCluster: besom.api.aws.eks.Cluster,
-  clusterOidcIssuer: Output[String],
-  clusterOidcIssuerArn: Output[String],
+  eksCluster: Output[besom.api.aws.eks.Cluster],
+  oidcProvider: Output[OidcProviderOutput],
   k8sProvider: Output[k8s.Provider]
 )
 
@@ -38,8 +37,9 @@ object EbsCsiDriver extends Resource[EbsCsiDriverInput, EbsCsiDriverOutput, Unit
       "ebs-csi-driver-role",
       aws.iam.RoleArgs(
         assumeRolePolicy = for
-          issuer <- params.clusterOidcIssuer
-          arn <- params.clusterOidcIssuerArn
+          oidc <- params.oidcProvider
+          issuer <- oidc.issuerUrl
+          arn <- oidc.providerArn
         yield s"""{
           "Version": "2012-10-17",
           "Statement": [
