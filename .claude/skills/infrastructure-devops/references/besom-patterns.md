@@ -524,6 +524,222 @@ k8s.apps.v1.StatefulSet(
 )
 ```
 
+## Output[T] Double-Wrapping Pitfall
+
+**Problem**: When a case class field is typed as `Output[T]`, and that case class is returned from a function that returns `Output[CaseClass]`, you end up with `Output[Output[T]]` when accessing the field.
+
+```scala
+// ❌ BAD - Fields wrapped in Output cause double-wrapping
+case class VpcOutput(
+  vpc: Output[ec2.Vpc],           // Field is Output[Vpc]
+  publicSubnet1: Output[ec2.Subnet]
+)
+
+def make(): Output[VpcOutput] = ...
+
+// When used:
+val vpcOutput: Output[VpcOutput] = Vpc.make()
+val vpc: Output[Output[ec2.Vpc]] = vpcOutput.map(_.vpc)  // Double-wrapped!
+
+// ✅ GOOD - Fields are plain resource types
+case class VpcOutput(
+  vpc: ec2.Vpc,           // Field is Vpc directly
+  publicSubnet1: ec2.Subnet
+)
+
+def make(): Output[VpcOutput] = ...
+
+// When used:
+val vpcOutput: Output[VpcOutput] = Vpc.make()
+val vpc: Output[ec2.Vpc] = vpcOutput.map(_.vpc)  // Single Output wrapper
+```
+
+**Rule**: Output case class fields should contain the actual resource types, not `Output[T]`. The `Output` wrapper comes from the function return type.
+
+## For-Comprehension Side Effects
+
+**Problem**: Resources created as side effects in for-comprehensions may not be tracked if their Outputs aren't used.
+
+```scala
+// ❌ BAD - natGateway and route created but Outputs discarded
+private def createPrivateRouting(...): Unit =
+  for {
+    eip <- aws.ec2.Eip(...)
+    natGateway <- aws.ec2.NatGateway(...)  // Output discarded!
+    route <- aws.ec2.Route(...)            // Output discarded!
+  } yield ()  // Returns Unit, resources may not be tracked
+
+// ✅ GOOD - Return the resources so they're tracked
+private def createPrivateRouting(...): Output[(ec2.NatGateway, ec2.Route)] =
+  for {
+    eip <- aws.ec2.Eip(...)
+    natGateway <- aws.ec2.NatGateway(...)
+    route <- aws.ec2.Route(...)
+  } yield (natGateway, route)  // Resources are part of Output chain
+```
+
+**Rule**: Always return resources from for-comprehensions. If you need them in an outer Output, include them in the yield or ensure they're used in the final Stack.
+
+## Kubernetes Admission Webhook Timing
+
+**Problem**: Helm charts that install admission webhooks (like AWS Load Balancer Controller) register the webhook configuration immediately, but the pods that handle webhook requests take time to start. If other resources try to create Services/Ingresses before pods are ready, the API server's webhook call fails.
+
+```
+Error: Internal error occurred: failed calling webhook "mservice.elbv2.k8s.aws":
+Post "https://aws-load-balancer-webhook-service.kube-system.svc:443/mutate-v1-service":
+dial tcp ... connect: connection refused
+```
+
+**Solution**: Split webhook-installing resources into separate phases and make Service-creating resources depend on them:
+
+```scala
+// Phase 1: Install ALB Controller early (registers webhook)
+val albController = AlbController.make(
+  AlbControllerInput(
+    eksCluster = eks.cluster,
+    nodeGroup = eks.nodeGroup,
+    // ...
+  )
+)
+
+// Phase 2: Resources that create Services depend on controller
+val otelCollector = for {
+  alb <- albController
+  collector <- OtelCollector.make(
+    OtelCollectorInput(
+      // ...
+      albControllerHelmRelease = Some(alb.helmRelease)  // Ensures webhook is ready
+    )
+  )
+} yield collector
+
+// Phase 3: Ingress created last (after all Services exist)
+val ingress = for {
+  alb <- albController
+  ing <- AlbIngress.make(
+    AlbIngressInput(
+      albController = alb,
+      // ...
+    )
+  )
+} yield ing
+```
+
+**Key insight**: The Helm release with `waitForJobs = true` ensures pods are ready before the Output resolves, so dependent resources won't start until the webhook can handle requests.
+
+## OpenTelemetry Kube Stack Helm Chart
+
+### Helm Values Structure
+
+The `opentelemetry-kube-stack` chart has a specific structure. Use `collectors.daemon` for the operator-managed DaemonSet collector, NOT `opentelemetry-collector` (which is a subchart):
+
+```scala
+// ❌ WRONG - opentelemetry-collector is a subchart with different structure
+"opentelemetry-collector" -> JsObject(
+  "config" -> JsObject(...)
+)
+
+// ✅ CORRECT - collectors.daemon is the operator-managed collector
+"collectors" -> JsObject(
+  "daemon" -> JsObject(
+    "env" -> JsArray(...),      // Environment variables
+    "config" -> JsObject(...)   // Collector config (merged with defaults)
+  )
+)
+```
+
+### Grafana Cloud Integration Pattern
+
+To export telemetry to Grafana Cloud:
+
+1. **Create a Secret with credentials**:
+```scala
+k8s.core.v1.Secret(
+  "grafana-cloud-auth",
+  k8s.core.v1.SecretArgs(
+    metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+      name = "grafana-cloud-auth",
+      namespace = "opentelemetry-operator-system"
+    ),
+    stringData = Map(
+      "GRAFANA_CLOUD_INSTANCE_ID" -> instanceId,
+      "GRAFANA_CLOUD_API_KEY" -> apiKey,
+      "GRAFANA_CLOUD_OTLP_ENDPOINT" -> endpoint
+    )
+  )
+)
+```
+
+2. **Configure collector with env vars and exporters**:
+```scala
+"collectors" -> JsObject(
+  "daemon" -> JsObject(
+    // Inject credentials as env vars
+    "env" -> JsArray(Vector(
+      JsObject(
+        "name" -> JsString("GRAFANA_CLOUD_OTLP_ENDPOINT"),
+        "valueFrom" -> JsObject(
+          "secretKeyRef" -> JsObject(
+            "name" -> JsString("grafana-cloud-auth"),
+            "key" -> JsString("GRAFANA_CLOUD_OTLP_ENDPOINT")
+          )
+        )
+      ),
+      // ... similar for INSTANCE_ID and API_KEY
+    )),
+    // Config is merged with chart defaults
+    "config" -> JsObject(
+      "extensions" -> JsObject(
+        "basicauth/grafana" -> JsObject(
+          "client_auth" -> JsObject(
+            "username" -> JsString("${env:GRAFANA_CLOUD_INSTANCE_ID}"),
+            "password" -> JsString("${env:GRAFANA_CLOUD_API_KEY}")
+          )
+        )
+      ),
+      "exporters" -> JsObject(
+        "otlphttp/grafana" -> JsObject(
+          "endpoint" -> JsString("${env:GRAFANA_CLOUD_OTLP_ENDPOINT}"),
+          "auth" -> JsObject(
+            "authenticator" -> JsString("basicauth/grafana")
+          )
+        )
+      ),
+      "service" -> JsObject(
+        "extensions" -> JsArray(Vector(JsString("basicauth/grafana"))),
+        "pipelines" -> JsObject(
+          "traces" -> JsObject(
+            "exporters" -> JsArray(Vector(
+              JsString("otlphttp/grafana"),
+              JsString("debug")
+            ))
+          ),
+          "metrics" -> JsObject(
+            "exporters" -> JsArray(Vector(
+              JsString("otlphttp/grafana"),
+              JsString("debug")
+            ))
+          ),
+          "logs" -> JsObject(
+            "exporters" -> JsArray(Vector(
+              JsString("otlphttp/grafana"),
+              JsString("debug")
+            ))
+          )
+        )
+      )
+    )
+  )
+)
+```
+
+**Key points**:
+- Use `basicauth/grafana` extension for Grafana Cloud authentication
+- Use `otlphttp/grafana` exporter (HTTP-based OTLP)
+- Reference env vars with `${env:VAR_NAME}` syntax in config
+- Add extension to `service.extensions` list
+- Add exporter to each pipeline's `exporters` list
+
 ## Multi-Project Pattern (Future)
 
 When splitting into multiple Pulumi projects:
