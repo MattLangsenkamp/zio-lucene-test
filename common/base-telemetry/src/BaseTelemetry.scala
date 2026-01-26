@@ -17,7 +17,9 @@ import zio.*
 import zio.telemetry.opentelemetry.OpenTelemetry as ZOpenTelemetry
 import zio.telemetry.opentelemetry.tracing.Tracing
 import zio.telemetry.opentelemetry.metrics.Meter
+import zio.telemetry.opentelemetry.logging.Logging as OTelLogging
 import zio.telemetry.opentelemetry.context.ContextStorage
+import io.opentelemetry.api.logs.LoggerProvider
 
 import java.time.Duration as JDuration
 
@@ -151,6 +153,12 @@ object BaseTelemetry:
       yield sdk
     }
 
+  /** Extracts LoggerProvider from the OpenTelemetry SDK instance. */
+  private val loggerProviderLayer: URLayer[OpenTelemetry, LoggerProvider] =
+    ZLayer.fromFunction { (otel: OpenTelemetry) =>
+      otel.asInstanceOf[OpenTelemetrySdk].getSdkLoggerProvider
+    }
+
   /** Creates a complete telemetry layer with all ZIO OpenTelemetry services.
     *
     * Provides:
@@ -158,10 +166,20 @@ object BaseTelemetry:
     * - Tracing service for creating spans
     * - Meter service for recording metrics
     * - ContextStorage for span context propagation
+    * - ZIO logging redirected to OpenTelemetry
+    *
+    * With this layer, standard ZIO.logInfo/logError/etc calls will be
+    * exported to the OTel collector along with traces and metrics.
     *
     * @param serviceName The name of the service for telemetry attribution
     * @return A ZLayer providing all telemetry services
     */
   def live(serviceName: String): TaskLayer[OpenTelemetry & Tracing & Meter & ContextStorage] =
-    val sdk = sdkLayer(serviceName)
-    sdk >+> ZOpenTelemetry.contextZIO >+> ZOpenTelemetry.tracing(serviceName) >+> ZOpenTelemetry.metrics(serviceName)
+    ZLayer.make[OpenTelemetry & Tracing & Meter & ContextStorage](
+      sdkLayer(serviceName),
+      ZOpenTelemetry.contextZIO,
+      ZOpenTelemetry.tracing(serviceName),
+      ZOpenTelemetry.metrics(serviceName),
+      loggerProviderLayer,
+      OTelLogging.live(serviceName)
+    )
