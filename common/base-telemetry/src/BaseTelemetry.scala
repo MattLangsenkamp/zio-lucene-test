@@ -13,35 +13,34 @@ import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter
 import io.opentelemetry.semconv.ServiceAttributes
+import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender
 import zio.*
+import zio.logging.backend.SLF4J
 import zio.telemetry.opentelemetry.OpenTelemetry as ZOpenTelemetry
 import zio.telemetry.opentelemetry.tracing.Tracing
 import zio.telemetry.opentelemetry.metrics.Meter
-import zio.telemetry.opentelemetry.logging.Logging as OTelLogging
 import zio.telemetry.opentelemetry.context.ContextStorage
-import io.opentelemetry.api.logs.LoggerProvider
 
 import java.time.Duration as JDuration
 
 object BaseTelemetry:
 
-  /** Default OTLP endpoint for the collector running as a DaemonSet.
-    * In Kubernetes, this connects to the collector via its service endpoint.
-    * Can be overridden via OTEL_EXPORTER_OTLP_ENDPOINT environment variable.
+  /** SLF4J logging bootstrap layer.
+    * Replace the default ZIO logger with SLF4J so logs flow through
+    * Logback -> OpenTelemetryAppender -> OTel LoggerProvider.
+    * This ensures traceId/spanId are automatically attached to log records.
     */
+  val bootstrap: ZLayer[Any, Nothing, Unit] =
+    Runtime.removeDefaultLoggers >>> SLF4J.slf4j
+
+  /** Default OTLP endpoint for the collector running as a DaemonSet. */
   private val DefaultOtlpEndpoint = "http://opentelemetry-stack-daemon-collector.opentelemetry-operator-system.svc.cluster.local:4317"
 
-  /** Creates a Resource with service metadata for telemetry attribution. */
   private def createResource(serviceName: String): Resource =
     Resource.getDefault.toBuilder
       .put(ServiceAttributes.SERVICE_NAME, serviceName)
       .build()
 
-  /** Creates an SdkTracerProvider configured to export traces via OTLP gRPC.
-    *
-    * Uses BatchSpanProcessor for efficient batching of spans before export.
-    * Connects to the OTel collector DaemonSet running in the cluster.
-    */
   private def traceProvider(serviceName: String): RIO[Scope, SdkTracerProvider] =
     for
       endpoint <- System.env("OTEL_EXPORTER_OTLP_ENDPOINT").map(_.getOrElse(DefaultOtlpEndpoint))
@@ -67,11 +66,6 @@ object BaseTelemetry:
       )
     yield provider
 
-  /** Creates an SdkMeterProvider configured to export metrics via OTLP gRPC.
-    *
-    * Uses PeriodicMetricReader to export metrics at regular intervals (every 30 seconds).
-    * Connects to the OTel collector DaemonSet running in the cluster.
-    */
   private def metricProvider(serviceName: String): RIO[Scope, SdkMeterProvider] =
     for
       endpoint <- System.env("OTEL_EXPORTER_OTLP_ENDPOINT").map(_.getOrElse(DefaultOtlpEndpoint))
@@ -99,11 +93,6 @@ object BaseTelemetry:
       )
     yield provider
 
-  /** Creates an SdkLoggerProvider configured to export logs via OTLP gRPC.
-    *
-    * Uses BatchLogRecordProcessor for efficient batching of log records before export.
-    * Connects to the OTel collector DaemonSet running in the cluster.
-    */
   private def logProvider(serviceName: String): RIO[Scope, SdkLoggerProvider] =
     for
       endpoint <- System.env("OTEL_EXPORTER_OTLP_ENDPOINT").map(_.getOrElse(DefaultOtlpEndpoint))
@@ -129,12 +118,6 @@ object BaseTelemetry:
       )
     yield provider
 
-  /** Creates a fully configured OpenTelemetry SDK layer.
-    *
-    * Combines trace, metric, and log providers into a single SDK that exports
-    * all telemetry to the OTel collector running in the Kubernetes cluster.
-    * The collector then forwards data to Grafana Cloud.
-    */
   private def sdkLayer(serviceName: String): TaskLayer[OpenTelemetry] =
     ZLayer.scoped {
       for
@@ -150,36 +133,23 @@ object BaseTelemetry:
               .build()
           )
         )
+        _ <- ZIO.attempt(OpenTelemetryAppender.install(sdk))
       yield sdk
-    }
-
-  /** Extracts LoggerProvider from the OpenTelemetry SDK instance. */
-  private val loggerProviderLayer: URLayer[OpenTelemetry, LoggerProvider] =
-    ZLayer.fromFunction { (otel: OpenTelemetry) =>
-      otel.asInstanceOf[OpenTelemetrySdk].getSdkLoggerProvider
     }
 
   /** Creates a complete telemetry layer with all ZIO OpenTelemetry services.
     *
-    * Provides:
-    * - OpenTelemetry SDK instance
-    * - Tracing service for creating spans
-    * - Meter service for recording metrics
-    * - ContextStorage for span context propagation
-    * - ZIO logging redirected to OpenTelemetry
+    * Provides OpenTelemetry SDK, Tracing, Meter, and ContextStorage.
+    * Logs are routed via SLF4J/Logback -> OpenTelemetryAppender which
+    * automatically attaches traceId/spanId to OTel log records.
     *
-    * With this layer, standard ZIO.logInfo/logError/etc calls will be
-    * exported to the OTel collector along with traces and metrics.
-    *
-    * @param serviceName The name of the service for telemetry attribution
-    * @return A ZLayer providing all telemetry services
+    * Services using this must set `override val bootstrap = BaseTelemetry.bootstrap`
+    * in their ZIOAppDefault to redirect ZIO logs through SLF4J.
     */
   def live(serviceName: String): TaskLayer[OpenTelemetry & Tracing & Meter & ContextStorage] =
     ZLayer.make[OpenTelemetry & Tracing & Meter & ContextStorage](
       sdkLayer(serviceName),
       ZOpenTelemetry.contextZIO,
       ZOpenTelemetry.tracing(serviceName),
-      ZOpenTelemetry.metrics(serviceName),
-      loggerProviderLayer,
-      OTelLogging.live(serviceName)
+      ZOpenTelemetry.metrics(serviceName)
     )

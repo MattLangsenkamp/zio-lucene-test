@@ -34,7 +34,13 @@ val sttpDeps = Seq(
 val otelSdkDeps = Seq(
   mvn"io.opentelemetry:opentelemetry-sdk:1.45.0",
   mvn"io.opentelemetry:opentelemetry-exporter-otlp:1.45.0",
-  mvn"io.opentelemetry.semconv:opentelemetry-semconv:1.29.0-alpha"
+  mvn"io.opentelemetry.semconv:opentelemetry-semconv:1.29.0-alpha",
+  mvn"io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.11.0-alpha"
+)
+
+val loggingDeps = Seq(
+  mvn"dev.zio::zio-logging-slf4j2:2.4.0",
+  mvn"ch.qos.logback:logback-classic:1.5.6"
 )
 
 // Ingestion Service
@@ -149,6 +155,6 @@ object writer extends Module {
 object common extends Module {
   object `base-telemetry` extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
-    def mvnDeps = zioDeps ++ otelSdkDeps
+    def mvnDeps = zioDeps ++ otelSdkDeps ++ loggingDeps
   }
 }
