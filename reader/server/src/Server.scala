@@ -12,9 +12,6 @@ import io.opentelemetry.api.trace.SpanKind
 
 object Server extends ZIOAppDefault:
 
-  override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
-    BaseTelemetry.bootstrap
-
   private val healthServerEndpoint =
     HealthEndpoint.healthEndpoint.zServerLogic[Tracing] { _ =>
       ZIO.logInfo("Health endpoint was hit1") *>
@@ -27,14 +24,18 @@ object Server extends ZIOAppDefault:
 
   private val app = ZioHttpInterpreter().toHttp(healthServerEndpoint)
 
-  private val backgroundTelemetry: ZIO[Meter, Nothing, Unit] =
+  private val backgroundTelemetry: ZIO[Tracing & Meter, Nothing, Unit] =
     (for
       meter <- ZIO.service[Meter]
       counter <- meter.counter("heartbeat_count")
-      _ <- (
-        ZIO.logInfo("Reader service heartbeat") *>
-          counter.add(1)
-      ).repeat(Schedule.spaced(30.second))
+      _ <- ZIO
+        .serviceWithZIO[Tracing] { tracing =>
+          tracing.span("heartbeat", SpanKind.SERVER)(
+            ZIO.logInfo("Reader service heartbeat") *>
+              counter.add(1)
+          )
+        }
+        .repeat(Schedule.spaced(30.second))
     yield ()).fork.unit
 
   def run =

@@ -13,6 +13,24 @@
         <root url="file://$USER_HOME$/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar" />
       </compiler-classpath>
       <compiler-bridge-binary-jar>file://$USER_HOME$/.ivy2/cache/org.scala-lang/scala3-sbt-bridge/jars/scala3-sbt-bridge-3.8.0-RC2.jar</compiler-bridge-binary-jar>
+      <repl-classpath>
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.scala-lang/scala3-repl_3/jars/scala3-repl_3-3.8.0-RC2.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.scala-lang/scala3-compiler_3/jars/scala3-compiler_3-3.8.0-RC2.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.scala-lang/scala3-interfaces/jars/scala3-interfaces-3.8.0-RC2.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.scala-lang/tasty-core_3/jars/tasty-core_3-3.8.0-RC2.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.scala-lang/scala3-library_3/jars/scala3-library_3-3.8.0-RC2.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-3.8.0-RC2.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.scala-lang.modules/scala-asm/jars/scala-asm-9.9.0-scala-1.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.scala-sbt/compiler-interface/jars/compiler-interface-1.10.7.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.scala-sbt/util-interface/jars/util-interface-1.10.7.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.jline/jline-reader/jars/jline-reader-3.29.0.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.jline/jline-terminal/jars/jline-terminal-3.29.0.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.jline/jline-native/jars/jline-native-3.29.0.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/org.jline/jline-terminal-jni/jars/jline-terminal-jni-3.29.0.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/com.lihaoyi/pprint_3/jars/pprint_3-0.9.3.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/com.lihaoyi/fansi_3/jars/fansi_3-0.5.1.jar" />
+        <entry url="file://$USER_HOME$/.ivy2/cache/com.lihaoyi/sourcecode_3/jars/sourcecode_3-0.4.4.jar" />
+      </repl-classpath>
     </properties>
     <CLASSES />
     <JAVADOC />
