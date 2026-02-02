@@ -5,7 +5,7 @@ import besom.api.aws
 import besom.api.kubernetes as k8s
 
 case class AlbIngressInput(
-  eksCluster: besom.api.aws.eks.Cluster,
+  eksCluster: Output[besom.api.aws.eks.Cluster],
   namespace: Output[String],
   readerServiceName: Output[String],
   stackName: String,
@@ -13,7 +13,7 @@ case class AlbIngressInput(
   baseDomainConfig: Output[Option[String]],
   certificateArnConfig: Output[Option[String]],
   k8sProvider: Output[k8s.Provider],
-  albController: AlbControllerOutput
+  albController: Output[AlbControllerOutput]
 )
 
 case class AlbIngressOutput(
@@ -95,7 +95,7 @@ object AlbIngress extends Resource[AlbIngressInput, AlbIngressOutput, Unit, Unit
               )
             )
           ),
-          opts(dependsOn = List(params.eksCluster, params.albController.helmRelease), provider = prov)
+          opts(dependsOn = List(params.eksCluster, params.albController.map(_.helmRelease)), provider = prov)
         )
       }
     }

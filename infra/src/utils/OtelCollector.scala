@@ -6,9 +6,9 @@ import besom.api.kubernetes as k8s
 case class OtelCollectorInput(
   k8sProvider: Output[k8s.Provider],
   grafanaCloudConfig: GrafanaCloudConfig,
-  cluster: Option[besom.api.aws.eks.Cluster] = None,
-  nodeGroup: Option[besom.api.aws.eks.NodeGroup] = None,
-  albControllerHelmRelease: Option[k8s.helm.v3.Release] = None
+  cluster: Option[Output[besom.api.aws.eks.Cluster]] = None,
+  nodeGroup: Option[Output[besom.api.aws.eks.NodeGroup]] = None,
+  albControllerHelmRelease: Option[Output[k8s.helm.v3.Release]] = None
 )
 
 case class GrafanaCloudConfig(
