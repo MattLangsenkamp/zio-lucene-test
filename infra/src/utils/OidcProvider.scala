@@ -5,7 +5,7 @@ import besom.api.aws
 
 case class OidcProviderInput(
   clusterOidcIssuer: Output[String],
-  cluster: besom.api.aws.eks.Cluster
+  cluster: Output[besom.api.aws.eks.Cluster]
 )
 
 case class OidcProviderOutput(

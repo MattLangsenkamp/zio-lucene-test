@@ -86,32 +86,25 @@ import utils.writer.Writer
     val k8sProvider = eksCluster.map(_.k8sProvider)
 
     // 5. Create OIDC Provider (shared by all IRSA consumers)
-    val oidcProvider = eksCluster.flatMap { eks =>
-      OidcProvider.make(
-        OidcProviderInput(
-          clusterOidcIssuer = eks.oidcProviderUrl,
-          cluster = eks.cluster
-        )
+    val oidcProvider = OidcProvider.make(
+      OidcProviderInput(
+        clusterOidcIssuer = eksCluster.flatMap(_.oidcProviderUrl),
+        cluster = eksCluster.map(_.cluster)
       )
-    }
+    )
 
     // 5a. Create ALB Controller early (before any Services to avoid webhook issues)
-    val albController = for {
-      eks <- eksCluster
-      vpc <- vpcOutput
-      oidc <- oidcProvider
-      controller <- AlbController.make(
-        AlbControllerInput(
-          eksCluster = eks.cluster,
-          nodeGroup = eks.nodeGroup,
-          vpcId = vpc.vpc.id,
-          clusterName = eks.clusterName,
-          oidcProvider = oidc,
-          stackName = stackName,
-          k8sProvider = k8sProvider
-        )
+    val albController = AlbController.make(
+      AlbControllerInput(
+        eksCluster = eksCluster.map(_.cluster),
+        nodeGroup = eksCluster.map(_.nodeGroup),
+        vpcId = vpcOutput.flatMap(_.vpc.id),
+        clusterName = eksCluster.flatMap(_.clusterName),
+        oidcProvider = oidcProvider,
+        stackName = stackName,
+        k8sProvider = k8sProvider
       )
-    } yield controller
+    )
 
     // 5b. Install EBS CSI driver for persistent volume support
     val ebsCsiDriver =
@@ -134,18 +127,14 @@ import utils.writer.Writer
       )
 
     // 5d. Create IAM Roles for Service Account (IRSA) role for External Secrets Operator
-    val externalSecretsIrsa = for {
-      eso <- externalSecretsOperator
-      esNamespace <- eso.namespace.metadata.name
-    } yield ExternalSecretsIrsa.make(
+    val externalSecretsIrsa = ExternalSecretsIrsa.make(
       ExternalSecretsIrsaInput(
         externalSecretsNamespace =
-          Output(esNamespace.getOrElse("external-secrets")),
+          externalSecretsOperator.flatMap(_.namespace.metadata.name).map(_.getOrElse("external-secrets")),
         oidcProvider = oidcProvider,
         awsProvider = awsProvider
       )
     )
-    val externalSecretsIrsaFlattened = externalSecretsIrsa.flatten
 
     // 6. Create Kubernetes namespace (for EKS cluster)
     val namespace = K8s.createNamespace(
@@ -162,16 +151,14 @@ import utils.writer.Writer
     }
 
     // 6b. Create SecretStore and ExternalSecret resources
-    val secretSync = externalSecretsOperator.flatMap { eso =>
-      SecretSync.make(
-        SecretSyncInput(
-          namespace = namespaceNameOutput,
-          k8sProvider = k8sProvider,
-          irsaServiceAccountName = Some(Output("external-secrets")),
-          helmChart = Some(Output(eso.helmRelease))
-        )
+    val secretSync = SecretSync.make(
+      SecretSyncInput(
+        namespace = namespaceNameOutput,
+        k8sProvider = k8sProvider,
+        irsaServiceAccountName = Some(Output("external-secrets")),
+        helmChart = Some(externalSecretsOperator.map(_.helmRelease))
       )
-    }
+    )
 
     // 6c. Deploy OpenTelemetry Collector via Helm
     val grafanaConfig = GrafanaCloudConfig(
@@ -180,19 +167,15 @@ import utils.writer.Writer
       otlpEndpoint = config.require[String]("grafanaCloudOtlpEndpoint")
     )
 
-    val otelCollector = for {
-      eks <- eksCluster
-      alb <- albController
-      collector <- OtelCollector.make(
-        OtelCollectorInput(
-          k8sProvider = k8sProvider,
-          grafanaCloudConfig = grafanaConfig,
-          cluster = Some(eks.cluster),
-          nodeGroup = Some(eks.nodeGroup),
-          albControllerHelmRelease = Some(alb.helmRelease)
-        )
+    val otelCollector = OtelCollector.make(
+      OtelCollectorInput(
+        k8sProvider = k8sProvider,
+        grafanaCloudConfig = grafanaConfig,
+        cluster = Some(eksCluster.map(_.cluster)),
+        nodeGroup = Some(eksCluster.map(_.nodeGroup)),
+        albControllerHelmRelease = Some(albController.map(_.helmRelease))
       )
-    } yield collector
+    )
 
     // 7. Deploy application services with Docker Hub images
     val ingestionService = Ingestion.createService(
@@ -245,24 +228,19 @@ import utils.writer.Writer
       )
     }
 
-    val albIngress =
-      for {
-        eks <- eksCluster
-        alb <- albController
-        albIngress <- AlbIngress.make(
-          AlbIngressInput(
-            eksCluster = eks.cluster,
-            namespace = namespaceNameOutput,
-            readerServiceName = readerServiceName,
-            stackName = stackName,
-            hostedZoneIdConfig = hostedZoneId,
-            baseDomainConfig = baseDomain,
-            certificateArnConfig = certificateArn,
-            k8sProvider = k8sProvider,
-            albController = alb
-          )
-        )
-      } yield albIngress
+    val albIngress = AlbIngress.make(
+      AlbIngressInput(
+        eksCluster = eksCluster.map(_.cluster),
+        namespace = namespaceNameOutput,
+        readerServiceName = readerServiceName,
+        stackName = stackName,
+        hostedZoneIdConfig = hostedZoneId,
+        baseDomainConfig = baseDomain,
+        certificateArnConfig = certificateArn,
+        k8sProvider = k8sProvider,
+        albController = albController
+      )
+    )
 
     Stack(
       bucket,
@@ -286,8 +264,8 @@ import utils.writer.Writer
       ebsCsiDriver.map(_.addon),
       externalSecretsOperator.map(_.namespace),
       externalSecretsOperator.map(_.helmRelease),
-      externalSecretsIrsaFlattened.map(_.role),
-      externalSecretsIrsaFlattened.map(_.rolePolicy),
+      externalSecretsIrsa.map(_.role),
+      externalSecretsIrsa.map(_.rolePolicy),
       secretSync.map(_.secretStore),
       secretSync.map(_.externalSecret),
       otelCollector.map(_.namespace),
@@ -313,7 +291,7 @@ import utils.writer.Writer
         kafkaBootstrapServers = bootstrapServers,
         k8sNamespace = namespaceNameOutput,
         eksClusterName = clusterName,
-        externalSecretsRoleArn = externalSecretsIrsaFlattened.map(_.roleArn)
+        externalSecretsRoleArn = externalSecretsIrsa.map(_.roleArn)
       )
   } else {
     // Local stack - S3, K8s namespace, and Kafka in k3d
@@ -355,14 +333,13 @@ import utils.writer.Writer
     }
 
     // 3b. Create SecretStore and ExternalSecret resources for LocalStack
-    val secretSync = externalSecretsOperator.flatMap { eso =>
-      SecretSync.makeLocal(
-        SecretSyncInput(
-          namespace = namespaceNameOut,
-          k8sProvider = k8sProvider
-        )
+    val secretSync = SecretSync.makeLocal(
+      SecretSyncInput(
+        namespace = namespaceNameOut,
+        k8sProvider = k8sProvider,
+        helmChart = Some(externalSecretsOperator.map(_.helmRelease))
       )
-    }
+    )
 
     // 3c. Deploy OpenTelemetry Collector via Helm
     val grafanaConfig = GrafanaCloudConfig(

@@ -5,11 +5,11 @@ import besom.api.aws
 import besom.api.kubernetes as k8s
 
 case class AlbControllerInput(
-  eksCluster: besom.api.aws.eks.Cluster,
-  nodeGroup: besom.api.aws.eks.NodeGroup,
+  eksCluster: Output[besom.api.aws.eks.Cluster],
+  nodeGroup: Output[besom.api.aws.eks.NodeGroup],
   vpcId: Output[String],
   clusterName: Output[String],
-  oidcProvider: OidcProviderOutput,
+  oidcProvider: Output[OidcProviderOutput],
   stackName: String,
   k8sProvider: Output[k8s.Provider]
 )
@@ -312,8 +312,9 @@ object AlbController extends Resource[AlbControllerInput, AlbControllerOutput, U
       aws.iam.RoleArgs(
         name = s"AWSLoadBalancerControllerRole-${params.stackName}",
         assumeRolePolicy = for
-          issuer <- params.oidcProvider.issuerUrl
-          arn <- params.oidcProvider.providerArn
+          oidc <- params.oidcProvider
+          issuer <- oidc.issuerUrl
+          arn <- oidc.providerArn
         yield s"""{
           "Version": "2012-10-17",
           "Statement": [
@@ -334,7 +335,7 @@ object AlbController extends Resource[AlbControllerInput, AlbControllerOutput, U
         }""",
         description = "IAM role for AWS Load Balancer Controller with OIDC"
       ),
-      opts(dependsOn = params.oidcProvider.provider)
+      opts(dependsOn = params.oidcProvider.map(_.provider))
     )
 
   private def attachPolicyToRole(
