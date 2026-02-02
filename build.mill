@@ -9,6 +9,40 @@ object VersionInfo:
 // Infrastructure is managed by scala-cli (see infra/src/Main.scala)
 // Besom/Pulumi does not yet support Mill build tool
 
+val zioDeps = Seq(
+  mvn"dev.zio::zio:2.1.17",
+  mvn"dev.zio::izumi-reflect:3.0.8",
+  mvn"dev.zio::izumi-reflect-thirdparty-boopickle-shaded:3.0.8",
+  mvn"dev.zio::zio-stacktracer:2.1.17",
+  mvn"dev.zio::zio-internal-macros:2.1.17",
+  mvn"dev.zio::zio-opentelemetry:3.1.14"
+)
+
+val zioHttpDeps = Seq(
+  mvn"dev.zio::zio-http:3.0.1",
+  mvn"com.softwaremill.sttp.tapir::tapir-zio:1.11.10",
+  mvn"com.softwaremill.sttp.tapir::tapir-zio-http-server:1.11.10"
+)
+
+val sttpDeps = Seq(
+  mvn"com.softwaremill.sttp.tapir::tapir-core:1.11.10",
+  mvn"com.softwaremill.sttp.model::core:1.7.11",
+  mvn"com.softwaremill.sttp.shared::core:1.3.21",
+  mvn"com.softwaremill.sttp.shared::ws:1.3.21"
+)
+
+val otelSdkDeps = Seq(
+  mvn"io.opentelemetry:opentelemetry-sdk:1.45.0",
+  mvn"io.opentelemetry:opentelemetry-exporter-otlp:1.45.0",
+  mvn"io.opentelemetry.semconv:opentelemetry-semconv:1.29.0-alpha",
+  mvn"io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.11.0-alpha"
+)
+
+val loggingDeps = Seq(
+  mvn"dev.zio::zio-logging-slf4j2:2.4.0",
+  mvn"ch.qos.logback:logback-classic:1.5.6"
+)
+
 // Ingestion Service
 object ingestion extends Module {
   object domainPublic extends ScalaModule {
@@ -23,39 +57,19 @@ object ingestion extends Module {
   object api extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic)
-    def mvnDeps = Seq(
-      mvn"com.softwaremill.sttp.tapir::tapir-core:1.11.10",
-      mvn"com.softwaremill.sttp.model::core:1.7.11",
-      mvn"com.softwaremill.sttp.shared::core:1.3.21",
-      mvn"com.softwaremill.sttp.shared::ws:1.3.21"
-    )
+    def mvnDeps = sttpDeps
   }
 
   object services extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic, domainPrivate, api)
-    def mvnDeps = Seq(
-      mvn"dev.zio::zio:2.1.17",
-      mvn"dev.zio::izumi-reflect:3.0.8",
-      mvn"dev.zio::izumi-reflect-thirdparty-boopickle-shaded:3.0.8",
-      mvn"dev.zio::zio-stacktracer:2.1.17",
-      mvn"dev.zio::zio-internal-macros:2.1.17"
-    )
+    def mvnDeps = zioDeps
   }
 
   object server extends ScalaModule with DockerModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic, domainPrivate, api, services)
-    def mvnDeps = Seq(
-      mvn"dev.zio::zio:2.1.17",
-      mvn"dev.zio::izumi-reflect:3.0.8",
-      mvn"dev.zio::izumi-reflect-thirdparty-boopickle-shaded:3.0.8",
-      mvn"dev.zio::zio-stacktracer:2.1.17",
-      mvn"dev.zio::zio-internal-macros:2.1.17",
-      mvn"dev.zio::zio-http:3.0.1",
-      mvn"com.softwaremill.sttp.tapir::tapir-zio:1.11.10",
-      mvn"com.softwaremill.sttp.tapir::tapir-zio-http-server:1.11.10"
-    )
+    def mvnDeps = zioDeps ++ zioHttpDeps
 
     object docker extends DockerConfig {
       def tags = List("ingestion-server:latest")
@@ -79,39 +93,19 @@ object reader extends Module {
   object api extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic)
-    def mvnDeps = Seq(
-      mvn"com.softwaremill.sttp.tapir::tapir-core:1.11.10",
-      mvn"com.softwaremill.sttp.model::core:1.7.11",
-      mvn"com.softwaremill.sttp.shared::core:1.3.21",
-      mvn"com.softwaremill.sttp.shared::ws:1.3.21"
-    )
+    def mvnDeps = sttpDeps
   }
 
   object services extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic, domainPrivate, api)
-    def mvnDeps = Seq(
-      mvn"dev.zio::zio:2.1.17",
-      mvn"dev.zio::izumi-reflect:3.0.8",
-      mvn"dev.zio::izumi-reflect-thirdparty-boopickle-shaded:3.0.8",
-      mvn"dev.zio::zio-stacktracer:2.1.17",
-      mvn"dev.zio::zio-internal-macros:2.1.17"
-    )
+    def mvnDeps = zioDeps
   }
 
   object server extends ScalaModule with DockerModule {
     def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, domainPrivate, api, services)
-    def mvnDeps = Seq(
-      mvn"dev.zio::zio:2.1.17",
-      mvn"dev.zio::izumi-reflect:3.0.8",
-      mvn"dev.zio::izumi-reflect-thirdparty-boopickle-shaded:3.0.8",
-      mvn"dev.zio::zio-stacktracer:2.1.17",
-      mvn"dev.zio::zio-internal-macros:2.1.17",
-      mvn"dev.zio::zio-http:3.0.1",
-      mvn"com.softwaremill.sttp.tapir::tapir-zio:1.11.10",
-      mvn"com.softwaremill.sttp.tapir::tapir-zio-http-server:1.11.10"
-    )
+    def moduleDeps = Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
+    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps
 
     object docker extends DockerConfig {
       def tags = List("reader-server:latest")
@@ -135,44 +129,32 @@ object writer extends Module {
   object api extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic)
-    def mvnDeps = Seq(
-      mvn"com.softwaremill.sttp.tapir::tapir-core:1.11.10",
-      mvn"com.softwaremill.sttp.model::core:1.7.11",
-      mvn"com.softwaremill.sttp.shared::core:1.3.21",
-      mvn"com.softwaremill.sttp.shared::ws:1.3.21"
-    )
+    def mvnDeps = sttpDeps
   }
 
   object services extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic, domainPrivate, api)
-    def mvnDeps = Seq(
-      mvn"dev.zio::zio:2.1.17",
-      mvn"dev.zio::izumi-reflect:3.0.8",
-      mvn"dev.zio::izumi-reflect-thirdparty-boopickle-shaded:3.0.8",
-      mvn"dev.zio::zio-stacktracer:2.1.17",
-      mvn"dev.zio::zio-internal-macros:2.1.17"
-    )
+    def mvnDeps = zioDeps
   }
 
   object server extends ScalaModule with DockerModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic, domainPrivate, api, services)
-    def mvnDeps = Seq(
-      mvn"dev.zio::zio:2.1.17",
-      mvn"dev.zio::izumi-reflect:3.0.8",
-      mvn"dev.zio::izumi-reflect-thirdparty-boopickle-shaded:3.0.8",
-      mvn"dev.zio::zio-stacktracer:2.1.17",
-      mvn"dev.zio::zio-internal-macros:2.1.17",
-      mvn"dev.zio::zio-http:3.0.1",
-      mvn"com.softwaremill.sttp.tapir::tapir-zio:1.11.10",
-      mvn"com.softwaremill.sttp.tapir::tapir-zio-http-server:1.11.10"
-    )
+    def mvnDeps = zioDeps ++ zioHttpDeps
 
     object docker extends DockerConfig {
       def tags = List("writer-server:latest")
       def baseImage = "azul/zulu-openjdk-alpine:21-jre"
       def exposedPorts = Seq(8080)
     }
+  }
+}
+
+// Common utilities shared across services
+object common extends Module {
+  object `base-telemetry` extends ScalaModule {
+    def scalaVersion = VersionInfo.scalaVersion
+    def mvnDeps = zioDeps ++ otelSdkDeps ++ loggingDeps
   }
 }

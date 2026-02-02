@@ -1,4 +1,4 @@
-.PHONY: local-dev local-down dev dev-down prod prod-down dev-preview check-local-deps start-local-env delete-local-volume import-images logs health build-apps dockerhub-push dockerhub-full kubeconfig-local kubeconfig-dev kubeconfig-prod list-eks-clusters list-nodegroups check-aws-resources
+.PHONY: local-dev local-down dev dev-down prod prod-down dev-preview check-local-deps start-local-env delete-local-volume import-images logs health build-apps dockerhub-push dockerhub-full kubeconfig-local kubeconfig-dev kubeconfig-prod list-eks-clusters list-nodegroups check-aws-resources rollout-dev
 
 # Configuration
 LOCALSTACK_VOLUME = zio-lucene-localstack-data
@@ -207,6 +207,16 @@ list-nodegroups:
 		echo "Listing node groups for cluster: $(CLUSTER)..."; \
 		aws eks list-nodegroups --region $(AWS_REGION) --cluster-name $(CLUSTER) --output table; \
 	fi
+
+# Rollout restart a service in dev (usage: make rollout-dev SERVICE=reader)
+rollout-dev:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "Usage: make rollout-dev SERVICE=<service-name>"; \
+		echo "Available services: ingestion, reader, writer"; \
+		exit 1; \
+	fi
+	aws eks update-kubeconfig --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME) > /dev/null 2>&1
+	kubectl rollout restart deployment/$(SERVICE) -n $(NAMESPACE)
 
 # Check for dangling AWS resources
 check-aws-resources:
