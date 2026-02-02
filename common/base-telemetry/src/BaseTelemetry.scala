@@ -15,6 +15,7 @@ import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter
 import io.opentelemetry.semconv.ServiceAttributes
 import zio.*
 import zio.telemetry.opentelemetry.OpenTelemetry as ZOpenTelemetry
+import zio.telemetry.opentelemetry.baggage.Baggage
 import zio.telemetry.opentelemetry.tracing.Tracing
 import zio.telemetry.opentelemetry.metrics.Meter
 import zio.telemetry.opentelemetry.context.ContextStorage
@@ -139,10 +140,11 @@ object BaseTelemetry:
     * @param serviceName
     *   The name of the service for telemetry attribution
     */
-  def live(serviceName: String): TaskLayer[OpenTelemetry & Tracing & Meter & ContextStorage] =
-    ZLayer.make[OpenTelemetry & Tracing & Meter & ContextStorage](
+  def live(serviceName: String): TaskLayer[OpenTelemetry & Tracing & Meter & ContextStorage & Baggage] =
+    ZLayer.make[OpenTelemetry & Tracing & Meter & ContextStorage & Baggage](
       sdkLayer(serviceName),
       ZOpenTelemetry.contextZIO,
+      ZOpenTelemetry.baggage(),
       ZOpenTelemetry.tracing(serviceName),
       ZOpenTelemetry.metrics(serviceName),
       ZOpenTelemetry.logging(serviceName),
