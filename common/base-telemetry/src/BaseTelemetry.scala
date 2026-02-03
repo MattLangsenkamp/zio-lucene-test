@@ -24,8 +24,8 @@ import java.time.Duration as JDuration
 
 object BaseTelemetry:
 
-  /** Default OTLP endpoint for the collector running as a DaemonSet. */
-  private val DefaultOtlpEndpoint =
+  /** OTLP gRPC endpoint for the DaemonSet collector. */
+  private val OtlpEndpoint =
     "http://opentelemetry-stack-daemon-collector.opentelemetry-operator-system.svc.cluster.local:4317"
 
   private def createResource(serviceName: String): Resource =
@@ -35,12 +35,11 @@ object BaseTelemetry:
 
   private def traceProvider(serviceName: String): RIO[Scope, SdkTracerProvider] =
     for
-      endpoint <- System.env("OTEL_EXPORTER_OTLP_ENDPOINT").map(_.getOrElse(DefaultOtlpEndpoint))
       spanExporter <- ZIO.fromAutoCloseable(
         ZIO.succeed(
           OtlpGrpcSpanExporter
             .builder()
-            .setEndpoint(endpoint)
+            .setEndpoint(OtlpEndpoint)
             .build()
         )
       )
@@ -58,12 +57,11 @@ object BaseTelemetry:
 
   private def metricProvider(serviceName: String): RIO[Scope, SdkMeterProvider] =
     for
-      endpoint <- System.env("OTEL_EXPORTER_OTLP_ENDPOINT").map(_.getOrElse(DefaultOtlpEndpoint))
       metricExporter <- ZIO.fromAutoCloseable(
         ZIO.succeed(
           OtlpGrpcMetricExporter
             .builder()
-            .setEndpoint(endpoint)
+            .setEndpoint(OtlpEndpoint)
             .build()
         )
       )
@@ -88,12 +86,11 @@ object BaseTelemetry:
 
   private def logProvider(serviceName: String): RIO[Scope, SdkLoggerProvider] =
     for
-      endpoint <- System.env("OTEL_EXPORTER_OTLP_ENDPOINT").map(_.getOrElse(DefaultOtlpEndpoint))
       logExporter <- ZIO.fromAutoCloseable(
         ZIO.succeed(
           OtlpGrpcLogRecordExporter
             .builder()
-            .setEndpoint(endpoint)
+            .setEndpoint(OtlpEndpoint)
             .build()
         )
       )
