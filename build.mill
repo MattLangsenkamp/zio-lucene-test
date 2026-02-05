@@ -155,6 +155,6 @@ object writer extends Module {
 object common extends Module {
   object `base-telemetry` extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
-    def mvnDeps = zioDeps ++ otelSdkDeps ++ loggingDeps
+    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ loggingDeps
   }
 }

@@ -18,9 +18,12 @@ import zio.telemetry.opentelemetry.OpenTelemetry as ZOpenTelemetry
 import zio.telemetry.opentelemetry.baggage.Baggage
 import zio.telemetry.opentelemetry.tracing.Tracing
 import zio.telemetry.opentelemetry.metrics.Meter
+
 import zio.telemetry.opentelemetry.context.ContextStorage
 
 import java.time.Duration as JDuration
+
+type TelemetryEnv = OpenTelemetry & Tracing & Meter & ContextStorage & Baggage
 
 object BaseTelemetry:
 
@@ -110,8 +113,8 @@ object BaseTelemetry:
       )
     yield provider
 
-  private def sdkLayer(serviceName: String): TaskLayer[OpenTelemetry] =
-    ZLayer.scoped {
+  private def sdkLayer(serviceName: String): RLayer[Scope, OpenTelemetry] =
+    ZLayer.fromZIO {
       for
         tracer <- traceProvider(serviceName)
         meter <- metricProvider(serviceName)
@@ -131,14 +134,15 @@ object BaseTelemetry:
 
   /** Creates a complete telemetry layer with all ZIO OpenTelemetry services.
     *
-    * Provides OpenTelemetry SDK, Tracing, Meter, and ContextStorage. Uses the native zio-opentelemetry logging bridge
-    * which reads trace context from FiberRefs via ContextStorage to attach traceId/spanId to log records.
+    * Provides OpenTelemetry SDK, Tracing, Meter, ContextStorage, and Baggage. Requires Scope from the caller - this
+    * ensures that scoped FiberRef modifications (like the OTel logging bridge) live in the caller's scope and propagate
+    * correctly.
     *
     * @param serviceName
     *   The name of the service for telemetry attribution
     */
-  def live(serviceName: String): TaskLayer[OpenTelemetry & Tracing & Meter & ContextStorage & Baggage] =
-    ZLayer.make[OpenTelemetry & Tracing & Meter & ContextStorage & Baggage](
+  def live(serviceName: String): RLayer[Scope, TelemetryEnv] =
+    ZLayer.makeSome[Scope, TelemetryEnv](
       sdkLayer(serviceName),
       ZOpenTelemetry.contextZIO,
       ZOpenTelemetry.baggage(),

@@ -5,11 +5,11 @@ import besom.api.kubernetes as k8s
 
 object Ingestion:
   def createService(
-    namespace: Output[String],
-    port: Int = 80,
-    replicas: Int = 1,
-    image: String = "ingestion-server:latest",
-    provider: Output[k8s.Provider]
+      namespace: Output[String],
+      port: Int = 80,
+      replicas: Int = 1,
+      image: String = "ingestion-server:latest",
+      provider: Output[k8s.Provider]
   )(using Context): Output[k8s.core.v1.Service] =
     provider.flatMap { prov =>
       k8s.core.v1.Service(
@@ -37,14 +37,63 @@ object Ingestion:
     }
 
   def createDeployment(
-    namespace: Output[String],
-    kafkaBootstrapServers: Output[String],
-    bucketName: Output[String],
-    replicas: Int = 1,
-    image: String = "ingestion-server:latest",
-    imagePullPolicy: String = "IfNotPresent",
-    provider: Output[k8s.Provider]
+      namespace: Output[String],
+      bucketName: Output[String],
+      messagingMode: String,
+      kafkaBootstrapServers: Option[Output[String]] = None,
+      sqsQueueUrl: Option[Output[String]] = None,
+      replicas: Int = 1,
+      image: String = "ingestion-server:latest",
+      imagePullPolicy: String = "IfNotPresent",
+      provider: Output[k8s.Provider]
   )(using Context): Output[k8s.apps.v1.Deployment] =
+    val messagingEnvVars: List[k8s.core.v1.inputs.EnvVarArgs] = messagingMode match
+      case "kafka" =>
+        kafkaBootstrapServers match
+          case Some(servers) =>
+            List(
+              k8s.core.v1.inputs.EnvVarArgs(
+                name = "MESSAGING_MODE",
+                value = "kafka"
+              ),
+              k8s.core.v1.inputs.EnvVarArgs(
+                name = "KAFKA_BOOTSTRAP_SERVERS",
+                value = servers
+              )
+            )
+          case None =>
+            throw new IllegalArgumentException(
+              "kafkaBootstrapServers required when messagingMode is 'kafka'"
+            )
+      case "sqs" =>
+        sqsQueueUrl match
+          case Some(url) =>
+            List(
+              k8s.core.v1.inputs.EnvVarArgs(
+                name = "MESSAGING_MODE",
+                value = "sqs"
+              ),
+              k8s.core.v1.inputs.EnvVarArgs(
+                name = "SQS_QUEUE_URL",
+                value = url
+              )
+            )
+          case None =>
+            throw new IllegalArgumentException(
+              "sqsQueueUrl required when messagingMode is 'sqs'"
+            )
+      case other =>
+        throw new IllegalArgumentException(
+          s"Unknown messagingMode: $other. Expected 'kafka' or 'sqs'"
+        )
+
+    val baseEnvVars = List(
+      k8s.core.v1.inputs.EnvVarArgs(
+        name = "S3_BUCKET_NAME",
+        value = bucketName
+      )
+    )
+
     provider.flatMap { prov =>
       k8s.apps.v1.Deployment(
         "ingestion-deployment",
@@ -74,16 +123,7 @@ object Ingestion:
                         name = "http"
                       )
                     ),
-                    env = List(
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "KAFKA_BOOTSTRAP_SERVERS",
-                        value = kafkaBootstrapServers
-                      ),
-                      k8s.core.v1.inputs.EnvVarArgs(
-                        name = "S3_BUCKET_NAME",
-                        value = bucketName
-                      )
-                    )
+                    env = baseEnvVars ++ messagingEnvVars
                   )
                 )
               )
