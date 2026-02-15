@@ -14,7 +14,7 @@ import zio.telemetry.opentelemetry.metrics.Meter
 
 object Server extends ZIOAppDefault:
 
-  private val healthServerEndpoint =
+  private val healthServerEndpoint: ZServerEndpoint[Tracing, Any] =
     HealthEndpoint.healthEndpoint.zServerLogic[Tracing]: _ =>
       for
         loggers <- ZIO.loggers
