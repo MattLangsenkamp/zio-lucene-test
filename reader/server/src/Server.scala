@@ -5,8 +5,7 @@ import zio.http.{Response, Routes, Server as ZServer}
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
 import sttp.tapir.ztapir.*
 import app.reader.api.HealthEndpoint
-import common.basetelemetry.{BaseTelemetry, OtelLoggerMiddleware, TelemetryEnv}
-import io.opentelemetry.api.OpenTelemetry
+import common.basetelemetry.{BaseTelemetry, TelemetryEnv}
 import io.opentelemetry.api.trace.SpanKind
 import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.Tracing
@@ -42,23 +41,38 @@ object Server extends ZIOAppDefault:
   private val resolvedRoutesLayer: URLayer[TelemetryEnv, Routes[Any, Response]] =
     ZLayer.fromZIO(
       for
-        env        <- ZIO.environment[TelemetryEnv]
-        otel       <- ZIO.service[OpenTelemetry]
-        ctxStorage <- ZIO.service[ContextStorage]
-        tracing    <- ZIO.service[Tracing]
-        baseRoutes  = app.provideEnvironment(env)
-        routesWithLogging = baseRoutes @@ OtelLoggerMiddleware.middleware(otel, ctxStorage, tracing)
-      yield routesWithLogging
+        env       <- ZIO.environment[TelemetryEnv]
+        baseRoutes = app.provideEnvironment(env)
+        // Middleware disabled - testing if layer ordering fixes logger inheritance
+        // routesWithLogging = baseRoutes @@ OtelLoggerMiddleware.middleware(otel, ctxStorage, tracing)
+      yield baseRoutes
     )
 
-  def run =
+  /** Custom server layer that ensures TelemetryEnv is fully built (including logger)
+    * BEFORE NettyRuntime captures its FiberRefs snapshot.
+    *
+    * Theory: If the OTel logger is added to FiberRefs via ZIO.withLoggerScoped before
+    * NettyRuntime.live runs ZIO.runtime, request fibers should inherit the logger.
+    */
+  private val serverAfterTelemetry: ZLayer[TelemetryEnv, Throwable, ZServer] =
+    ZLayer.scoped {
+      for
+        // Force TelemetryEnv to be fully built first by requiring its services
+        _ <- ZIO.service[Tracing]
+        _ <- ZIO.service[ContextStorage]
+        _ <- ZIO.logInfo("Building ZServer after TelemetryEnv - logger should be in FiberRefs")
+        server <- ZServer.default.build
+      yield server.get[ZServer]
+    }
+
+  def run: ZIO[ZIOAppArgs & Scope, Any, Any] =
     (for
       routes <- ZIO.service[Routes[Any, Response]]
       _      <- backgroundTelemetry
       _      <- ZServer.serve(routes)
     yield ()).provide(
       Scope.default,
-      ZServer.default,
       BaseTelemetry.live("reader-service"),
+      serverAfterTelemetry,  // Server built AFTER telemetry, in same scope
       resolvedRoutesLayer
     )
