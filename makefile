@@ -50,7 +50,7 @@ start-local-env: check-local-deps
 				--name localstack \
 				-p 4566:4566 \
 				-v $(LOCALSTACK_VOLUME):/var/lib/localstack \
-				-e SERVICES=s3,kafka,iam,secretsmanager,ec2 \
+				-e SERVICES=s3,kafka,iam,secretsmanager,ec2,sqs \
 				localstack/localstack; \
 			echo "Waiting for LocalStack to be ready..."; \
 			sleep 5; \
@@ -61,7 +61,7 @@ start-local-env: check-local-deps
 			--name localstack \
 			-p 4566:4566 \
 			-v $(LOCALSTACK_VOLUME):/var/lib/localstack \
-			-e SERVICES=s3,kafka,iam,secretsmanager,ec2 \
+			-e SERVICES=s3,kafka,iam,secretsmanager,ec2,sqs \
 			localstack/localstack; \
 		echo "Waiting for LocalStack to be ready..."; \
 		sleep 5; \
