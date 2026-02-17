@@ -34,9 +34,17 @@ import utils.writer.Writer
   val baseDomain = config.get[String]("domain")
   val certificateArn = config.get[String]("certificateArn")
   val datadogApiKey = config.require[String]("datadogApiKey")
+  val grafanaConfig = GrafanaCloudConfig(
+    instanceId = config.require[String]("grafanaCloudInstanceId"),
+    apiKey = config.require[String]("grafanaCloudApiKey"),
+    otlpEndpoint = config.require[String]("grafanaCloudOtlpEndpoint")
+  )
 
-  // Only create MSK resources for non-local environments (dev/prod)
-  // For local development, use plain Kafka in k3d instead
+  // Messaging mode: default to SQS, use Kafka only if explicitly enabled via KAFKA_MODE env var
+  val useKafka = sys.env.get("KAFKA_MODE").exists(_.toLowerCase == "true")
+  val messagingMode = if (useKafka) "kafka" else "sqs"
+
+  // Only create cloud resources for non-local environments (dev/prod)
   if (!isLocal) {
 
     // Create explicit Kubernetes provider from EKS outputs
@@ -57,18 +65,7 @@ import utils.writer.Writer
     // 2. Create VPC with public/private subnets, IGW, NAT
     val vpcOutput = Vpc.make(VpcInput())
 
-    // 3. Create MSK cluster in private subnets
-    val kafkaOutput = Kafka.make(
-      KafkaInput(
-        vpcId = vpcOutput.flatMap(_.vpc.id),
-        privateSubnet1Id = vpcOutput.flatMap(_.privateSubnet1.id),
-        privateSubnet2Id = vpcOutput.flatMap(_.privateSubnet2.id)
-      )
-    )
-
-    val bootstrapServers = kafkaOutput.flatMap(_.cluster.bootstrapBrokers)
-
-    // 4. Create EKS cluster with public subnets (for worker nodes)
+    // 3. Create EKS cluster with public subnets (for worker nodes)
     val eksCluster =
       EKS.make(
         EksInput(
@@ -85,7 +82,7 @@ import utils.writer.Writer
     // Extract K8s provider from EKS output (created inside EKS.make along with aws-auth)
     val k8sProvider = eksCluster.map(_.k8sProvider)
 
-    // 5. Create OIDC Provider (shared by all IRSA consumers)
+    // 4. Create OIDC Provider (shared by all IRSA consumers)
     val oidcProvider = OidcProvider.make(
       OidcProviderInput(
         clusterOidcIssuer = eksCluster.flatMap(_.oidcProviderUrl),
@@ -93,7 +90,7 @@ import utils.writer.Writer
       )
     )
 
-    // 5a. Create ALB Controller early (before any Services to avoid webhook issues)
+    // 4a. Create ALB Controller early (before any Services to avoid webhook issues)
     val albController = AlbController.make(
       AlbControllerInput(
         eksCluster = eksCluster.map(_.cluster),
@@ -106,7 +103,7 @@ import utils.writer.Writer
       )
     )
 
-    // 5b. Install EBS CSI driver for persistent volume support
+    // 4b. Install EBS CSI driver for persistent volume support
     val ebsCsiDriver =
       EbsCsiDriver.make(
         EbsCsiDriverInput(
@@ -116,7 +113,7 @@ import utils.writer.Writer
         )
       )
 
-    // 5c. Install External Secrets Operator
+    // 4c. Install External Secrets Operator
     val externalSecretsOperator =
       ExternalSecretsOperator.make(
         ExternalSecretsOperatorInput(
@@ -126,7 +123,7 @@ import utils.writer.Writer
         )
       )
 
-    // 5d. Create IAM Roles for Service Account (IRSA) role for External Secrets Operator
+    // 4d. Create IAM Roles for Service Account (IRSA) role for External Secrets Operator
     val externalSecretsIrsa = ExternalSecretsIrsa.make(
       ExternalSecretsIrsaInput(
         externalSecretsNamespace =
@@ -136,7 +133,7 @@ import utils.writer.Writer
       )
     )
 
-    // 6. Create Kubernetes namespace (for EKS cluster)
+    // 5. Create Kubernetes namespace (for EKS cluster)
     val namespace = K8s.createNamespace(
       "zio-lucene",
       eksCluster.map(_.cluster),
@@ -150,7 +147,7 @@ import utils.writer.Writer
       )
     }
 
-    // 6b. Create SecretStore and ExternalSecret resources
+    // 5b. Create SecretStore and ExternalSecret resources
     val secretSync = SecretSync.make(
       SecretSyncInput(
         namespace = namespaceNameOutput,
@@ -160,13 +157,7 @@ import utils.writer.Writer
       )
     )
 
-    // 6c. Deploy OpenTelemetry Collector via Helm
-    val grafanaConfig = GrafanaCloudConfig(
-      instanceId = config.require[String]("grafanaCloudInstanceId"),
-      apiKey = config.require[String]("grafanaCloudApiKey"),
-      otlpEndpoint = config.require[String]("grafanaCloudOtlpEndpoint")
-    )
-
+    // 5c. Deploy OpenTelemetry Collector via Helm
     val otelCollector = OtelCollector.make(
       OtelCollectorInput(
         k8sProvider = k8sProvider,
@@ -177,125 +168,250 @@ import utils.writer.Writer
       )
     )
 
-    // 7. Deploy application services with Docker Hub images
-    val ingestionService = Ingestion.createService(
-      namespace = namespaceNameOutput,
-      provider = k8sProvider
-    )
-
-    val ingestionDeployment = Ingestion.createDeployment(
-      namespace = namespaceNameOutput,
-      kafkaBootstrapServers = bootstrapServers,
-      bucketName = bucketId,
-      image = "mattlangsenkamp/ingestion-server:latest",
-      imagePullPolicy = "Always",
-      provider = k8sProvider
-    )
-
-    val readerService = Reader.createService(
-      namespace = namespaceNameOutput,
-      provider = k8sProvider
-    )
-
-    val readerDeployment = Reader.createDeployment(
-      namespace = namespaceNameOutput,
-      bucketName = bucketId,
-      image = "mattlangsenkamp/reader-server:latest",
-      imagePullPolicy = "Always",
-      provider = k8sProvider
-    )
-
-    val writerService = Writer.createService(
-      namespace = namespaceNameOutput,
-      provider = k8sProvider
-    )
-
-    val writerStatefulSet = Writer.createStatefulSet(
-      namespace = namespaceNameOutput,
-      kafkaBootstrapServers = bootstrapServers,
-      bucketName = bucketId,
-      image = "mattlangsenkamp/writer-server:latest",
-      imagePullPolicy = "Always",
-      provider = k8sProvider,
-      dependencies = ebsCsiDriver.map(_.addon)
-    )
-
-    // 8. Set up ALB Ingress for public access
-    val readerServiceNameOpt = readerService.metadata.name
-    val readerServiceName = readerServiceNameOpt.getOrElse {
-      throw new RuntimeException(
-        "Failed to get reader service name from created service resource"
+    // 6. Create messaging infrastructure and deploy services based on mode
+    if (useKafka) {
+      // Kafka mode
+      val kafkaOutput = Kafka.make(
+        KafkaInput(
+          vpcId = vpcOutput.flatMap(_.vpc.id),
+          privateSubnet1Id = vpcOutput.flatMap(_.privateSubnet1.id),
+          privateSubnet2Id = vpcOutput.flatMap(_.privateSubnet2.id)
+        )
       )
-    }
+      val bootstrapServers = kafkaOutput.flatMap(_.cluster.bootstrapBrokers)
 
-    val albIngress = AlbIngress.make(
-      AlbIngressInput(
-        eksCluster = eksCluster.map(_.cluster),
+      val ingestionService = Ingestion.createService(
         namespace = namespaceNameOutput,
-        readerServiceName = readerServiceName,
-        stackName = stackName,
-        hostedZoneIdConfig = hostedZoneId,
-        baseDomainConfig = baseDomain,
-        certificateArnConfig = certificateArn,
-        k8sProvider = k8sProvider,
-        albController = albController
+        provider = k8sProvider
       )
-    )
 
-    Stack(
-      bucket,
-      secretStore.map(_.secret),
-      secretStore.map(_.secretVersion),
-      vpcOutput.map(_.vpc),
-      vpcOutput.map(_.publicSubnet1),
-      vpcOutput.map(_.publicSubnet2),
-      vpcOutput.map(_.privateSubnet1),
-      vpcOutput.map(_.privateSubnet2),
-      vpcOutput.map(_.internetGateway),
-      vpcOutput.map(_.natGateway),
-      vpcOutput.map(_.publicRouteTable),
-      vpcOutput.map(_.privateRouteTable),
-      kafkaOutput.map(_.securityGroup),
-      kafkaOutput.map(_.cluster),
-      eksCluster.map(_.cluster),
-      eksCluster.map(_.awsAuthConfigMap),
-      eksCluster.map(_.nodeGroup),
-      ebsCsiDriver.map(_.role),
-      ebsCsiDriver.map(_.addon),
-      externalSecretsOperator.map(_.namespace),
-      externalSecretsOperator.map(_.helmRelease),
-      externalSecretsIrsa.map(_.role),
-      externalSecretsIrsa.map(_.rolePolicy),
-      secretSync.map(_.secretStore),
-      secretSync.map(_.externalSecret),
-      otelCollector.map(_.namespace),
-      otelCollector.map(_.grafanaSecret),
-      otelCollector.map(_.helmRelease),
-      oidcProvider.map(_.provider),
-      namespace,
-      ingestionService,
-      ingestionDeployment,
-      readerService,
-      readerDeployment,
-      writerService,
-      writerStatefulSet,
-      albController.map(_.policy),
-      albController.map(_.role),
-      albController.map(_.serviceAccount),
-      albController.map(_.helmRelease),
-      albIngress.map(_.ingress)
-    )
-      .exports(
+      val ingestionDeployment = Ingestion.createDeployment(
+        namespace = namespaceNameOutput,
         bucketName = bucketId,
+        messagingMode = "kafka",
+        kafkaBootstrapServers = Some(bootstrapServers),
+        image = "mattlangsenkamp/ingestion-server:latest",
+        imagePullPolicy = "Always",
+        provider = k8sProvider
+      )
+
+      val readerService = Reader.createService(
+        namespace = namespaceNameOutput,
+        provider = k8sProvider
+      )
+
+      val readerDeployment = Reader.createDeployment(
+        namespace = namespaceNameOutput,
+        bucketName = bucketId,
+        image = "mattlangsenkamp/reader-server:latest",
+        imagePullPolicy = "Always",
+        provider = k8sProvider
+      )
+
+      val writerService = Writer.createService(
+        namespace = namespaceNameOutput,
+        provider = k8sProvider
+      )
+
+      val writerStatefulSet = Writer.createStatefulSet(
+        namespace = namespaceNameOutput,
+        bucketName = bucketId,
+        messagingMode = "kafka",
+        kafkaBootstrapServers = Some(bootstrapServers),
+        image = "mattlangsenkamp/writer-server:latest",
+        imagePullPolicy = "Always",
+        provider = k8sProvider,
+        dependencies = ebsCsiDriver.map(_.addon)
+      )
+
+      val readerServiceName = readerService.metadata.name.getOrElse {
+        throw new RuntimeException("Failed to get reader service name")
+      }
+
+      val albIngress = AlbIngress.make(
+        AlbIngressInput(
+          eksCluster = eksCluster.map(_.cluster),
+          namespace = namespaceNameOutput,
+          readerServiceName = readerServiceName,
+          stackName = stackName,
+          hostedZoneIdConfig = hostedZoneId,
+          baseDomainConfig = baseDomain,
+          certificateArnConfig = certificateArn,
+          k8sProvider = k8sProvider,
+          albController = albController
+        )
+      )
+
+      Stack(
+        bucket,
+        secretStore.map(_.secret),
+        secretStore.map(_.secretVersion),
+        vpcOutput.map(_.vpc),
+        vpcOutput.map(_.publicSubnet1),
+        vpcOutput.map(_.publicSubnet2),
+        vpcOutput.map(_.privateSubnet1),
+        vpcOutput.map(_.privateSubnet2),
+        vpcOutput.map(_.internetGateway),
+        vpcOutput.map(_.natGateway),
+        vpcOutput.map(_.publicRouteTable),
+        vpcOutput.map(_.privateRouteTable),
+        kafkaOutput.map(_.securityGroup),
+        kafkaOutput.map(_.cluster),
+        eksCluster.map(_.cluster),
+        eksCluster.map(_.awsAuthConfigMap),
+        eksCluster.map(_.nodeGroup),
+        ebsCsiDriver.map(_.role),
+        ebsCsiDriver.map(_.addon),
+        externalSecretsOperator.map(_.namespace),
+        externalSecretsOperator.map(_.helmRelease),
+        externalSecretsIrsa.map(_.role),
+        externalSecretsIrsa.map(_.rolePolicy),
+        secretSync.map(_.secretStore),
+        secretSync.map(_.externalSecret),
+        otelCollector.map(_.namespace),
+        otelCollector.map(_.grafanaSecret),
+        otelCollector.map(_.helmRelease),
+        oidcProvider.map(_.provider),
+        namespace,
+        ingestionService,
+        ingestionDeployment,
+        readerService,
+        readerDeployment,
+        writerService,
+        writerStatefulSet,
+        albController.map(_.policy),
+        albController.map(_.role),
+        albController.map(_.serviceAccount),
+        albController.map(_.helmRelease),
+        albIngress.map(_.ingress)
+      ).exports(
+        bucketName = bucketId,
+        messagingMode = "kafka",
         kafkaClusterArn = kafkaOutput.map(_.cluster.arn),
         kafkaBootstrapServers = bootstrapServers,
         k8sNamespace = namespaceNameOutput,
         eksClusterName = clusterName,
         externalSecretsRoleArn = externalSecretsIrsa.map(_.roleArn)
       )
+    } else {
+      // SQS mode
+      val sqsOutput = SQS.make(SQSInput("document-ingestion", awsProvider))
+      val sqsQueueUrl = sqsOutput.flatMap(_.queueUrl)
+
+      val ingestionService = Ingestion.createService(
+        namespace = namespaceNameOutput,
+        provider = k8sProvider
+      )
+
+      val ingestionDeployment = Ingestion.createDeployment(
+        namespace = namespaceNameOutput,
+        bucketName = bucketId,
+        messagingMode = "sqs",
+        sqsQueueUrl = Some(sqsQueueUrl),
+        image = "mattlangsenkamp/ingestion-server:latest",
+        imagePullPolicy = "Always",
+        provider = k8sProvider
+      )
+
+      val readerService = Reader.createService(
+        namespace = namespaceNameOutput,
+        provider = k8sProvider
+      )
+
+      val readerDeployment = Reader.createDeployment(
+        namespace = namespaceNameOutput,
+        bucketName = bucketId,
+        image = "mattlangsenkamp/reader-server:latest",
+        imagePullPolicy = "Always",
+        provider = k8sProvider
+      )
+
+      val writerService = Writer.createService(
+        namespace = namespaceNameOutput,
+        provider = k8sProvider
+      )
+
+      val writerStatefulSet = Writer.createStatefulSet(
+        namespace = namespaceNameOutput,
+        bucketName = bucketId,
+        messagingMode = "sqs",
+        sqsQueueUrl = Some(sqsQueueUrl),
+        image = "mattlangsenkamp/writer-server:latest",
+        imagePullPolicy = "Always",
+        provider = k8sProvider,
+        dependencies = ebsCsiDriver.map(_.addon)
+      )
+
+      val readerServiceName = readerService.metadata.name.getOrElse {
+        throw new RuntimeException("Failed to get reader service name")
+      }
+
+      val albIngress = AlbIngress.make(
+        AlbIngressInput(
+          eksCluster = eksCluster.map(_.cluster),
+          namespace = namespaceNameOutput,
+          readerServiceName = readerServiceName,
+          stackName = stackName,
+          hostedZoneIdConfig = hostedZoneId,
+          baseDomainConfig = baseDomain,
+          certificateArnConfig = certificateArn,
+          k8sProvider = k8sProvider,
+          albController = albController
+        )
+      )
+
+      Stack(
+        bucket,
+        secretStore.map(_.secret),
+        secretStore.map(_.secretVersion),
+        vpcOutput.map(_.vpc),
+        vpcOutput.map(_.publicSubnet1),
+        vpcOutput.map(_.publicSubnet2),
+        vpcOutput.map(_.privateSubnet1),
+        vpcOutput.map(_.privateSubnet2),
+        vpcOutput.map(_.internetGateway),
+        vpcOutput.map(_.natGateway),
+        vpcOutput.map(_.publicRouteTable),
+        vpcOutput.map(_.privateRouteTable),
+        sqsOutput.map(_.queue),
+        eksCluster.map(_.cluster),
+        eksCluster.map(_.awsAuthConfigMap),
+        eksCluster.map(_.nodeGroup),
+        ebsCsiDriver.map(_.role),
+        ebsCsiDriver.map(_.addon),
+        externalSecretsOperator.map(_.namespace),
+        externalSecretsOperator.map(_.helmRelease),
+        externalSecretsIrsa.map(_.role),
+        externalSecretsIrsa.map(_.rolePolicy),
+        secretSync.map(_.secretStore),
+        secretSync.map(_.externalSecret),
+        otelCollector.map(_.namespace),
+        otelCollector.map(_.grafanaSecret),
+        otelCollector.map(_.helmRelease),
+        oidcProvider.map(_.provider),
+        namespace,
+        ingestionService,
+        ingestionDeployment,
+        readerService,
+        readerDeployment,
+        writerService,
+        writerStatefulSet,
+        albController.map(_.policy),
+        albController.map(_.role),
+        albController.map(_.serviceAccount),
+        albController.map(_.helmRelease),
+        albIngress.map(_.ingress)
+      ).exports(
+        bucketName = bucketId,
+        messagingMode = "sqs",
+        sqsQueueUrl = sqsQueueUrl,
+        k8sNamespace = namespaceNameOutput,
+        eksClusterName = clusterName,
+        externalSecretsRoleArn = externalSecretsIrsa.map(_.roleArn)
+      )
+    }
   } else {
-    // Local stack - S3, K8s namespace, and Kafka in k3d
-    // Create explicit Kubernetes provider from EKS outputs
+    // Local stack - S3, K8s namespace, and messaging (Kafka or SQS via LocalStack)
     val awsProvider = AwsProvider.makeLocal(AwsProviderInputs(stackName))
 
     // 1. Create S3 bucket
@@ -342,12 +458,6 @@ import utils.writer.Writer
     )
 
     // 3c. Deploy OpenTelemetry Collector via Helm
-    val grafanaConfig = GrafanaCloudConfig(
-      instanceId = config.require[String]("grafanaCloudInstanceId"),
-      apiKey = config.require[String]("grafanaCloudApiKey"),
-      otlpEndpoint = config.require[String]("grafanaCloudOtlpEndpoint")
-    )
-
     val otelCollector = OtelCollector.makeLocal(
       OtelCollectorInput(
         k8sProvider = k8sProvider,
@@ -355,77 +465,151 @@ import utils.writer.Writer
       )
     )
 
-    // 4. Create Kafka Service and StatefulSet
-    val kafkaOutput = Kafka.makeLocal(
-      KafkaLocalInput(
+    // 4. Create messaging infrastructure and deploy services based on mode
+    if (useKafka) {
+      // Kafka mode (local)
+      val kafkaOutput = Kafka.makeLocal(
+        KafkaLocalInput(
+          namespace = namespaceNameOut,
+          provider = k8sProvider
+        )
+      )
+      val bootstrapServers = "kafka-0.kafka.zio-lucene.svc.cluster.local:9092"
+
+      val ingestionService = Ingestion.createService(
         namespace = namespaceNameOut,
         provider = k8sProvider
       )
-    )
 
-    val bootstrapServers = "kafka-0.kafka.zio-lucene.svc.cluster.local:9092"
+      val ingestionDeployment = Ingestion.createDeployment(
+        namespace = namespaceNameOut,
+        bucketName = bucketId,
+        messagingMode = "kafka",
+        kafkaBootstrapServers = Some(Output(bootstrapServers)),
+        provider = k8sProvider
+      )
 
-    // 6. Deploy application services
-    val ingestionService = Ingestion.createService(
-      namespace = namespaceNameOut,
-      provider = k8sProvider
-    )
+      val readerService = Reader.createService(
+        namespace = namespaceNameOut,
+        provider = k8sProvider
+      )
 
-    val ingestionDeployment = Ingestion.createDeployment(
-      namespace = namespaceNameOut,
-      kafkaBootstrapServers = Output(bootstrapServers),
-      bucketName = bucketId,
-      provider = k8sProvider
-    )
+      val readerDeployment = Reader.createDeployment(
+        namespace = namespaceNameOut,
+        bucketName = bucketId,
+        provider = k8sProvider
+      )
 
-    val readerService = Reader.createService(
-      namespace = namespaceNameOut,
-      provider = k8sProvider
-    )
+      val writerService = Writer.createService(
+        namespace = namespaceNameOut,
+        provider = k8sProvider
+      )
 
-    val readerDeployment = Reader.createDeployment(
-      namespace = namespaceNameOut,
-      bucketName = bucketId,
-      provider = k8sProvider
-    )
+      val writerStatefulSet = Writer.createStatefulSet(
+        namespace = namespaceNameOut,
+        bucketName = bucketId,
+        messagingMode = "kafka",
+        kafkaBootstrapServers = Some(Output(bootstrapServers)),
+        storageClassName = "local-path",
+        provider = k8sProvider
+      )
 
-    val writerService = Writer.createService(
-      namespace = namespaceNameOut,
-      provider = k8sProvider
-    )
+      Stack(
+        bucket,
+        secretStore.map(_.secret),
+        secretStore.map(_.secretVersion),
+        localCsiDriver,
+        externalSecretsOperator.map(_.namespace),
+        externalSecretsOperator.map(_.helmRelease),
+        secretSync.map(_.secretStore),
+        secretSync.map(_.externalSecret),
+        otelCollector.map(_.namespace),
+        otelCollector.map(_.grafanaSecret),
+        otelCollector.map(_.helmRelease),
+        namespace,
+        kafkaOutput.map(_.service),
+        kafkaOutput.map(_.statefulSet),
+        ingestionService,
+        ingestionDeployment,
+        readerService,
+        readerDeployment,
+        writerService,
+        writerStatefulSet
+      ).exports(
+        bucketName = bucketId,
+        k8sNamespace = namespaceNameOut,
+        messagingMode = "kafka",
+        kafkaBootstrapServers = bootstrapServers
+      )
+    } else {
+      // SQS mode (local via LocalStack)
+      val sqsOutput = SQS.makeLocal(SQSInput("document-ingestion", awsProvider))
+      val sqsQueueUrl = sqsOutput.flatMap(_.queueUrl)
 
-    val writerStatefulSet = Writer.createStatefulSet(
-      namespace = namespaceNameOut,
-      kafkaBootstrapServers = Output(bootstrapServers),
-      bucketName = bucketId,
-      storageClassName = "local-path",
-      provider = k8sProvider
-    )
-    Stack(
-      bucket,
-      secretStore.map(_.secret),
-      secretStore.map(_.secretVersion),
-      localCsiDriver,
-      externalSecretsOperator.map(_.namespace),
-      externalSecretsOperator.map(_.helmRelease),
-      secretSync.map(_.secretStore),
-      secretSync.map(_.externalSecret),
-      otelCollector.map(_.namespace),
-      otelCollector.map(_.grafanaSecret),
-      otelCollector.map(_.helmRelease),
-      namespace,
-      kafkaOutput.map(_.service),
-      kafkaOutput.map(_.statefulSet),
-      ingestionService,
-      ingestionDeployment,
-      readerService,
-      readerDeployment,
-      writerService,
-      writerStatefulSet
-    ).exports(
-      bucketName = bucketId,
-      k8sNamespace = namespaceNameOut,
-      kafkaBootstrapServers = bootstrapServers
-    )
+      val ingestionService = Ingestion.createService(
+        namespace = namespaceNameOut,
+        provider = k8sProvider
+      )
+
+      val ingestionDeployment = Ingestion.createDeployment(
+        namespace = namespaceNameOut,
+        bucketName = bucketId,
+        messagingMode = "sqs",
+        sqsQueueUrl = Some(sqsQueueUrl),
+        provider = k8sProvider
+      )
+
+      val readerService = Reader.createService(
+        namespace = namespaceNameOut,
+        provider = k8sProvider
+      )
+
+      val readerDeployment = Reader.createDeployment(
+        namespace = namespaceNameOut,
+        bucketName = bucketId,
+        provider = k8sProvider
+      )
+
+      val writerService = Writer.createService(
+        namespace = namespaceNameOut,
+        provider = k8sProvider
+      )
+
+      val writerStatefulSet = Writer.createStatefulSet(
+        namespace = namespaceNameOut,
+        bucketName = bucketId,
+        messagingMode = "sqs",
+        sqsQueueUrl = Some(sqsQueueUrl),
+        storageClassName = "local-path",
+        provider = k8sProvider
+      )
+
+      Stack(
+        bucket,
+        secretStore.map(_.secret),
+        secretStore.map(_.secretVersion),
+        localCsiDriver,
+        externalSecretsOperator.map(_.namespace),
+        externalSecretsOperator.map(_.helmRelease),
+        secretSync.map(_.secretStore),
+        secretSync.map(_.externalSecret),
+        otelCollector.map(_.namespace),
+        otelCollector.map(_.grafanaSecret),
+        otelCollector.map(_.helmRelease),
+        namespace,
+        sqsOutput.map(_.queue),
+        ingestionService,
+        ingestionDeployment,
+        readerService,
+        readerDeployment,
+        writerService,
+        writerStatefulSet
+      ).exports(
+        bucketName = bucketId,
+        k8sNamespace = namespaceNameOut,
+        messagingMode = "sqs",
+        sqsQueueUrl = sqsQueueUrl
+      )
+    }
   }
 }
