@@ -19,3 +19,6 @@ config:
   zio-lucene-infra:certificateArn: arn:aws:acm:us-east-1:853236864732:certificate/36ddc249-98fd-431f-8606-a26e56b2f343
   zio-lucene-infra:datadogApiKey:
     secure: AAABAOVuuj9JeQVnBlY6YQh0KE21im6FqrM156HW/Tvy3kshvg==
+  zio-lucene-infra:grafanaCloudInstanceId: local-placeholder
+  zio-lucene-infra:grafanaCloudApiKey: local-placeholder
+  zio-lucene-infra:grafanaCloudOtlpEndpoint: http://localhost:4317

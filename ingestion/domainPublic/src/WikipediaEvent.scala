@@ -13,26 +13,17 @@ final case class EventMeta(
     topic: Option[String] = None,
     partition: Option[Int] = None,
     offset: Option[Long] = None
-)
-
-object EventMeta:
-  given JsonDecoder[EventMeta] = DeriveJsonDecoder.gen[EventMeta]
+) derives JsonDecoder
 
 final case class LengthChange(
     old: Option[Int] = None,
-    @jsonField("new") newLength: Option[Int] = None // "new" is a keyword, can't use SnakeCase
-)
-
-object LengthChange:
-  given JsonDecoder[LengthChange] = DeriveJsonDecoder.gen[LengthChange]
+    @jsonField("new") newLength: Option[Int] = None
+) derives JsonDecoder
 
 final case class RevisionChange(
     old: Option[Long] = None,
-    @jsonField("new") newRevision: Option[Long] = None // "new" is a keyword, can't use SnakeCase
-)
-
-object RevisionChange:
-  given JsonDecoder[RevisionChange] = DeriveJsonDecoder.gen[RevisionChange]
+    @jsonField("new") newRevision: Option[Long] = None
+) derives JsonDecoder
 
 @jsonMemberNames(SnakeCase)
 final case class WikipediaEvent(
@@ -60,11 +51,9 @@ final case class WikipediaEvent(
     logType: Option[String] = None,
     logAction: Option[String] = None,
     logId: Option[Long] = None
-)
+) derives JsonDecoder
 
 object WikipediaEvent:
-  given JsonDecoder[WikipediaEvent] = DeriveJsonDecoder.gen[WikipediaEvent]
-
   def isCanary(event: WikipediaEvent): Boolean =
     event.meta.domain.contains("canary")
 

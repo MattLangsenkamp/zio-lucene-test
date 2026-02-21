@@ -74,7 +74,6 @@ object SecretSync extends Resource[SecretSyncInput, SecretSyncOutput, SecretSync
   case class LocalAwsSecretsManagerProvider(
     service: String,  // "SecretsManager"
     region: String,
-    endpoint: Option[String] = None,  // LocalStack endpoint
     auth: Option[LocalAwsAuth] = None
   ) derives Encoder, Decoder
 
@@ -83,8 +82,8 @@ object SecretSync extends Resource[SecretSyncInput, SecretSyncOutput, SecretSync
   ) derives Encoder, Decoder
 
   case class SecretKeyRef(
-    accessKeyID: KeySelector,
-    secretAccessKey: KeySelector
+    accessKeyIDSecretRef: KeySelector,
+    secretAccessKeySecretRef: KeySelector
   ) derives Encoder, Decoder
 
   case class KeySelector(
@@ -234,14 +233,13 @@ object SecretSync extends Resource[SecretSyncInput, SecretSyncOutput, SecretSync
             aws = LocalAwsSecretsManagerProvider(
               service = "SecretsManager",
               region = params.region,
-              endpoint = Some("http://host.k3d.internal:4566"),
               auth = Some(LocalAwsAuth(
                 secretRef = Some(SecretKeyRef(
-                  accessKeyID = KeySelector(
+                  accessKeyIDSecretRef = KeySelector(
                     name = "localstack-credentials",
                     key = "access-key"
                   ),
-                  secretAccessKey = KeySelector(
+                  secretAccessKeySecretRef = KeySelector(
                     name = "localstack-credentials",
                     key = "secret-key"
                   )

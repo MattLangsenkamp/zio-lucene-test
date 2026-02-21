@@ -36,7 +36,13 @@ object ExternalSecretsOperator
   override def makeLocal(inputParams: ExternalSecretsOperatorInput)(using
       Context
   ): Output[ExternalSecretsOperatorOutput] =
-    make(inputParams)
+    for {
+      namespace <- createNamespace(inputParams)
+      helmRelease <- installLocalHelmRelease(namespace, inputParams)
+    } yield ExternalSecretsOperatorOutput(
+      namespace = namespace,
+      helmRelease = helmRelease
+    )
 
   private def createNamespace(params: ExternalSecretsOperatorInput)(using
       Context
@@ -51,6 +57,33 @@ object ExternalSecretsOperator
           )
         ),
         opts(provider = prov, dependsOn = dependencies)
+      )
+    }
+
+  private def installLocalHelmRelease(
+      namespace: k8s.core.v1.Namespace,
+      params: ExternalSecretsOperatorInput
+  )(using Context): Output[k8s.helm.v3.Release] =
+    params.k8sProvider.flatMap { prov =>
+      import besom.json.*
+      k8s.helm.v3.Release(
+        "external-secrets-operator",
+        k8s.helm.v3.ReleaseArgs(
+          name = "external-secrets",
+          chart = "external-secrets",
+          version = "0.11.0",
+          namespace = namespace.metadata.name,
+          repositoryOpts = k8s.helm.v3.inputs.RepositoryOptsArgs(
+            repo = "https://charts.external-secrets.io"
+          ),
+          values = Map[String, JsValue](
+            "installCRDs" -> JsBoolean(true),
+            "env" -> JsObject(
+              "AWS_ENDPOINT_URL_SECRETS_MANAGER" -> JsString("http://host.k3d.internal:4566")
+            )
+          )
+        ),
+        opts(provider = prov, dependsOn = namespace)
       )
     }
 
