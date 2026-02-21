@@ -95,41 +95,68 @@ object Ingestion:
     )
 
     provider.flatMap { prov =>
-      k8s.apps.v1.Deployment(
-        "ingestion-deployment",
-        k8s.apps.v1.DeploymentArgs(
+      val configMap = k8s.core.v1.ConfigMap(
+        "ingestion-wiki-config",
+        k8s.core.v1.ConfigMapArgs(
           metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
-            name = "ingestion",
+            name = "ingestion-wiki-config",
             namespace = namespace
           ),
-          spec = k8s.apps.v1.inputs.DeploymentSpecArgs(
-            replicas = replicas,
-            selector = k8s.meta.v1.inputs.LabelSelectorArgs(
-              matchLabels = Map("app" -> "ingestion")
-            ),
-            template = k8s.core.v1.inputs.PodTemplateSpecArgs(
-              metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
-                labels = Map("app" -> "ingestion")
-              ),
-              spec = k8s.core.v1.inputs.PodSpecArgs(
-                containers = List(
-                  k8s.core.v1.inputs.ContainerArgs(
-                    name = "ingestion",
-                    image = image,
-                    imagePullPolicy = imagePullPolicy,
-                    ports = List(
-                      k8s.core.v1.inputs.ContainerPortArgs(
-                        containerPort = 8080,
-                        name = "http"
-                      )
-                    ),
-                    env = baseEnvVars ++ messagingEnvVars
-                  )
-                )
-              )
-            )
+          data = Map(
+            "WIKI_LANG"                -> "en",
+            "WIKI_STREAM"              -> "recentchange",
+            "WIKI_BACKOFF_START_MS"    -> "1000",
+            "WIKI_BACKOFF_INCREMENT_MS" -> "1000",
+            "WIKI_BACKOFF_MAX_MS"      -> "30000"
           )
         ),
         opts(provider = prov)
       )
+
+      configMap.flatMap { cm =>
+        k8s.apps.v1.Deployment(
+          "ingestion-deployment",
+          k8s.apps.v1.DeploymentArgs(
+            metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+              name = "ingestion",
+              namespace = namespace
+            ),
+            spec = k8s.apps.v1.inputs.DeploymentSpecArgs(
+              replicas = replicas,
+              selector = k8s.meta.v1.inputs.LabelSelectorArgs(
+                matchLabels = Map("app" -> "ingestion")
+              ),
+              template = k8s.core.v1.inputs.PodTemplateSpecArgs(
+                metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+                  labels = Map("app" -> "ingestion")
+                ),
+                spec = k8s.core.v1.inputs.PodSpecArgs(
+                  containers = List(
+                    k8s.core.v1.inputs.ContainerArgs(
+                      name = "ingestion",
+                      image = image,
+                      imagePullPolicy = imagePullPolicy,
+                      ports = List(
+                        k8s.core.v1.inputs.ContainerPortArgs(
+                          containerPort = 8080,
+                          name = "http"
+                        )
+                      ),
+                      env = baseEnvVars ++ messagingEnvVars,
+                      envFrom = List(
+                        k8s.core.v1.inputs.EnvFromSourceArgs(
+                          configMapRef = k8s.core.v1.inputs.ConfigMapEnvSourceArgs(
+                            name = cm.metadata.name
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          opts(provider = prov, dependsOn = cm)
+        )
+      }
     }

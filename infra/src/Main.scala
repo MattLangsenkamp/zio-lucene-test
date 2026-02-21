@@ -429,10 +429,7 @@ import utils.writer.Writer
     // 2. Create k3d Kubernetes provider (uses default kubeconfig)
     val k8sProvider = K8Provider.makeLocal(())
 
-    // 2b. Install local-path provisioner for persistent volume support
-    val localCsiDriver = EbsCsiDriver.makeLocal(())
-
-    // 2c. Install External Secrets Operator
+    // 2b. Install External Secrets Operator
     val externalSecretsOperator = ExternalSecretsOperator.makeLocal(
       ExternalSecretsOperatorInput(
         k8sProvider = k8sProvider
@@ -518,7 +515,6 @@ import utils.writer.Writer
         bucket,
         secretStore.map(_.secret),
         secretStore.map(_.secretVersion),
-        localCsiDriver,
         externalSecretsOperator.map(_.namespace),
         externalSecretsOperator.map(_.helmRelease),
         secretSync.map(_.secretStore),
@@ -588,7 +584,6 @@ import utils.writer.Writer
         bucket,
         secretStore.map(_.secret),
         secretStore.map(_.secretVersion),
-        localCsiDriver,
         externalSecretsOperator.map(_.namespace),
         externalSecretsOperator.map(_.helmRelease),
         secretSync.map(_.secretStore),

@@ -133,7 +133,7 @@ dockerhub-full: build-apps dockerhub-push
 local-dev-up: kubeconfig-local
 	@echo "Deploying to local environment..."
 	cd infra && pulumi stack select local
-	cd infra && pulumi up
+	cd infra && pulumi up --yes
 
 # Deploy to local environment
 local-dev: start-local-env import-images local-dev-up

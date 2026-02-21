@@ -5,49 +5,32 @@ import zio.json.*
 final case class StreamsParameterSchema(
     @jsonField("type") schemaType: Option[String] = None,
     items: Option[StreamsItemSchema] = None
-)
-
-object StreamsParameterSchema:
-  given JsonDecoder[StreamsParameterSchema] = DeriveJsonDecoder.gen[StreamsParameterSchema]
+) derives JsonDecoder
 
 final case class StreamsItemSchema(
     @jsonField("type") itemType: Option[String] = None,
     @jsonField("enum") enumValues: Option[List[String]] = None
-)
-
-object StreamsItemSchema:
-  given JsonDecoder[StreamsItemSchema] = DeriveJsonDecoder.gen[StreamsItemSchema]
+) derives JsonDecoder
 
 final case class StreamsParameter(
     name: Option[String] = None,
     in: Option[String] = None,
     schema: Option[StreamsParameterSchema] = None
-)
-
-object StreamsParameter:
-  given JsonDecoder[StreamsParameter] = DeriveJsonDecoder.gen[StreamsParameter]
+) derives JsonDecoder
 
 final case class StreamsGetOperation(
     parameters: Option[List[StreamsParameter]] = None
-)
-
-object StreamsGetOperation:
-  given JsonDecoder[StreamsGetOperation] = DeriveJsonDecoder.gen[StreamsGetOperation]
+) derives JsonDecoder
 
 final case class StreamsPathItem(
     get: Option[StreamsGetOperation] = None
-)
-
-object StreamsPathItem:
-  given JsonDecoder[StreamsPathItem] = DeriveJsonDecoder.gen[StreamsPathItem]
+) derives JsonDecoder
 
 final case class WikimediaStreamsSpec(
     paths: Option[Map[String, StreamsPathItem]] = None
-)
+) derives JsonDecoder
 
 object WikimediaStreamsSpec:
-  given JsonDecoder[WikimediaStreamsSpec] = DeriveJsonDecoder.gen[WikimediaStreamsSpec]
-
   val specUrl: String = "https://stream.wikimedia.org/?spec"
 
   def extractAvailableStreams(spec: WikimediaStreamsSpec): Option[List[String]] =
