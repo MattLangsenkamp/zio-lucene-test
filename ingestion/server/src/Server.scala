@@ -5,8 +5,11 @@ import zio.http.{Response, Routes, Server as ZServer}
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
 import sttp.tapir.ztapir.*
 import app.ingestion.api.HealthEndpoint
-import app.ingestion.domain.internal.WikipediaStreamConfig
-import app.ingestion.services.{WikipediaStreamService, WikipediaStreamServiceLive}
+import app.ingestion.domain.internal.{WikipediaStreamConfig, SqsPublisherConfig}
+import app.ingestion.services.{WikipediaStreamService, WikipediaStreamServiceLive, SqsPublisher, SqsPublisherLive}
+import zio.aws.core.config.AwsConfig
+import zio.aws.netty.NettyHttpClient
+import zio.aws.sqs.Sqs
 import common.basetelemetry.{BaseTelemetry, TelemetryEnv}
 import io.opentelemetry.api.trace.SpanKind
 import zio.telemetry.opentelemetry.context.ContextStorage
@@ -51,6 +54,9 @@ object Server extends ZIOAppDefault:
   private val sttpBackendLayer: TaskLayer[SttpBackend[Task, ZioStreams]] =
     ZLayer.scoped(HttpClientZioBackend.scoped())
 
+  private val sqsLayer: TaskLayer[Sqs] =
+    NettyHttpClient.default >>> AwsConfig.default >>> Sqs.live
+
   def run: ZIO[ZIOAppArgs & Scope, Any, Any] =
     (for
       routes <- ZIO.service[Routes[Any, Response]]
@@ -63,5 +69,8 @@ object Server extends ZIOAppDefault:
       resolvedRoutesLayer,
       WikipediaStreamConfig.layer,
       sttpBackendLayer,
+      SqsPublisherConfig.layer,
+      sqsLayer,
+      SqsPublisherLive.layer,
       WikipediaStreamServiceLive.layer
     )

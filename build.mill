@@ -53,6 +53,11 @@ val sttpClientDeps = Seq(
   mvn"com.softwaremill.sttp.client3::zio-json:3.10.3"
 )
 
+val sqsDeps = Seq(
+  mvn"dev.zio::zio-sqs:0.12.2",
+  mvn"dev.zio::zio-aws-netty:7.38.9.1"
+)
+
 // Ingestion Service
 object ingestion extends Module {
   object domainPublic extends ScalaModule {
@@ -75,13 +80,13 @@ object ingestion extends Module {
   object services extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic, domainPrivate, api)
-    def mvnDeps = zioDeps ++ sttpClientDeps ++ zioJsonDeps
+    def mvnDeps = zioDeps ++ sttpClientDeps ++ zioJsonDeps ++ sqsDeps
   }
 
   object server extends ScalaModule with DockerModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
-    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ sttpClientDeps
+    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ sttpClientDeps ++ sqsDeps
 
     object docker extends DockerConfig {
       def tags = List("ingestion-server:latest")
