@@ -59,3 +59,25 @@ object WikipediaEvent:
 
   def matchesServer(event: WikipediaEvent, expectedServer: String): Boolean =
     event.serverName.contains(expectedServer)
+
+  def toIngestionEvent(event: WikipediaEvent): IngestionEvent =
+    IngestionEvent(
+      source = IngestionSource.Wikipedia,
+      timestamp = event.meta.dt,
+      title = event.title,
+      user = event.user,
+      isBot = event.bot,
+      eventType = event.eventType,
+      pageUrl = event.titleUrl,
+      wiki = event.wiki,
+      extras = List(
+        event.namespace.map(n => ExtraField("namespace", n.toString)),
+        event.comment.map(c => ExtraField("comment", c)),
+        event.parsedcomment.map(ExtraField("parsed_comment", _)),
+        event.serverName.map(ExtraField("server_name", _)),
+        event.revision.flatMap(_.newRevision).map(r => ExtraField("revision_new", r.toString)),
+        event.revision.flatMap(_.old).map(r => ExtraField("revision_old", r.toString)),
+        event.length.flatMap(_.newLength).map(l => ExtraField("length_new", l.toString)),
+        event.length.flatMap(_.old).map(l => ExtraField("length_old", l.toString))
+      ).flatten
+    )

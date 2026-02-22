@@ -17,7 +17,8 @@ final case class WikipediaStreamServiceLive(
     config: WikipediaStreamConfig,
     backend: SttpBackend[Task, ZioStreams],
     tracing: Tracing,
-    meter: Meter
+    meter: Meter,
+    sqsPublisher: SqsPublisher
 ) extends WikipediaStreamService:
 
   private val UserAgent = "zio-lucene-test/1.0 (https://github.com/MattLangsenkamp/zio-lucene-test)"
@@ -95,7 +96,7 @@ final case class WikipediaStreamServiceLive(
           s"[${event.eventType.getOrElse("unknown")}] " +
             s"${event.title.getOrElse("?")} by ${event.user.getOrElse("?")} " +
             s"(bot: ${event.bot.getOrElse(false)}, wiki: ${event.wiki.getOrElse("?")})"
-        )
+        ) *> sqsPublisher.publish(WikipediaEvent.toIngestionEvent(event))
 
   private def reconnectionSchedule: Schedule[Any, Any, Any] =
     val baseDelay = Duration.fromMillis(config.backoffStartMs)
@@ -109,5 +110,5 @@ final case class WikipediaStreamServiceLive(
         ZIO.logWarning(s"Reconnecting after ${delay.toMillis}ms")
 
 object WikipediaStreamServiceLive:
-  val layer: URLayer[WikipediaStreamConfig & SttpBackend[Task, ZioStreams] & Tracing & Meter, WikipediaStreamService] =
+  val layer: URLayer[WikipediaStreamConfig & SttpBackend[Task, ZioStreams] & Tracing & Meter & SqsPublisher, WikipediaStreamService] =
     ZLayer.fromFunction(WikipediaStreamServiceLive.apply)
