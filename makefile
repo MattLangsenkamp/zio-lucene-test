@@ -1,4 +1,4 @@
-.PHONY: local-dev local-down dev dev-down prod prod-down dev-preview check-local-deps start-local-env delete-local-volume import-images logs health build-apps dockerhub-push dockerhub-full kubeconfig-local kubeconfig-dev kubeconfig-prod list-eks-clusters list-nodegroups check-aws-resources rollout-dev
+.PHONY: local-dev local-down dev dev-down prod prod-down dev-preview check-local-deps start-local-env delete-local-volume import-images logs health build-apps dockerhub-push dockerhub-full kubeconfig-local kubeconfig-dev kubeconfig-prod list-eks-clusters list-nodegroups check-aws-resources rollout-dev rollout-local
 
 # Configuration
 LOCALSTACK_VOLUME = zio-lucene-localstack-data
@@ -51,6 +51,7 @@ start-local-env: check-local-deps
 				-p 4566:4566 \
 				-v $(LOCALSTACK_VOLUME):/var/lib/localstack \
 				-e SERVICES=s3,kafka,iam,secretsmanager,ec2,sqs \
+				-e PERSISTENCE=1 \
 				localstack/localstack; \
 			echo "Waiting for LocalStack to be ready..."; \
 			sleep 5; \
@@ -62,6 +63,7 @@ start-local-env: check-local-deps
 			-p 4566:4566 \
 			-v $(LOCALSTACK_VOLUME):/var/lib/localstack \
 			-e SERVICES=s3,kafka,iam,secretsmanager,ec2,sqs \
+			-e PERSISTENCE=1 \
 			localstack/localstack; \
 		echo "Waiting for LocalStack to be ready..."; \
 		sleep 5; \
@@ -75,6 +77,8 @@ start-local-env: check-local-deps
 	else \
 		echo "✅ k3d cluster 'zio-lucene' already exists"; \
 	fi
+	@echo "Connecting LocalStack to k3d network..."
+	@docker network connect k3d-$(K3D_CLUSTER_NAME) localstack 2>/dev/null || echo "✅ LocalStack already connected to k3d network"
 	@echo ""
 	@echo "Initializing Pulumi local stack..."
 	@cd infra && (pulumi stack select local 2>/dev/null || pulumi stack init local)
@@ -133,7 +137,13 @@ dockerhub-full: build-apps dockerhub-push
 local-dev-up: kubeconfig-local
 	@echo "Deploying to local environment..."
 	cd infra && pulumi stack select local
-	cd infra && pulumi up --yes
+	@LOCALSTACK_IP=$$(docker inspect localstack | python3 -c "import sys,json; d=json.load(sys.stdin)[0]; print(d['NetworkSettings']['Networks']['k3d-$(K3D_CLUSTER_NAME)']['IPAddress'])" 2>/dev/null); \
+	if [ -n "$$LOCALSTACK_IP" ]; then \
+		echo "LocalStack IP in k3d network: $$LOCALSTACK_IP"; \
+	else \
+		echo "⚠️  Could not detect LocalStack IP in k3d network — run 'make start-local-env' first"; \
+	fi; \
+	cd infra && LOCALSTACK_K3D_IP=$$LOCALSTACK_IP pulumi up --yes --refresh
 
 # Deploy to local environment
 local-dev: start-local-env import-images local-dev-up
@@ -207,6 +217,12 @@ list-nodegroups:
 		echo "Listing node groups for cluster: $(CLUSTER)..."; \
 		aws eks list-nodegroups --region $(AWS_REGION) --cluster-name $(CLUSTER) --output table; \
 	fi
+
+# Rollout restart all services in local k3d cluster
+rollout-local: kubeconfig-local
+	kubectl rollout restart deployment/ingestion -n $(NAMESPACE)
+	kubectl rollout restart deployment/reader -n $(NAMESPACE)
+	kubectl rollout restart statefulset/writer -n $(NAMESPACE)
 
 # Rollout restart a service in dev (usage: make rollout-dev SERVICE=reader)
 rollout-dev:
