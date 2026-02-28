@@ -58,6 +58,21 @@ val sqsDeps = Seq(
   mvn"dev.zio::zio-aws-netty:7.38.9.1"
 )
 
+object neotypeDeps:
+  val core = Seq(
+    mvn"io.github.kitlangton::neotype:0.3.25"
+  )
+  val withJson = core ++ Seq(
+    mvn"io.github.kitlangton::neotype-zio-json:0.3.25"
+  )
+  val withQuill = core ++ Seq(
+    mvn"io.github.kitlangton::neotype-zio-quill:0.3.25"
+  )
+  val withBoth = core ++ Seq(
+    mvn"io.github.kitlangton::neotype-zio-json:0.3.25",
+    mvn"io.github.kitlangton::neotype-zio-quill:0.3.25"
+  )
+
 // Ingestion Service
 object ingestion extends Module {
   object domainPublic extends ScalaModule {
@@ -141,6 +156,7 @@ object writer extends Module {
   object domainPrivate extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic)
+    def mvnDeps = zioDeps
   }
 
   object api extends ScalaModule {
@@ -151,14 +167,14 @@ object writer extends Module {
 
   object services extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, domainPrivate, api)
-    def mvnDeps = zioDeps
+    def moduleDeps = Seq(domainPublic, domainPrivate, api, ingestion.domainPublic)
+    def mvnDeps = zioDeps ++ zioJsonDeps ++ sqsDeps
   }
 
   object server extends ScalaModule with DockerModule {
     def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, domainPrivate, api, services)
-    def mvnDeps = zioDeps ++ zioHttpDeps
+    def moduleDeps = Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
+    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ sqsDeps
 
     object docker extends DockerConfig {
       def tags = List("writer-server:latest")

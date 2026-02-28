@@ -42,6 +42,7 @@ object Ingestion:
       messagingMode: String,
       kafkaBootstrapServers: Option[Output[String]] = None,
       sqsQueueUrl: Option[Output[String]] = None,
+      sqsEndpointOverride: Option[String] = None,
       replicas: Int = 1,
       image: String = "ingestion-server:latest",
       imagePullPolicy: String = "IfNotPresent",
@@ -67,15 +68,11 @@ object Ingestion:
             )
       case "sqs" =>
         sqsQueueUrl match
-          case Some(url) =>
+          case Some(_) =>
             List(
               k8s.core.v1.inputs.EnvVarArgs(
                 name = "MESSAGING_MODE",
                 value = "sqs"
-              ),
-              k8s.core.v1.inputs.EnvVarArgs(
-                name = "SQS_QUEUE_URL",
-                value = url
               )
             )
           case None =>
@@ -87,12 +84,30 @@ object Ingestion:
           s"Unknown messagingMode: $other. Expected 'kafka' or 'sqs'"
         )
 
-    val baseEnvVars = List(
-      k8s.core.v1.inputs.EnvVarArgs(
-        name = "S3_BUCKET_NAME",
-        value = bucketName
+    val awsEndpointEnvVars: List[k8s.core.v1.inputs.EnvVarArgs] = sqsEndpointOverride match
+      case Some(endpoint) => List(
+        k8s.core.v1.inputs.EnvVarArgs(name = "AWS_ENDPOINT_URL_SQS",  value = endpoint),
+        k8s.core.v1.inputs.EnvVarArgs(name = "AWS_ACCESS_KEY_ID",     value = "test"),
+        k8s.core.v1.inputs.EnvVarArgs(name = "AWS_SECRET_ACCESS_KEY", value = "test")
       )
+      case None => List.empty
+
+    val baseEnvVars = List(
+      k8s.core.v1.inputs.EnvVarArgs(name = "S3_BUCKET_NAME", value = bucketName),
+      k8s.core.v1.inputs.EnvVarArgs(name = "AWS_REGION",     value = "us-east-1")
+    ) ++ awsEndpointEnvVars
+
+    val baseStaticConfigData = Map(
+      "WIKI_LANG"                 -> "en",
+      "WIKI_STREAM"               -> "recentchange",
+      "WIKI_BACKOFF_START_MS"     -> "1000",
+      "WIKI_BACKOFF_INCREMENT_MS" -> "1000",
+      "WIKI_BACKOFF_MAX_MS"       -> "30000"
     )
+
+    val configMapData: Output[Map[String, String]] = (messagingMode, sqsQueueUrl) match
+      case ("sqs", Some(url)) => url.map(u => baseStaticConfigData + ("SQS_QUEUE_URL" -> u))
+      case _                  => Output(baseStaticConfigData)
 
     provider.flatMap { prov =>
       val configMap = k8s.core.v1.ConfigMap(
@@ -102,13 +117,7 @@ object Ingestion:
             name = "ingestion-wiki-config",
             namespace = namespace
           ),
-          data = Map(
-            "WIKI_LANG"                -> "en",
-            "WIKI_STREAM"              -> "recentchange",
-            "WIKI_BACKOFF_START_MS"    -> "1000",
-            "WIKI_BACKOFF_INCREMENT_MS" -> "1000",
-            "WIKI_BACKOFF_MAX_MS"      -> "30000"
-          )
+          data = configMapData
         ),
         opts(provider = prov)
       )

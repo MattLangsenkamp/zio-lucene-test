@@ -547,11 +547,15 @@ import utils.writer.Writer
         provider = k8sProvider
       )
 
+      val localSqsEndpoint: Option[String] =
+        sys.env.get("LOCALSTACK_K3D_IP").filter(_.nonEmpty).map(ip => s"http://$ip:4566")
+
       val ingestionDeployment = Ingestion.createDeployment(
         namespace = namespaceNameOut,
         bucketName = bucketId,
         messagingMode = "sqs",
         sqsQueueUrl = Some(sqsQueueUrl),
+        sqsEndpointOverride = localSqsEndpoint,
         provider = k8sProvider
       )
 
@@ -576,6 +580,7 @@ import utils.writer.Writer
         bucketName = bucketId,
         messagingMode = "sqs",
         sqsQueueUrl = Some(sqsQueueUrl),
+        sqsEndpointOverride = localSqsEndpoint,
         storageClassName = "local-path",
         provider = k8sProvider
       )
