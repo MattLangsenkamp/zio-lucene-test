@@ -1,10 +1,20 @@
 #!/bin/bash
+# check-aws-resources.sh <region> <project_name>
+#
+# Scans AWS for resources associated with this project to identify anything
+# that may have been left running after a "pulumi destroy". Checks:
+#   tagged resources (Pulumi tags), EKS clusters, VPCs, S3 buckets,
+#   MSK clusters, security groups, IAM roles, internet/NAT gateways,
+#   elastic IPs, subnets, route tables, load balancers, OIDC providers.
+#
+# Args:
+#   $1  region       : AWS region, defaults to "us-east-1"
+#   $2  project_name : project name used in resource tags/names, defaults to "zio-lucene"
 
 set -e
 
-# Configuration
-AWS_REGION="${AWS_REGION:-us-east-1}"
-PROJECT_NAME="${PROJECT_NAME:-zio-lucene}"
+AWS_REGION="${1:-us-east-1}"
+PROJECT_NAME="${2:-zio-lucene}"
 
 echo "=== Checking AWS Resources for ${PROJECT_NAME} ==="
 echo "Region: ${AWS_REGION}"
