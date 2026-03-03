@@ -53,9 +53,13 @@ val sttpClientDeps = Seq(
   mvn"com.softwaremill.sttp.client3::zio-json:3.10.3"
 )
 
-val sqsDeps = Seq(
-  mvn"dev.zio::zio-sqs:0.12.2",
-  mvn"dev.zio::zio-aws-netty:7.38.9.1"
+val baseAwsDeps = Seq(
+  mvn"dev.zio::zio-aws-netty:7.38.9.1",
+  mvn"dev.zio::zio-aws-sts:7.38.9.1"
+)
+
+val sqsDeps = baseAwsDeps ++ Seq(
+  mvn"dev.zio::zio-sqs:0.12.2"
 )
 
 object neotypeDeps:
