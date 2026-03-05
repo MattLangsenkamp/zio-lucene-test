@@ -49,6 +49,7 @@ object Writer:
       imagePullPolicy: String = "IfNotPresent",
       storageSize: String = "1Gi",
       storageClassName: String = "gp2",
+      serviceAccountName: Option[Output[String]] = None,
       provider: Output[k8s.Provider],
       dependencies: Output[besom.api.aws.eks.Addon]*
   )(using Context): Output[k8s.apps.v1.StatefulSet] =
@@ -137,6 +138,7 @@ object Writer:
                   labels = Map("app" -> "writer")
                 ),
                 spec = k8s.core.v1.inputs.PodSpecArgs(
+                  serviceAccountName = serviceAccountName.getOrElse(Output("default")),
                   containers = List(
                     k8s.core.v1.inputs.ContainerArgs(
                       name = "writer",

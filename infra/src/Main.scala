@@ -14,9 +14,9 @@ import explicit.providers.{
   AwsProviderInputs
 }
 import utils.*
-import utils.ingestion.Ingestion
-import utils.reader.Reader
-import utils.writer.Writer
+import utils.ingestion.{Ingestion, IngestionIrsa, IngestionIrsaInput}
+import utils.reader.{Reader, ReaderIrsa, ReaderIrsaInput}
+import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
 
 @main def main = Pulumi.run {
   // Get stack name - PULUMI_STACK env var is set by Pulumi CLI
@@ -179,6 +179,33 @@ import utils.writer.Writer
         )
       )
       val bootstrapServers = kafkaOutput.flatMap(_.cluster.bootstrapBrokers)
+      val bucketArn = bucket.flatMap(_.bucket.arn)
+
+      val writerIrsa = WriterIrsa.make(WriterIrsaInput(
+        oidcProvider = oidcProvider,
+        namespace    = namespaceNameOutput,
+        bucketArn    = bucketArn,
+        sqsQueueArn  = None,
+        awsProvider  = awsProvider,
+        k8sProvider  = k8sProvider
+      ))
+
+      val ingestionIrsa = IngestionIrsa.make(IngestionIrsaInput(
+        oidcProvider = oidcProvider,
+        namespace    = namespaceNameOutput,
+        bucketArn    = bucketArn,
+        sqsQueueArn  = None,
+        awsProvider  = awsProvider,
+        k8sProvider  = k8sProvider
+      ))
+
+      val readerIrsa = ReaderIrsa.make(ReaderIrsaInput(
+        oidcProvider = oidcProvider,
+        namespace    = namespaceNameOutput,
+        bucketArn    = bucketArn,
+        awsProvider  = awsProvider,
+        k8sProvider  = k8sProvider
+      ))
 
       val ingestionService = Ingestion.createService(
         namespace = namespaceNameOutput,
@@ -186,13 +213,14 @@ import utils.writer.Writer
       )
 
       val ingestionDeployment = Ingestion.createDeployment(
-        namespace = namespaceNameOutput,
-        bucketName = bucketId,
-        messagingMode = "kafka",
+        namespace          = namespaceNameOutput,
+        bucketName         = bucketId,
+        messagingMode      = "kafka",
         kafkaBootstrapServers = Some(bootstrapServers),
-        image = "mattlangsenkamp/ingestion-server:latest",
-        imagePullPolicy = "Always",
-        provider = k8sProvider
+        image              = "mattlangsenkamp/ingestion-server:latest",
+        imagePullPolicy    = "Always",
+        serviceAccountName = Some(ingestionIrsa.map(_.serviceAccountName)),
+        provider           = k8sProvider
       )
 
       val readerService = Reader.createService(
@@ -201,11 +229,12 @@ import utils.writer.Writer
       )
 
       val readerDeployment = Reader.createDeployment(
-        namespace = namespaceNameOutput,
-        bucketName = bucketId,
-        image = "mattlangsenkamp/reader-server:latest",
-        imagePullPolicy = "Always",
-        provider = k8sProvider
+        namespace          = namespaceNameOutput,
+        bucketName         = bucketId,
+        image              = "mattlangsenkamp/reader-server:latest",
+        imagePullPolicy    = "Always",
+        serviceAccountName = Some(readerIrsa.map(_.serviceAccountName)),
+        provider           = k8sProvider
       )
 
       val writerService = Writer.createService(
@@ -214,14 +243,15 @@ import utils.writer.Writer
       )
 
       val writerStatefulSet = Writer.createStatefulSet(
-        namespace = namespaceNameOutput,
-        bucketName = bucketId,
-        messagingMode = "kafka",
+        namespace          = namespaceNameOutput,
+        bucketName         = bucketId,
+        messagingMode      = "kafka",
         kafkaBootstrapServers = Some(bootstrapServers),
-        image = "mattlangsenkamp/writer-server:latest",
-        imagePullPolicy = "Always",
-        provider = k8sProvider,
-        dependencies = ebsCsiDriver.map(_.addon)
+        image              = "mattlangsenkamp/writer-server:latest",
+        imagePullPolicy    = "Always",
+        serviceAccountName = Some(writerIrsa.map(_.serviceAccountName)),
+        provider           = k8sProvider,
+        dependencies       = ebsCsiDriver.map(_.addon)
       )
 
       val readerServiceName = readerService.metadata.name.getOrElse {
@@ -279,6 +309,15 @@ import utils.writer.Writer
         readerDeployment,
         writerService,
         writerStatefulSet,
+        writerIrsa.map(_.role),
+        writerIrsa.map(_.rolePolicy),
+        writerIrsa.map(_.serviceAccount),
+        ingestionIrsa.map(_.role),
+        ingestionIrsa.map(_.rolePolicy),
+        ingestionIrsa.map(_.serviceAccount),
+        readerIrsa.map(_.role),
+        readerIrsa.map(_.rolePolicy),
+        readerIrsa.map(_.serviceAccount),
         albController.map(_.policy),
         albController.map(_.role),
         albController.map(_.serviceAccount),
@@ -297,6 +336,34 @@ import utils.writer.Writer
       // SQS mode
       val sqsOutput = SQS.make(SQSInput("document-ingestion", awsProvider))
       val sqsQueueUrl = sqsOutput.flatMap(_.queueUrl)
+      val sqsQueueArn = sqsOutput.flatMap(_.queue.arn)
+      val bucketArn   = bucket.flatMap(_.bucket.arn)
+
+      val writerIrsa = WriterIrsa.make(WriterIrsaInput(
+        oidcProvider = oidcProvider,
+        namespace    = namespaceNameOutput,
+        bucketArn    = bucketArn,
+        sqsQueueArn  = Some(sqsQueueArn),
+        awsProvider  = awsProvider,
+        k8sProvider  = k8sProvider
+      ))
+
+      val ingestionIrsa = IngestionIrsa.make(IngestionIrsaInput(
+        oidcProvider = oidcProvider,
+        namespace    = namespaceNameOutput,
+        bucketArn    = bucketArn,
+        sqsQueueArn  = Some(sqsQueueArn),
+        awsProvider  = awsProvider,
+        k8sProvider  = k8sProvider
+      ))
+
+      val readerIrsa = ReaderIrsa.make(ReaderIrsaInput(
+        oidcProvider = oidcProvider,
+        namespace    = namespaceNameOutput,
+        bucketArn    = bucketArn,
+        awsProvider  = awsProvider,
+        k8sProvider  = k8sProvider
+      ))
 
       val ingestionService = Ingestion.createService(
         namespace = namespaceNameOutput,
@@ -304,13 +371,14 @@ import utils.writer.Writer
       )
 
       val ingestionDeployment = Ingestion.createDeployment(
-        namespace = namespaceNameOutput,
-        bucketName = bucketId,
-        messagingMode = "sqs",
-        sqsQueueUrl = Some(sqsQueueUrl),
-        image = "mattlangsenkamp/ingestion-server:latest",
-        imagePullPolicy = "Always",
-        provider = k8sProvider
+        namespace          = namespaceNameOutput,
+        bucketName         = bucketId,
+        messagingMode      = "sqs",
+        sqsQueueUrl        = Some(sqsQueueUrl),
+        image              = "mattlangsenkamp/ingestion-server:latest",
+        imagePullPolicy    = "Always",
+        serviceAccountName = Some(ingestionIrsa.map(_.serviceAccountName)),
+        provider           = k8sProvider
       )
 
       val readerService = Reader.createService(
@@ -319,11 +387,12 @@ import utils.writer.Writer
       )
 
       val readerDeployment = Reader.createDeployment(
-        namespace = namespaceNameOutput,
-        bucketName = bucketId,
-        image = "mattlangsenkamp/reader-server:latest",
-        imagePullPolicy = "Always",
-        provider = k8sProvider
+        namespace          = namespaceNameOutput,
+        bucketName         = bucketId,
+        image              = "mattlangsenkamp/reader-server:latest",
+        imagePullPolicy    = "Always",
+        serviceAccountName = Some(readerIrsa.map(_.serviceAccountName)),
+        provider           = k8sProvider
       )
 
       val writerService = Writer.createService(
@@ -332,14 +401,15 @@ import utils.writer.Writer
       )
 
       val writerStatefulSet = Writer.createStatefulSet(
-        namespace = namespaceNameOutput,
-        bucketName = bucketId,
-        messagingMode = "sqs",
-        sqsQueueUrl = Some(sqsQueueUrl),
-        image = "mattlangsenkamp/writer-server:latest",
-        imagePullPolicy = "Always",
-        provider = k8sProvider,
-        dependencies = ebsCsiDriver.map(_.addon)
+        namespace          = namespaceNameOutput,
+        bucketName         = bucketId,
+        messagingMode      = "sqs",
+        sqsQueueUrl        = Some(sqsQueueUrl),
+        image              = "mattlangsenkamp/writer-server:latest",
+        imagePullPolicy    = "Always",
+        serviceAccountName = Some(writerIrsa.map(_.serviceAccountName)),
+        provider           = k8sProvider,
+        dependencies       = ebsCsiDriver.map(_.addon)
       )
 
       val readerServiceName = readerService.metadata.name.getOrElse {
@@ -396,6 +466,15 @@ import utils.writer.Writer
         readerDeployment,
         writerService,
         writerStatefulSet,
+        writerIrsa.map(_.role),
+        writerIrsa.map(_.rolePolicy),
+        writerIrsa.map(_.serviceAccount),
+        ingestionIrsa.map(_.role),
+        ingestionIrsa.map(_.rolePolicy),
+        ingestionIrsa.map(_.serviceAccount),
+        readerIrsa.map(_.role),
+        readerIrsa.map(_.rolePolicy),
+        readerIrsa.map(_.serviceAccount),
         albController.map(_.policy),
         albController.map(_.role),
         albController.map(_.serviceAccount),

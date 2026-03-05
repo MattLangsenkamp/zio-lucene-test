@@ -46,6 +46,7 @@ object Ingestion:
       replicas: Int = 1,
       image: String = "ingestion-server:latest",
       imagePullPolicy: String = "IfNotPresent",
+      serviceAccountName: Option[Output[String]] = None,
       provider: Output[k8s.Provider]
   )(using Context): Output[k8s.apps.v1.Deployment] =
     val messagingEnvVars: List[k8s.core.v1.inputs.EnvVarArgs] = messagingMode match
@@ -140,6 +141,7 @@ object Ingestion:
                   labels = Map("app" -> "ingestion")
                 ),
                 spec = k8s.core.v1.inputs.PodSpecArgs(
+                  serviceAccountName = serviceAccountName.getOrElse(Output("default")),
                   containers = List(
                     k8s.core.v1.inputs.ContainerArgs(
                       name = "ingestion",

@@ -36,7 +36,11 @@ case "$ENV" in
     EKS_CLUSTER_NAME="${4:-zio-lucene-cluster}"
     AWS_REGION="${5:-us-east-1}"
     aws eks update-kubeconfig --region "$AWS_REGION" --name "$EKS_CLUSTER_NAME" > /dev/null 2>&1
-    kubectl rollout restart deployment/"${SERVICE}" -n "$NAMESPACE"
+    if kubectl get statefulset/"${SERVICE}" -n "$NAMESPACE" > /dev/null 2>&1; then
+      kubectl rollout restart statefulset/"${SERVICE}" -n "$NAMESPACE"
+    else
+      kubectl rollout restart deployment/"${SERVICE}" -n "$NAMESPACE"
+    fi
     ;;
   *)
     echo "❌ Unknown env: ${ENV}. Must be one of: local, dev"

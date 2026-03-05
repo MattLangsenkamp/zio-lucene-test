@@ -42,6 +42,7 @@ object Reader:
     replicas: Int = 1,
     image: String = "reader-server:latest",
     imagePullPolicy: String = "IfNotPresent",
+    serviceAccountName: Option[Output[String]] = None,
     provider: Output[k8s.Provider]
   )(using Context): Output[k8s.apps.v1.Deployment] =
     provider.flatMap { prov =>
@@ -62,6 +63,7 @@ object Reader:
                 labels = Map("app" -> "reader")
               ),
               spec = k8s.core.v1.inputs.PodSpecArgs(
+                serviceAccountName = serviceAccountName.getOrElse(Output("default")),
                 containers = List(
                   k8s.core.v1.inputs.ContainerArgs(
                     name = "reader",
@@ -77,6 +79,10 @@ object Reader:
                       k8s.core.v1.inputs.EnvVarArgs(
                         name = "S3_BUCKET_NAME",
                         value = bucketName
+                      ),
+                      k8s.core.v1.inputs.EnvVarArgs(
+                        name = "AWS_REGION",
+                        value = "us-east-1"
                       )
                     )
                   )
