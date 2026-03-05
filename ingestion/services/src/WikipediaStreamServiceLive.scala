@@ -1,7 +1,6 @@
 package app.ingestion.services
 
-import app.ingestion.domain.WikipediaEvent
-import app.ingestion.domain.internal.{WikimediaStreamsSpec, WikipediaStreamConfig}
+import app.ingestion.domain.internal.{WikimediaStreamsSpec, WikipediaEvent, WikipediaStreamConfig}
 import zio.*
 import zio.json.*
 import zio.stream.*

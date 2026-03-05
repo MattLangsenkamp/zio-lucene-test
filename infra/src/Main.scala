@@ -243,9 +243,10 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
       )
 
       val writerStatefulSet = Writer.createStatefulSet(
-        namespace          = namespaceNameOutput,
-        bucketName         = bucketId,
-        messagingMode      = "kafka",
+        namespace = namespaceNameOutput,
+        bucketName = bucketId,
+        s3Env = stackName,
+        messagingMode = "kafka",
         kafkaBootstrapServers = Some(bootstrapServers),
         image              = "mattlangsenkamp/writer-server:latest",
         imagePullPolicy    = "Always",
@@ -364,6 +365,8 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
         awsProvider  = awsProvider,
         k8sProvider  = k8sProvider
       ))
+      val commitQueueOutput = SQS.make(SQSInput("document-commit", awsProvider))
+      val commitQueueUrl = commitQueueOutput.flatMap(_.queueUrl)
 
       val ingestionService = Ingestion.createService(
         namespace = namespaceNameOutput,
@@ -403,8 +406,10 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
       val writerStatefulSet = Writer.createStatefulSet(
         namespace          = namespaceNameOutput,
         bucketName         = bucketId,
+        s3Env = stackName,
         messagingMode      = "sqs",
         sqsQueueUrl        = Some(sqsQueueUrl),
+        commitQueueUrl = Some(commitQueueUrl),
         image              = "mattlangsenkamp/writer-server:latest",
         imagePullPolicy    = "Always",
         serviceAccountName = Some(writerIrsa.map(_.serviceAccountName)),
@@ -444,6 +449,7 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
         vpcOutput.map(_.publicRouteTable),
         vpcOutput.map(_.privateRouteTable),
         sqsOutput.map(_.queue),
+        commitQueueOutput.map(_.queue),
         eksCluster.map(_.cluster),
         eksCluster.map(_.awsAuthConfigMap),
         eksCluster.map(_.nodeGroup),
@@ -484,6 +490,7 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
         bucketName = bucketId,
         messagingMode = "sqs",
         sqsQueueUrl = sqsQueueUrl,
+        commitQueueUrl = commitQueueUrl,
         k8sNamespace = namespaceNameOutput,
         eksClusterName = clusterName,
         externalSecretsRoleArn = externalSecretsIrsa.map(_.roleArn)
@@ -584,6 +591,7 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
       val writerStatefulSet = Writer.createStatefulSet(
         namespace = namespaceNameOut,
         bucketName = bucketId,
+        s3Env = stackName,
         messagingMode = "kafka",
         kafkaBootstrapServers = Some(Output(bootstrapServers)),
         storageClassName = "local-path",
@@ -620,6 +628,8 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
       // SQS mode (local via LocalStack)
       val sqsOutput = SQS.makeLocal(SQSInput("document-ingestion", awsProvider))
       val sqsQueueUrl = sqsOutput.flatMap(_.queueUrl)
+      val commitQueueOutput = SQS.makeLocal(SQSInput("document-commit", awsProvider))
+      val commitQueueUrl = commitQueueOutput.flatMap(_.queueUrl)
 
       val ingestionService = Ingestion.createService(
         namespace = namespaceNameOut,
@@ -657,8 +667,10 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
       val writerStatefulSet = Writer.createStatefulSet(
         namespace = namespaceNameOut,
         bucketName = bucketId,
+        s3Env = stackName,
         messagingMode = "sqs",
         sqsQueueUrl = Some(sqsQueueUrl),
+        commitQueueUrl = Some(commitQueueUrl),
         sqsEndpointOverride = localSqsEndpoint,
         storageClassName = "local-path",
         provider = k8sProvider
@@ -677,6 +689,7 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
         otelCollector.map(_.helmRelease),
         namespace,
         sqsOutput.map(_.queue),
+        commitQueueOutput.map(_.queue),
         ingestionService,
         ingestionDeployment,
         readerService,
@@ -687,7 +700,8 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
         bucketName = bucketId,
         k8sNamespace = namespaceNameOut,
         messagingMode = "sqs",
-        sqsQueueUrl = sqsQueueUrl
+        sqsQueueUrl = sqsQueueUrl,
+        commitQueueUrl = commitQueueUrl
       )
     }
   }

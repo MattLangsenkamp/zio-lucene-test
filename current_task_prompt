@@ -1,0 +1,178 @@
+# Writer Service — Requirements Document
+
+## Overview
+
+The writer service is the single authoritative writer of the Lucene index. It consumes a stream of structured documents from SQS, indexes them in controlled batches, and periodically commits durable checkpoints. Each commit triggers an asynchronous segment upload process that makes the updated index available to reader services via S3.
+
+The service hosts two concurrent, loosely-coupled responsibilities:
+
+1. **Index pipeline** — consuming documents, batching, flushing, and committing
+2. **Segment sync pipeline** — responding to commit events and uploading the resulting Lucene artifacts to S3
+
+These two pipelines communicate through a dedicated SQS commit notification queue rather than in-process signaling, which provides durability against writer restarts and clean separation of concerns.
+
+---
+
+## S3 Bucket Structure
+
+All index artifacts live under a single bucket. The layout is environment-aware and flat within the index prefix, mirroring the structure of the Lucene index directory on disk.
+
+```
+s3://{bucket}/
+  {env}/                        # e.g. dev / staging / prod
+    index/
+      segments_N                # current commit point (e.g. segments_4, segments_1a)
+      _0.si                     # segment info file
+      _0.fdt                    # stored fields data
+      _0.fdx                    # stored fields index
+      _0.fnm                    # field names
+      _0.tim                    # term dictionary
+      _0.tip                    # term index
+      _0.doc                    # frequencies and skip data
+      _0.pos                    # positions
+      _0.nvd / _0.nvm           # norms
+      _0.dvd / _0.dvm           # doc values
+      _1.*                      # next segment, same pattern
+      ...
+```
+
+### Key conventions
+
+**Segments files.** Lucene names commit points `segments_N` where `N` is a base-36 generation counter. Each commit produces a new `segments_N` file with a higher generation than the previous one. The writer uploads only the current `segments_N` on each commit, not historical ones. Readers discover the latest commit by listing the prefix and selecting the file with the highest generation.
+
+**Segment data files.** Lucene segment files are immutable once written. The writer uploads a segment file exactly once — at the commit that first introduces it. Subsequent commits only upload the new `segments_N` and any segments introduced in that commit. A given `_N.*` file, once uploaded, is never overwritten.
+
+**No write lock in S3.** The `write.lock` file is local only and must never be uploaded. Locking semantics are enforced by the single-writer architecture, not by S3.
+
+**Segment deletion.** Merged-away or deleted segments are not immediately removed from S3. A separate periodic cleanup process (out of scope for this document) is responsible for reconciling what is referenced by the latest `segments_N` against what exists in the prefix and purging unreferenced files.
+
+---
+
+## Services
+
+The writer service is composed of five distinct service abstractions. Each service owns a single cohesive responsibility and exposes a narrow interface. Implementations are not specified here.
+
+---
+
+### 1. `BatchIndexer`
+
+**Responsibility:** Accept a `ZStream` of incoming documents and index them in bounded batches. Own and enforce the flush threshold and commit threshold. Emit a `CommitEvent` each time a commit threshold is crossed.
+
+The `BatchIndexer` operates on two configurable thresholds:
+
+- **Flush threshold** — the number of batches after which the in-memory buffer is flushed to disk (segments are written but no durable commit point is created). Readers cannot yet see these documents.
+- **Commit threshold** — the number of batches after which the index is committed (a `segments_N` file is written, creating a durable, reader-visible checkpoint). The commit threshold must be a multiple of the flush threshold or at minimum always trigger a flush first.
+
+The `BatchIndexer` delegates actual document writing to the `DocumentIndexer` and commit notification to the `CommitPublisher`. It does not know about S3 or segment files.
+
+```scala
+trait BatchIndexer:
+  def run(documents: ZStream[Any, Throwable, WikiEditDocument]): ZIO[Any, Throwable, Unit]
+```
+
+---
+
+### 2. `DocumentIndexer`
+
+**Responsibility:** Write a single document or a batch of documents into the Lucene `IndexWriter`. Perform flushes and commits on request. Return commit metadata when a commit is performed.
+
+The `DocumentIndexer` is the only service that holds a reference to the Lucene `IndexWriter`. It is the boundary between the domain model and Lucene internals. It knows how to translate a `WikiEditDocument` into Lucene `Field`s, but it does not decide *when* to flush or commit — that is the `BatchIndexer`'s concern.
+
+A commit returns a `CommitMetadata` value describing the resulting state of the index — specifically which segment files are new at this commit point and what the new `segments_N` filename is. This metadata is what flows downstream to the `CommitPublisher` and ultimately the `SegmentUploader`.
+
+```scala
+trait DocumentIndexer:
+  def indexBatch(documents: Chunk[WikiEditDocument]): ZIO[Any, Throwable, Unit]
+  def flush(): ZIO[Any, Throwable, Unit]
+  def commit(): ZIO[Any, Throwable, CommitMetadata]
+```
+
+---
+
+### 3. `CommitPublisher`
+
+**Responsibility:** Publish a `CommitEvent` to the commit notification SQS queue after each successful commit.
+
+The `CommitPublisher` enqueues a `CommitEvent` — a lightweight command carrying no index metadata — on the commit notification queue. It is fire-and-forget from the index pipeline's perspective. The message means "a new commit has occurred; go inspect the index and upload whatever you find." It carries no description of which files changed.
+
+This design is intentional. Carrying file metadata through the queue would create a hazard: by the time the `SegmentSyncService` processes the message, Lucene's merge policy may have already compacted or deleted some of the referenced files. By making the event a pure command, the `SegmentSyncService` always works from current on-disk state and there is no risk of acting on stale file lists. A consequence of this design is that if multiple commit events queue up faster than the `SegmentSyncService` can process them, some intermediate commits will be skipped — only the state at the time each message is processed will be uploaded. This is acceptable.
+
+```scala
+trait CommitPublisher:
+  def publish(event: CommitEvent): ZIO[Any, Throwable, Unit]
+```
+
+---
+
+### 4. `SegmentSyncService`
+
+**Responsibility:** Consume commit commands from the commit notification SQS queue and, for each command, inspect the current on-disk index state and upload all referenced segment files and the current `segments_N` file to S3.
+
+The `SegmentSyncService` runs as a concurrent fiber alongside the indexing pipeline. On receiving a `CommitEvent`, it asks the local Lucene index directory for the current commit point and the set of files it references, then delegates their upload to the `IndexSegmentStore`. After all segment data files are confirmed uploaded, it uploads the `segments_N` file last. This ordering is critical: the commit point file must never land in S3 before the segment files it references, otherwise a reader could open an incomplete index.
+
+The `SegmentSyncService` has no knowledge of SQS message contents beyond the fact that a command arrived. It does not communicate back to the indexing pipeline and exercises no back-pressure on it.
+
+```scala
+trait SegmentSyncService:
+  def run(): ZIO[Any, Throwable, Unit]
+```
+
+---
+
+### 5. `IndexSegmentStore`
+
+**Responsibility:** Upload individual segment files and commit point files to the configured S3 prefix. Provide idempotent upload semantics — uploading a file that already exists in S3 is a no-op.
+
+The `IndexSegmentStore` knows the S3 bucket, environment prefix, and local index directory path. It resolves a local segment filename to its S3 key and performs the upload. It is the only service that interacts with S3. Idempotency allows the `SegmentSyncService` to safely retry on failure without producing corrupted state.
+
+```scala
+trait IndexSegmentStore:
+  def uploadSegmentFile(filename: String): ZIO[Any, Throwable, Unit]
+  def uploadCommitPoint(segmentsFileName: String): ZIO[Any, Throwable, Unit]
+  def exists(filename: String): ZIO[Any, Throwable, Boolean]
+```
+
+---
+
+## Supporting Types
+
+These are the value types that flow between services. They carry no behavior.
+
+```scala
+// A single document ready for indexing, produced upstream by the SQS consumer
+case class WikiEditDocument(/* fields TBD */)
+
+// A lightweight command published to SQS after each commit.
+// Carries no index metadata — the recipient inspects current on-disk state directly.
+case class CommitEvent(committedAt: Instant)
+```
+
+---
+
+## Pipeline Topology
+
+```
+SQS (edit events)
+      │
+      ▼
+ BatchIndexer ──────────────────────────► DocumentIndexer
+      │                (flush / commit)
+      │ CommitEvent
+      ▼
+ CommitPublisher ──► SQS (commit notifications)
+                              │
+                              ▼
+                     SegmentSyncService
+                              │
+                              ▼
+                     IndexSegmentStore ──► S3
+```
+
+The indexing half and the segment sync half are connected only through the SQS commit queue. Both halves run as concurrent ZIO fibers within the same process. If the segment sync fiber fails and restarts, in-flight commit events remain in SQS and will be reprocessed. If the writer process itself crashes after a commit but before publishing, the commit event is lost — this is an acceptable tradeoff given that Lucene commits are durable and the next commit will upload all outstanding segments anyway.
+
+---
+
+Final notes
+- Remember to use the best practices from skills like our ZIO skill.
+- Make sure everything builds
+- use the zio libraries for things like s3

@@ -91,7 +91,7 @@ type Title = Title.Type
 
 ```scala
 val id: UserId = UserId("abc-123")   // compile-time check if literal
-val raw: String = id.value           // unwrap with .value
+val raw: String = id.unwrap          // unwrap with .unwrap (requires: import neotype.unwrap)
 ```
 
 ### Mill dependency
@@ -200,6 +200,40 @@ type UserId = UserId.Type
 
 case class User(id: UserId, name: String) derives JsonCodec
 ```
+
+---
+
+## Model-to-Model Translations
+
+Conversions between internal domain models and external representations belong in the **domain package**, not in service implementations. This keeps services focused on orchestration and pushes representation knowledge down to where the models live.
+
+Examples of where translations belong:
+- **gRPC ↔ internal model** — in the domain package of the service that owns the internal type
+- **Third-party library types ↔ internal model** (e.g. Lucene `Document`, Kafka `ProducerRecord`) — in the domain package of the consuming service
+- **JSON ↔ internal model** — via `derives JsonCodec` on the type itself (see Codecs section above)
+
+Use Scala 3 **extension methods** to add the conversion directly to the type:
+
+```scala
+// writer/domainPrivate/src/LuceneConversions.scala
+package app.writer.domain.internal
+
+import app.ingestion.domain.IngestionEvent
+import org.apache.lucene.document.{Document, Field, StringField, TextField}
+
+extension (event: IngestionEvent)
+  def toLuceneDocument: Document = ...
+```
+
+The service then imports the extension and calls it naturally:
+
+```scala
+import app.writer.domain.internal.toLuceneDocument
+
+writer.addDocument(event.toLuceneDocument)
+```
+
+This ensures that if the external library changes, only the domain package needs updating — services are unaffected.
 
 ---
 
