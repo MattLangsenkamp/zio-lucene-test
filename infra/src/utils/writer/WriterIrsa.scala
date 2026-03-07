@@ -11,6 +11,7 @@ case class WriterIrsaInput(
   namespace: Output[String],
   bucketArn: Output[String],
   sqsQueueArn: Option[Output[String]],
+  commitQueueArn: Option[Output[String]] = None,
   awsProvider: Output[AwsProvider],
   k8sProvider: Output[k8s.Provider]
 )
@@ -84,9 +85,28 @@ object WriterIrsa:
 
     val policy = params.sqsQueueArn match
       case Some(sqsArn) =>
+        val commitStatement = params.commitQueueArn.map { commitArn =>
+          commitArn.map { arn =>
+            s""",
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sqs:SendMessage",
+                "sqs:ReceiveMessage",
+                "sqs:DeleteMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:GetQueueAttributes"
+              ],
+              "Resource": "$arn"
+            }"""
+          }
+        }.getOrElse(Output(""))
+
         for {
           bucketArn   <- params.bucketArn
           sqsQueueArn <- sqsArn
+          commitStmt  <- commitStatement
         } yield s"""{
           "Version": "2012-10-17",
           "Statement": [
@@ -109,7 +129,7 @@ object WriterIrsa:
                 "sqs:GetQueueAttributes"
               ],
               "Resource": "$sqsQueueArn"
-            }
+            }$commitStmt
           ]
         }"""
       case None =>

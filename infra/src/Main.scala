@@ -340,13 +340,18 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
       val sqsQueueArn = sqsOutput.flatMap(_.queue.arn)
       val bucketArn   = bucket.flatMap(_.bucket.arn)
 
+      val commitQueueOutput = SQS.make(SQSInput("document-commit", awsProvider))
+      val commitQueueUrl    = commitQueueOutput.flatMap(_.queueUrl)
+      val commitQueueArn    = commitQueueOutput.flatMap(_.queue.arn)
+
       val writerIrsa = WriterIrsa.make(WriterIrsaInput(
-        oidcProvider = oidcProvider,
-        namespace    = namespaceNameOutput,
-        bucketArn    = bucketArn,
-        sqsQueueArn  = Some(sqsQueueArn),
-        awsProvider  = awsProvider,
-        k8sProvider  = k8sProvider
+        oidcProvider   = oidcProvider,
+        namespace      = namespaceNameOutput,
+        bucketArn      = bucketArn,
+        sqsQueueArn    = Some(sqsQueueArn),
+        commitQueueArn = Some(commitQueueArn),
+        awsProvider    = awsProvider,
+        k8sProvider    = k8sProvider
       ))
 
       val ingestionIrsa = IngestionIrsa.make(IngestionIrsaInput(
@@ -365,8 +370,6 @@ import utils.writer.{Writer, WriterIrsa, WriterIrsaInput}
         awsProvider  = awsProvider,
         k8sProvider  = k8sProvider
       ))
-      val commitQueueOutput = SQS.make(SQSInput("document-commit", awsProvider))
-      val commitQueueUrl = commitQueueOutput.flatMap(_.queueUrl)
 
       val ingestionService = Ingestion.createService(
         namespace = namespaceNameOutput,
