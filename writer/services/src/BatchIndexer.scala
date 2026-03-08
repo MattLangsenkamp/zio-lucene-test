@@ -2,11 +2,12 @@ package app.writer.services
 
 import app.ingestion.domain.IngestionEvent
 import zio.*
-import zio.stream.ZStream
+import zio.aws.sqs.model.Message
+import zio.stream.ZPipeline
 
 trait BatchIndexer:
-  def run(documents: ZStream[Any, Throwable, IngestionEvent]): ZIO[Any, Throwable, Unit]
+  def pipeline: ZPipeline[Any, Throwable, (Message.ReadOnly, IngestionEvent), Message.ReadOnly]
 
 object BatchIndexer:
-  def run(documents: ZStream[Any, Throwable, IngestionEvent]): ZIO[BatchIndexer, Throwable, Unit] =
-    ZIO.serviceWithZIO(_.run(documents))
+  def pipeline: URIO[BatchIndexer, ZPipeline[Any, Throwable, (Message.ReadOnly, IngestionEvent), Message.ReadOnly]] =
+    ZIO.serviceWith(_.pipeline)
