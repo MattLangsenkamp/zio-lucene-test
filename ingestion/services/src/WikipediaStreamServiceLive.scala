@@ -11,6 +11,7 @@ import zio.telemetry.opentelemetry.tracing.Tracing
 import zio.telemetry.opentelemetry.metrics.{Counter, Meter}
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.common.{AttributeKey, Attributes}
+import common.activitylogging.*
 
 final case class WikipediaStreamServiceLive(
     config: WikipediaStreamConfig,
@@ -24,18 +25,18 @@ final case class WikipediaStreamServiceLive(
 
   override def consumeStream: Task[Unit] =
     for
-      _                 <- ZIO.logInfo(s"Wikipedia stream config loaded: language=${config.language}, stream=${config.stream}")
+      _                 <- ZIO.logActivity(WikipediaStreamServiceLive.StreamConfigLoaded(config.language, config.stream))
       _                 <- validateStreamExists
       deserErrorCounter <- meter.counter("wikipedia.deserialization.error")
       reconnectCounter  <- meter.counter("wikipedia.reconnection.attempt")
-      _                 <- ZIO.logInfo(s"Starting stream consumer for ${config.streamUrl} (server: ${config.expectedServerName})")
+      _                 <- ZIO.logActivity(WikipediaStreamServiceLive.StreamConsumerStarting(config.streamUrl, config.expectedServerName))
       _                 <- connectAndConsume(deserErrorCounter, reconnectCounter)
     yield ()
 
   private def validateStreamExists: Task[Unit] =
     tracing.span("validate-stream-exists", SpanKind.CLIENT):
       for
-        _ <- ZIO.logInfo(s"Fetching Wikimedia streams spec from ${WikimediaStreamsSpec.specUrl}")
+        _ <- ZIO.logActivity(WikipediaStreamServiceLive.FetchingStreamsSpec(WikimediaStreamsSpec.specUrl))
         response <- basicRequest
           .get(uri"${WikimediaStreamsSpec.specUrl}")
           .header("User-Agent", UserAgent)
@@ -49,7 +50,7 @@ final case class WikipediaStreamServiceLive(
           ZIO.fail(new RuntimeException(
             s"Stream '${config.stream}' not found. Available: ${availableStreams.mkString(", ")}"
           ))
-        _ <- ZIO.logInfo(s"Stream '${config.stream}' validated successfully")
+        _ <- ZIO.logActivity(WikipediaStreamServiceLive.StreamValidated(config.stream))
       yield ()
 
   private def connectAndConsume(
@@ -58,14 +59,14 @@ final case class WikipediaStreamServiceLive(
   ): Task[Unit] =
     consumeOnce(deserErrorCounter)
       .tapError: err =>
-        ZIO.logError(s"Stream connection lost: ${err.getMessage}") *>
+        ZIO.logActivity(WikipediaStreamServiceLive.StreamConnectionLost(err.getMessage)) *>
           reconnectCounter.add(1)
       .retry(reconnectionSchedule)
 
   private def consumeOnce(deserErrorCounter: Counter[Long]): Task[Unit] =
     tracing.span("consume-stream", SpanKind.CLIENT):
       for
-        _ <- ZIO.logInfo(s"Connecting to ${config.streamUrl}")
+        _ <- ZIO.logActivity(WikipediaStreamServiceLive.ConnectingToStream(config.streamUrl))
         response <- basicRequest
           .get(uri"${config.streamUrl}")
           .header("User-Agent", UserAgent)
@@ -84,18 +85,20 @@ final case class WikipediaStreamServiceLive(
     line.fromJson[WikipediaEvent] match
       case Left(error) =>
         val errorType = if line.trim.startsWith("{") then "schema_mismatch" else "malformed_json"
-        ZIO.logWarning(s"Deserialization error: $error (line: ${line.take(200)})") *>
+        ZIO.logActivity(WikipediaStreamServiceLive.DeserializationError(error, line.take(200))) *>
           deserErrorCounter.add(1, Attributes.of(AttributeKey.stringKey("error_type"), errorType))
       case Right(event) if WikipediaEvent.isCanary(event) =>
         ZIO.unit
       case Right(event) if !WikipediaEvent.matchesServer(event, config.expectedServerName) =>
         ZIO.unit
       case Right(event) =>
-        ZIO.logInfo(
-          s"[${event.eventType.getOrElse("unknown")}] " +
-            s"${event.title.getOrElse("?")} by ${event.user.getOrElse("?")} " +
-            s"(bot: ${event.bot.getOrElse(false)}, wiki: ${event.wiki.getOrElse("?")})"
-        ) *> sqsPublisher.publish(WikipediaEvent.toIngestionEvent(event))
+        ZIO.logActivity(WikipediaStreamServiceLive.WikipediaEventReceived(
+          eventType = event.eventType.getOrElse("unknown"),
+          title     = event.title.getOrElse("?"),
+          user      = event.user.getOrElse("?"),
+          bot       = event.bot.getOrElse(false),
+          wiki      = event.wiki.getOrElse("?")
+        )) *> sqsPublisher.publish(WikipediaEvent.toIngestionEvent(event))
 
   private def reconnectionSchedule: Schedule[Any, Any, Any] =
     val baseDelay = Duration.fromMillis(config.backoffStartMs)
@@ -106,8 +109,18 @@ final case class WikipediaStreamServiceLive(
       Schedule.delayed(
         Schedule.unfold(baseDelay)(d => (d + increment).min(maxDelay))
       ).tapOutput: delay =>
-        ZIO.logWarning(s"Reconnecting after ${delay.toMillis}ms")
+        ZIO.logActivity(WikipediaStreamServiceLive.ReconnectingStream(delay.toMillis))
 
 object WikipediaStreamServiceLive:
+  case class StreamConfigLoaded(language: String, stream: String)                         extends InfoLog derives JsonCodec
+  case class StreamConsumerStarting(streamUrl: String, expectedServerName: String)         extends InfoLog derives JsonCodec
+  case class FetchingStreamsSpec(url: String)                                              extends InfoLog derives JsonCodec
+  case class StreamValidated(stream: String)                                               extends InfoLog derives JsonCodec
+  case class StreamConnectionLost(message: String)                                         extends ErrorLog derives JsonCodec
+  case class ConnectingToStream(streamUrl: String)                                         extends InfoLog derives JsonCodec
+  case class DeserializationError(error: String, line: String)                             extends WarnLog derives JsonCodec
+  case class WikipediaEventReceived(eventType: String, title: String, user: String, bot: Boolean, wiki: String) extends InfoLog derives JsonCodec
+  case class ReconnectingStream(delayMs: Long)                                             extends WarnLog derives JsonCodec
+
   val layer: URLayer[WikipediaStreamConfig & SttpBackend[Task, ZioStreams] & Tracing & Meter & SqsPublisher, WikipediaStreamService] =
     ZLayer.fromFunction(WikipediaStreamServiceLive.apply)

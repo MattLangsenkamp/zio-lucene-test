@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+       "name" : "test_case_1905745054/ActivityLogSpec/dummy",
+       "status" : "Success",
+       "durationMillis" : "80",
+       "annotations" : "",
+       "fullyQualifiedClassName" : "test_case_1905745054",
+       "labels" : ["ActivityLogSpec", "dummy"]
+    }
+
+  ]
+}

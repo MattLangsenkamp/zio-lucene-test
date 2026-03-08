@@ -3,8 +3,10 @@ package app.writer.services
 import app.ingestion.domain.IngestionEvent
 import app.writer.domain.internal.{BatchIndexerConfig, CommitEvent}
 import zio.*
+import zio.json.*
 import zio.aws.sqs.model.Message
 import zio.stream.ZPipeline
+import common.activitylogging.*
 
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicLong
@@ -24,18 +26,21 @@ final case class BatchIndexerLive(
         val isCommit    = batchNum % config.commitThreshold == 0
         val isFlushOnly = !isCommit && batchNum % config.flushThreshold == 0
         for
-          _ <- ZIO.logInfo(s"idx: $idx isCommit: $isCommit isFlushOnly: $isFlushOnly")
+          _ <- ZIO.logActivity(BatchIndexerLive.BatchProcessed(idx, isCommit, isFlushOnly))
           _ <- documentIndexer.indexBatch(batch.map(_._2))
           _ <- ZIO.when(isFlushOnly)(documentIndexer.flush())
           _ <- ZIO.when(isCommit):
                  documentIndexer.flush() *>
                    documentIndexer.commit() *>
-                   ZIO.logInfo("Committed index") *>
+                   ZIO.logActivity(BatchIndexerLive.IndexCommitted()) *>
                    commitPublisher.publish(CommitEvent(Instant.now()))
         yield batch.map(_._1)
       } >>>
       ZPipeline.flattenChunks
 
 object BatchIndexerLive:
+  case class BatchProcessed(idx: Long, isCommit: Boolean, isFlushOnly: Boolean) extends InfoLog derives JsonCodec
+  case class IndexCommitted()                                                     extends InfoLog derives JsonCodec
+
   val layer: URLayer[BatchIndexerConfig & DocumentIndexer & CommitPublisher, BatchIndexer] =
     ZLayer.fromFunction(BatchIndexerLive.apply)

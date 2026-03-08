@@ -2,11 +2,13 @@ package app.writer.services
 
 import app.writer.domain.internal.{IndexConfig, S3Config}
 import zio.*
+import zio.json.*
 import zio.stream.ZStream
 import zio.aws.s3.S3
 import zio.aws.s3.model.{HeadObjectRequest, PutObjectRequest}
 import zio.aws.s3.model.primitives.{BucketName, ContentLength, ObjectKey}
 import zio.aws.core.AwsError
+import common.activitylogging.*
 
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 
@@ -23,7 +25,7 @@ final case class IndexSegmentStoreLive(
 
   override def uploadSegmentFile(filename: String): Task[Unit] =
     exists(filename).flatMap:
-      case true  => ZIO.logDebug(s"Segment file $filename already in S3, skipping")
+      case true  => ZIO.logActivity(IndexSegmentStoreLive.SegmentFileAlreadyInS3(filename))
       case false => doUpload(filename)
 
   override def uploadCommitPoint(segmentsFileName: String): Task[Unit] =
@@ -57,11 +59,15 @@ final case class IndexSegmentStoreLive(
         .mapError(_.toThrowable)
         .unit
         .tapBoth(
-          err => ZIO.logError(s"Failed to upload $filename to S3: ${err.getMessage}"),
-          _   => ZIO.logDebug(s"Uploaded $filename to S3")
+          err => ZIO.logActivity(IndexSegmentStoreLive.SegmentUploadFailed(filename, err.getMessage)),
+          _   => ZIO.logActivity(IndexSegmentStoreLive.SegmentUploaded(filename))
         )
     }
 
 object IndexSegmentStoreLive:
+  case class SegmentFileAlreadyInS3(filename: String)                     extends DebugLog derives JsonCodec
+  case class SegmentUploadFailed(filename: String, message: String)        extends ErrorLog derives JsonCodec
+  case class SegmentUploaded(filename: String)                             extends DebugLog derives JsonCodec
+
   val layer: URLayer[S3 & S3Config & IndexConfig, IndexSegmentStore] =
     ZLayer.fromFunction(IndexSegmentStoreLive.apply)

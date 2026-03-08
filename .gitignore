@@ -5,3 +5,4 @@
 out/
 mill-ivy/
 
+.idea/scala_compiler.xml
