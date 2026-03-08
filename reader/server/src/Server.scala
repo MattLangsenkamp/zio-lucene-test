@@ -15,6 +15,10 @@ import zio.telemetry.opentelemetry.metrics.Meter
 
 object Server extends ZIOAppDefault:
 
+  override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
+    Runtime.setConfigProvider(ConfigProvider.envProvider.snakeCase.upperCase)
+
+
   private val healthServerEndpoint: ZServerEndpoint[Tracing, Any] =
     HealthEndpoint.healthEndpoint.zServerLogic[Tracing]: _ =>
       for

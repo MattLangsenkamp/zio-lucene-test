@@ -21,7 +21,7 @@ final case class IndexSegmentStoreLive(
 ) extends IndexSegmentStore:
 
   private def s3Key(filename: String): ObjectKey =
-    ObjectKey(s"${s3Config.s3Env}/index/$filename")
+    ObjectKey(s"${s3Config.storageEnv}/index/$filename")
 
   override def uploadSegmentFile(filename: String): Task[Unit] =
     exists(filename).flatMap:
@@ -34,7 +34,7 @@ final case class IndexSegmentStoreLive(
   override def exists(filename: String): Task[Boolean] =
     s3.headObject(
       HeadObjectRequest(
-        bucket = BucketName(s3Config.s3Bucket),
+        bucket = BucketName(s3Config.storageBucket),
         key    = s3Key(filename)
       )
     )
@@ -50,7 +50,7 @@ final case class IndexSegmentStoreLive(
     ZIO.attemptBlockingIO(Files.size(path)).flatMap { fileSize =>
       s3.putObject(
         PutObjectRequest(
-          bucket        = BucketName(s3Config.s3Bucket),
+          bucket        = BucketName(s3Config.storageBucket),
           key           = s3Key(filename),
           contentLength = Some(ContentLength(fileSize))
         ),

@@ -101,17 +101,24 @@ object Writer:
       case None => List.empty
 
     val baseEnvVars = List(
-      k8s.core.v1.inputs.EnvVarArgs(name = "S3_BUCKET", value = bucketName),
-      k8s.core.v1.inputs.EnvVarArgs(name = "S3_ENV",    value = s3Env),
+      k8s.core.v1.inputs.EnvVarArgs(name = "STORAGE_BUCKET", value = bucketName),
+      k8s.core.v1.inputs.EnvVarArgs(name = "STORAGE_ENV",    value = s3Env),
       k8s.core.v1.inputs.EnvVarArgs(name = "AWS_REGION", value = "us-east-1")
     ) ++ awsEndpointEnvVars
 
+    val staticConfigData = Map(
+      "LUCENE_INDEX_PATH" -> "/tmp/lucene-index",
+      "BATCH_SIZE"        -> "100",
+      "FLUSH_THRESHOLD"   -> "5",
+      "COMMIT_THRESHOLD"  -> "25"
+    )
+
     val configMapData: Output[Map[String, String]] = (messagingMode, sqsQueueUrl, commitQueueUrl) match
       case ("sqs", Some(sqsUrl), Some(commitUrl)) =>
-        sqsUrl.flatMap(sqs => commitUrl.map(commit => Map("SQS_QUEUE_URL" -> sqs, "COMMIT_QUEUE_URL" -> commit)))
+        sqsUrl.flatMap(sqs => commitUrl.map(commit => staticConfigData ++ Map("SQS_QUEUE_URL" -> sqs, "COMMIT_QUEUE_URL" -> commit)))
       case ("sqs", Some(sqsUrl), None) =>
-        sqsUrl.map(u => Map("SQS_QUEUE_URL" -> u))
-      case _ => Output(Map.empty[String, String])
+        sqsUrl.map(u => staticConfigData + ("SQS_QUEUE_URL" -> u))
+      case _ => Output(staticConfigData)
 
     provider.flatMap { prov =>
       val configMap = k8s.core.v1.ConfigMap(
