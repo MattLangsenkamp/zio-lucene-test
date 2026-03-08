@@ -5,6 +5,8 @@ import zio.*
 import zio.json.*
 import zio.aws.sqs.Sqs
 import zio.sqs.{SqsStream, SqsStreamSettings}
+import zio.telemetry.opentelemetry.tracing.Tracing
+import io.opentelemetry.api.trace.SpanKind
 import common.activitylogging.*
 
 import org.apache.lucene.index.{DirectoryReader, IndexNotFoundException}
@@ -17,7 +19,8 @@ final case class SegmentSyncServiceLive(
     sqs: Sqs,
     commitQueueConfig: CommitQueueConfig,
     indexConfig: IndexConfig,
-    store: IndexSegmentStore
+    store: IndexSegmentStore,
+    tracing: Tracing
 ) extends SegmentSyncService:
 
   override def run(): ZIO[Any, Throwable, Unit] =
@@ -26,16 +29,17 @@ final case class SegmentSyncServiceLive(
       settings = SqsStreamSettings.default.withMaxNumberOfMessages(1)
     )
       .mapZIO { msg =>
-        for
-          _ <- ZIO.logActivity(SegmentSyncServiceLive.CommitEventReceived())
-          _ <- getCurrentIndexFiles().flatMap:
-                 case None =>
-                   ZIO.logActivity(SegmentSyncServiceLive.StaleCommitEvent())
-                 case Some((segmentFiles, segmentsFile)) =>
-                   ZIO.foreachPar(segmentFiles)(store.uploadSegmentFile) *>
-                     store.uploadCommitPoint(segmentsFile) *>
-                     ZIO.logActivity(SegmentSyncServiceLive.IndexSyncedToS3(segmentsFile, segmentFiles.size))
-        yield msg
+        tracing.span("sync-index-segment", SpanKind.CONSUMER):
+          for
+            _ <- ZIO.logActivity(SegmentSyncServiceLive.CommitEventReceived())
+            _ <- getCurrentIndexFiles().flatMap:
+                   case None =>
+                     ZIO.logActivity(SegmentSyncServiceLive.StaleCommitEvent())
+                   case Some((segmentFiles, segmentsFile)) =>
+                     ZIO.foreachPar(segmentFiles)(store.uploadSegmentFile) *>
+                       store.uploadCommitPoint(segmentsFile) *>
+                       ZIO.logActivity(SegmentSyncServiceLive.IndexSyncedToS3(segmentsFile, segmentFiles.size))
+          yield msg
       }
       .run(SqsStream.deleteMessageBatchSink(commitQueueConfig.queueUrl))
       .provide(ZLayer.succeed(sqs))
@@ -63,5 +67,5 @@ object SegmentSyncServiceLive:
   case class IndexSyncedToS3(segmentsFile: String, segmentFileCount: Int) extends InfoLog derives JsonCodec
   case class SegmentSyncError(message: String)                            extends ErrorLog derives JsonCodec
 
-  val layer: URLayer[Sqs & CommitQueueConfig & IndexConfig & IndexSegmentStore, SegmentSyncService] =
+  val layer: URLayer[Sqs & CommitQueueConfig & IndexConfig & IndexSegmentStore & Tracing, SegmentSyncService] =
     ZLayer.fromFunction(SegmentSyncServiceLive.apply)
