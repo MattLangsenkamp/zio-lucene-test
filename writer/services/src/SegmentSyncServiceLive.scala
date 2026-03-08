@@ -5,6 +5,7 @@ import zio.*
 import zio.json.*
 import zio.aws.sqs.Sqs
 import zio.sqs.{SqsStream, SqsStreamSettings}
+import common.activitylogging.*
 
 import org.apache.lucene.index.{DirectoryReader, IndexNotFoundException}
 import org.apache.lucene.store.FSDirectory
@@ -26,19 +27,19 @@ final case class SegmentSyncServiceLive(
     )
       .mapZIO { msg =>
         for
-          _ <- ZIO.logInfo("Received commit event, syncing index to S3")
+          _ <- ZIO.logActivity(SegmentSyncServiceLive.CommitEventReceived())
           _ <- getCurrentIndexFiles().flatMap:
                  case None =>
-                   ZIO.logWarning("No committed index found, skipping sync (stale commit event)")
+                   ZIO.logActivity(SegmentSyncServiceLive.StaleCommitEvent())
                  case Some((segmentFiles, segmentsFile)) =>
                    ZIO.foreachPar(segmentFiles)(store.uploadSegmentFile) *>
                      store.uploadCommitPoint(segmentsFile) *>
-                     ZIO.logInfo(s"Synced index to S3: $segmentsFile (${segmentFiles.size} segment files)")
+                     ZIO.logActivity(SegmentSyncServiceLive.IndexSyncedToS3(segmentsFile, segmentFiles.size))
         yield msg
       }
       .run(SqsStream.deleteMessageBatchSink(commitQueueConfig.queueUrl))
       .provide(ZLayer.succeed(sqs))
-      .tapError(err => ZIO.logError(s"SegmentSyncService error, retrying: ${err.toString}"))
+      .tapError(err => ZIO.logActivity(SegmentSyncServiceLive.SegmentSyncError(err.toString)))
       .retry(Schedule.spaced(5.seconds))
 
   private def getCurrentIndexFiles(): Task[Option[(Set[String], String)]] =
@@ -57,5 +58,10 @@ final case class SegmentSyncServiceLive(
         dir.close()
 
 object SegmentSyncServiceLive:
+  case class CommitEventReceived()                                        extends InfoLog derives JsonCodec
+  case class StaleCommitEvent()                                           extends WarnLog derives JsonCodec
+  case class IndexSyncedToS3(segmentsFile: String, segmentFileCount: Int) extends InfoLog derives JsonCodec
+  case class SegmentSyncError(message: String)                            extends ErrorLog derives JsonCodec
+
   val layer: URLayer[Sqs & CommitQueueConfig & IndexConfig & IndexSegmentStore, SegmentSyncService] =
     ZLayer.fromFunction(SegmentSyncServiceLive.apply)

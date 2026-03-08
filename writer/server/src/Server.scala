@@ -1,6 +1,7 @@
 package app.writer.server
 
 import zio.*
+import zio.json.*
 import zio.http.{Response, Routes, Server as ZServer}
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
 import sttp.tapir.ztapir.*
@@ -31,6 +32,7 @@ import zio.aws.netty.NettyHttpClient
 import zio.aws.s3.S3
 import zio.aws.sqs.Sqs
 import common.basetelemetry.{BaseTelemetry, TelemetryEnv}
+import common.activitylogging.*
 import io.opentelemetry.api.trace.SpanKind
 import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.Tracing
@@ -41,20 +43,20 @@ object Server extends ZIOAppDefault:
     HealthEndpoint.healthEndpoint.zServerLogic[Tracing]: _ =>
       ZIO.serviceWithZIO[Tracing]: tracing =>
         tracing.span("health-check", SpanKind.SERVER):
-          ZIO.logInfo("Health endpoint hit") *> ZIO.succeed("OK")
+          ZIO.logActivity(HealthCheckHit()) *> ZIO.succeed("OK")
 
   private val app: Routes[Tracing, Response] = ZioHttpInterpreter().toHttp(healthServerEndpoint)
 
   private val backgroundConsumer: ZIO[SqsConsumer, Nothing, Unit] =
     SqsConsumer.consume
-      .tapError(err => ZIO.logError(s"SQS consumer failed: ${err.toString}"))
+      .tapError(err => ZIO.logActivity(SqsConsumerFailed(err.toString)))
       .catchAll(_ => ZIO.unit)
       .fork
       .unit
 
   private val backgroundSegmentSync: ZIO[SegmentSyncService, Nothing, Unit] =
     SegmentSyncService.run()
-      .tapError(err => ZIO.logError(s"SegmentSyncService failed: ${err.toString}"))
+      .tapError(err => ZIO.logActivity(SegmentSyncServiceFailed(err.toString)))
       .catchAll(_ => ZIO.unit)
       .fork
       .unit
@@ -69,7 +71,7 @@ object Server extends ZIOAppDefault:
       for
         _ <- ZIO.service[Tracing]
         _ <- ZIO.service[ContextStorage]
-        _ <- ZIO.logInfo("Building ZServer after TelemetryEnv")
+        _ <- ZIO.logActivity(ZServerStarting())
         server <- ZServer.default.build
       yield server.get[ZServer]
 
@@ -105,3 +107,8 @@ object Server extends ZIOAppDefault:
       SegmentSyncServiceLive.layer,
       SqsConsumerLive.layer
     )
+
+  case class HealthCheckHit()                          extends InfoLog derives JsonCodec
+  case class SqsConsumerFailed(message: String)        extends ErrorLog derives JsonCodec
+  case class SegmentSyncServiceFailed(message: String) extends ErrorLog derives JsonCodec
+  case class ZServerStarting()                         extends InfoLog derives JsonCodec

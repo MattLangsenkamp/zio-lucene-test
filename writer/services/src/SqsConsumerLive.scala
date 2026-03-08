@@ -7,6 +7,7 @@ import zio.json.*
 import zio.aws.sqs.Sqs
 import zio.aws.sqs.model.Message
 import zio.sqs.{SqsStream, SqsStreamSettings}
+import common.activitylogging.*
 
 final case class SqsConsumerLive(
     sqs: Sqs,
@@ -24,21 +25,29 @@ final case class SqsConsumerLive(
       .via(batchIndexer.pipeline)
       .run(SqsStream.deleteMessageBatchSink(config.queueUrl))
       .provide(ZLayer.succeed(sqs))
-      .tapError(err => ZIO.logError(s"SQS stream error, reconnecting: ${err.toString}"))
+      .tapError(err => ZIO.logActivity(SqsConsumerLive.SqsStreamError(err.toString)))
       .retry(Schedule.spaced(5.seconds))
 
   private def parseMessage(msg: Message.ReadOnly): Task[Option[(Message.ReadOnly, IngestionEvent)]] =
     msg.body.toOption match
       case None =>
-        ZIO.logWarning("Received SQS message with no body").as(None)
+        ZIO.logActivity(SqsConsumerLive.SqsMessageNoBody()).as(None)
       case Some(body) =>
         body.fromJson[IngestionEvent] match
           case Left(err) =>
-            ZIO.logWarning(s"Failed to deserialize SQS message: $err (body: ${body.take(200)})").as(None)
+            ZIO.logActivity(SqsConsumerLive.SqsDeserializationError(err, body.take(200))).as(None)
           case Right(event) =>
-            ZIO.logInfo(s"Received event: ${event.eventType.getOrElse("unknown")} - ${event.title.getOrElse("?")} by ${event.user.getOrElse("?")}") *>
-              ZIO.succeed(Some((msg, event)))
+            ZIO.logActivity(SqsConsumerLive.SqsEventReceived(
+              eventType = event.eventType.getOrElse("unknown"),
+              title     = event.title.getOrElse("?"),
+              user      = event.user.getOrElse("?")
+            )) *> ZIO.succeed(Some((msg, event)))
 
 object SqsConsumerLive:
+  case class SqsStreamError(message: String)                             extends ErrorLog derives JsonCodec
+  case class SqsMessageNoBody()                                           extends WarnLog derives JsonCodec
+  case class SqsDeserializationError(error: String, body: String)        extends WarnLog derives JsonCodec
+  case class SqsEventReceived(eventType: String, title: String, user: String) extends InfoLog derives JsonCodec
+
   val layer: URLayer[Sqs & SqsConsumerConfig & BatchIndexer, SqsConsumer] =
     ZLayer.fromFunction(SqsConsumerLive.apply)

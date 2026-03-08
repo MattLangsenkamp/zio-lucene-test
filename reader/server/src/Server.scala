@@ -1,11 +1,13 @@
 package app.reader.server
 
 import zio.*
+import zio.json.*
 import zio.http.{Response, Routes, Server as ZServer}
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
 import sttp.tapir.ztapir.*
 import app.reader.api.HealthEndpoint
 import common.basetelemetry.{BaseTelemetry, TelemetryEnv}
+import common.activitylogging.*
 import io.opentelemetry.api.trace.SpanKind
 import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.Tracing
@@ -17,11 +19,10 @@ object Server extends ZIOAppDefault:
     HealthEndpoint.healthEndpoint.zServerLogic[Tracing]: _ =>
       for
         loggers <- ZIO.loggers
-        loggerNames = loggers.map(_.getClass.getName).mkString("\n  - ")
-        _ <- ZIO.logInfo(s"Health endpoint hit. Active loggers (${loggers.size}):\n  - $loggerNames")
-        result <- ZIO.serviceWithZIO[Tracing]: tracing =>
+        _       <- ZIO.logActivity(HealthCheckHit(loggers.map(_.getClass.getName).toList))
+        result  <- ZIO.serviceWithZIO[Tracing]: tracing =>
           tracing.span("health-check", SpanKind.SERVER):
-            ZIO.logInfo("Health endpoint was hit inside span") *> ZIO.succeed("OK")
+            ZIO.logActivity(HealthCheckSpanHit()) *> ZIO.succeed("OK")
       yield result
 
   private val app: Routes[Tracing, Response] = ZioHttpInterpreter().toHttp(healthServerEndpoint)
@@ -33,7 +34,7 @@ object Server extends ZIOAppDefault:
       _ <- ZIO
         .serviceWithZIO[Tracing]: tracing =>
           tracing.span("heartbeat", SpanKind.SERVER):
-            ZIO.logInfo("Reader service heartbeat") *>
+            ZIO.logActivity(ReaderHeartbeat()) *>
               counter.add(1)
         .repeat(Schedule.spaced(30.second))
     yield ()).fork.unit
@@ -43,24 +44,15 @@ object Server extends ZIOAppDefault:
       for
         env       <- ZIO.environment[TelemetryEnv]
         baseRoutes = app.provideEnvironment(env)
-        // Middleware disabled - testing if layer ordering fixes logger inheritance
-        // routesWithLogging = baseRoutes @@ OtelLoggerMiddleware.middleware(otel, ctxStorage, tracing)
       yield baseRoutes
     )
 
-  /** Custom server layer that ensures TelemetryEnv is fully built (including logger)
-    * BEFORE NettyRuntime captures its FiberRefs snapshot.
-    *
-    * Theory: If the OTel logger is added to FiberRefs via ZIO.withLoggerScoped before
-    * NettyRuntime.live runs ZIO.runtime, request fibers should inherit the logger.
-    */
   private val serverAfterTelemetry: ZLayer[TelemetryEnv, Throwable, ZServer] =
     ZLayer.scoped {
       for
-        // Force TelemetryEnv to be fully built first by requiring its services
         _ <- ZIO.service[Tracing]
         _ <- ZIO.service[ContextStorage]
-        _ <- ZIO.logInfo("Building ZServer after TelemetryEnv - logger should be in FiberRefs")
+        _ <- ZIO.logActivity(ZServerStarting())
         server <- ZServer.default.build
       yield server.get[ZServer]
     }
@@ -73,6 +65,11 @@ object Server extends ZIOAppDefault:
     yield ()).provide(
       Scope.default,
       BaseTelemetry.live("reader-service"),
-      serverAfterTelemetry,  // Server built AFTER telemetry, in same scope
+      serverAfterTelemetry,
       resolvedRoutesLayer
     )
+
+  case class HealthCheckHit(activeLoggers: List[String]) extends InfoLog derives JsonCodec
+  case class HealthCheckSpanHit()                        extends InfoLog derives JsonCodec
+  case class ReaderHeartbeat()                           extends InfoLog derives JsonCodec
+  case class ZServerStarting()                           extends InfoLog derives JsonCodec

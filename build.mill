@@ -86,34 +86,37 @@ object neotypeDeps:
     mvn"io.github.kitlangton::neotype-zio-quill:0.3.25"
   )
 
+// All service modules extend AppModule instead of ScalaModule directly.
+// This ensures common.`activity-logging` is always on the classpath without
+// having to remember to add it per-module.
+trait AppModule extends ScalaModule {
+  def scalaVersion = VersionInfo.scalaVersion
+  override def moduleDeps = super.moduleDeps ++ Seq(common.`activity-logging`)
+}
+
 // Ingestion Service
 object ingestion extends Module {
-  object domainPublic extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
+  object domainPublic extends AppModule {
     def mvnDeps = zioJsonDeps
   }
 
-  object domainPrivate extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic)
+  object domainPrivate extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic)
     def mvnDeps = zioDeps ++ zioJsonDeps
   }
 
-  object api extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic)
+  object api extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic)
     def mvnDeps = sttpDeps
   }
 
-  object services extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, domainPrivate, api)
+  object services extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api)
     def mvnDeps = zioDeps ++ sttpClientDeps ++ zioJsonDeps ++ sqsDeps
   }
 
-  object server extends ScalaModule with DockerModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
+  object server extends AppModule with DockerModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
     def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ sttpClientDeps ++ sqsDeps
 
     object docker extends DockerConfig {
@@ -126,30 +129,24 @@ object ingestion extends Module {
 
 // Reader Service
 object reader extends Module {
-  object domainPublic extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
+  object domainPublic extends AppModule
+
+  object domainPrivate extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic)
   }
 
-  object domainPrivate extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic)
-  }
-
-  object api extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic)
+  object api extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic)
     def mvnDeps = sttpDeps
   }
 
-  object services extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, domainPrivate, api)
+  object services extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api)
     def mvnDeps = zioDeps
   }
 
-  object server extends ScalaModule with DockerModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
+  object server extends AppModule with DockerModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
     def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps
 
     object docker extends DockerConfig {
@@ -162,31 +159,25 @@ object reader extends Module {
 
 // Writer Service
 object writer extends Module {
-  object domainPublic extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-  }
+  object domainPublic extends AppModule
 
-  object domainPrivate extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, ingestion.domainPublic)
+  object domainPrivate extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, ingestion.domainPublic)
     def mvnDeps = zioDeps ++ zioJsonDeps ++ luceneDeps
   }
 
-  object api extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic)
+  object api extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic)
     def mvnDeps = sttpDeps
   }
 
-  object services extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, domainPrivate, api, ingestion.domainPublic)
+  object services extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, ingestion.domainPublic)
     def mvnDeps = zioDeps ++ zioJsonDeps ++ sqsDeps ++ luceneDeps ++ s3Deps
   }
 
-  object server extends ScalaModule with DockerModule {
-    def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
+  object server extends AppModule with DockerModule {
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
     def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ sqsDeps ++ s3Deps
 
     object docker extends DockerConfig {
@@ -199,8 +190,12 @@ object writer extends Module {
 
 // Common utilities shared across services
 object common extends Module {
-  object `base-telemetry` extends ScalaModule {
-    def scalaVersion = VersionInfo.scalaVersion
+  object `base-telemetry` extends AppModule {
     def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ loggingDeps
+  }
+
+  object `activity-logging` extends ScalaModule {
+    def scalaVersion = VersionInfo.scalaVersion
+    def mvnDeps = zioDeps ++ otelSdkDeps ++ loggingDeps ++ zioJsonDeps
   }
 }

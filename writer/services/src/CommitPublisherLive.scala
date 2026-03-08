@@ -5,6 +5,7 @@ import zio.*
 import zio.json.*
 import zio.aws.sqs.Sqs
 import zio.aws.sqs.model.SendMessageRequest
+import common.activitylogging.*
 
 final case class CommitPublisherLive(
     sqs: Sqs,
@@ -21,11 +22,13 @@ final case class CommitPublisherLive(
       )
       .mapError(_.toThrowable)
       .retry(CommitPublisherLive.retrySchedule)
-      .tapError(e => ZIO.logError(s"Failed to publish CommitEvent after retries: ${e.getMessage}"))
+      .tapError(e => ZIO.logActivity(CommitPublisherLive.CommitPublishFailed(e.getMessage)))
       .unit
       .orElse(ZIO.unit)
 
 object CommitPublisherLive:
+  case class CommitPublishFailed(message: String) extends ErrorLog derives JsonCodec
+
   val retrySchedule: Schedule[Any, Any, Any] =
     Schedule.recurs(3) zip Schedule.exponential(100.millis)
 
