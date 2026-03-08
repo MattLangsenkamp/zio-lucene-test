@@ -39,9 +39,11 @@ object Writer:
   def createStatefulSet(
       namespace: Output[String],
       bucketName: Output[String],
+      s3Env: String,
       messagingMode: String,
       kafkaBootstrapServers: Option[Output[String]] = None,
       sqsQueueUrl: Option[Output[String]] = None,
+      commitQueueUrl: Option[Output[String]] = None,
       sqsEndpointOverride: Option[String] = None,
       serviceName: String = "writer",
       replicas: Int = 1,
@@ -92,19 +94,24 @@ object Writer:
     val awsEndpointEnvVars: List[k8s.core.v1.inputs.EnvVarArgs] = sqsEndpointOverride match
       case Some(endpoint) => List(
         k8s.core.v1.inputs.EnvVarArgs(name = "AWS_ENDPOINT_URL_SQS",  value = endpoint),
+        k8s.core.v1.inputs.EnvVarArgs(name = "AWS_ENDPOINT_URL_S3",   value = endpoint),
         k8s.core.v1.inputs.EnvVarArgs(name = "AWS_ACCESS_KEY_ID",     value = "test"),
         k8s.core.v1.inputs.EnvVarArgs(name = "AWS_SECRET_ACCESS_KEY", value = "test")
       )
       case None => List.empty
 
     val baseEnvVars = List(
-      k8s.core.v1.inputs.EnvVarArgs(name = "S3_BUCKET_NAME", value = bucketName),
-      k8s.core.v1.inputs.EnvVarArgs(name = "AWS_REGION",     value = "us-east-1")
+      k8s.core.v1.inputs.EnvVarArgs(name = "S3_BUCKET", value = bucketName),
+      k8s.core.v1.inputs.EnvVarArgs(name = "S3_ENV",    value = s3Env),
+      k8s.core.v1.inputs.EnvVarArgs(name = "AWS_REGION", value = "us-east-1")
     ) ++ awsEndpointEnvVars
 
-    val configMapData: Output[Map[String, String]] = (messagingMode, sqsQueueUrl) match
-      case ("sqs", Some(url)) => url.map(u => Map("SQS_QUEUE_URL" -> u))
-      case _                  => Output(Map.empty[String, String])
+    val configMapData: Output[Map[String, String]] = (messagingMode, sqsQueueUrl, commitQueueUrl) match
+      case ("sqs", Some(sqsUrl), Some(commitUrl)) =>
+        sqsUrl.flatMap(sqs => commitUrl.map(commit => Map("SQS_QUEUE_URL" -> sqs, "COMMIT_QUEUE_URL" -> commit)))
+      case ("sqs", Some(sqsUrl), None) =>
+        sqsUrl.map(u => Map("SQS_QUEUE_URL" -> u))
+      case _ => Output(Map.empty[String, String])
 
     provider.flatMap { prov =>
       val configMap = k8s.core.v1.ConfigMap(

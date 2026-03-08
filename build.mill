@@ -62,6 +62,15 @@ val sqsDeps = baseAwsDeps ++ Seq(
   mvn"dev.zio::zio-sqs:0.12.2"
 )
 
+val s3Deps = Seq(
+  mvn"dev.zio::zio-aws-s3:7.38.9.1"
+)
+
+val luceneDeps = Seq(
+  mvn"org.apache.lucene:lucene-core:10.0.0",
+  mvn"org.apache.lucene:lucene-analysis-common:10.0.0"
+)
+
 object neotypeDeps:
   val core = Seq(
     mvn"io.github.kitlangton::neotype:0.3.25"
@@ -159,8 +168,8 @@ object writer extends Module {
 
   object domainPrivate extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
-    def moduleDeps = Seq(domainPublic)
-    def mvnDeps = zioDeps
+    def moduleDeps = Seq(domainPublic, ingestion.domainPublic)
+    def mvnDeps = zioDeps ++ zioJsonDeps ++ luceneDeps
   }
 
   object api extends ScalaModule {
@@ -172,13 +181,13 @@ object writer extends Module {
   object services extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic, domainPrivate, api, ingestion.domainPublic)
-    def mvnDeps = zioDeps ++ zioJsonDeps ++ sqsDeps
+    def mvnDeps = zioDeps ++ zioJsonDeps ++ sqsDeps ++ luceneDeps ++ s3Deps
   }
 
   object server extends ScalaModule with DockerModule {
     def scalaVersion = VersionInfo.scalaVersion
     def moduleDeps = Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
-    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ sqsDeps
+    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ sqsDeps ++ s3Deps
 
     object docker extends DockerConfig {
       def tags = List("writer-server:latest")

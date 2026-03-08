@@ -1,5 +1,6 @@
-package app.ingestion.domain
+package app.ingestion.domain.internal
 
+import app.ingestion.domain.{ExtraField, IngestionEvent, IngestionSource}
 import zio.json.*
 
 @jsonMemberNames(SnakeCase)

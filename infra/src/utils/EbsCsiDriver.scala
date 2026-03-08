@@ -86,7 +86,7 @@ object EbsCsiDriver extends Resource[EbsCsiDriverInput, EbsCsiDriverOutput, Unit
       aws.eks.AddonArgs(
         clusterName = params.eksCluster.name,
         addonName = "aws-ebs-csi-driver",
-        addonVersion = "v1.56.0-eksbuild.1", // Latest stable version
+        addonVersion = "v1.56.0-eksbuild.1",
         serviceAccountRoleArn = role.arn,
         resolveConflictsOnCreate = "OVERWRITE",
         resolveConflictsOnUpdate = "OVERWRITE"
