@@ -30,9 +30,9 @@ object DocumentIndexerLive:
     ZLayer.scoped:
       for
         config <- ZIO.service[IndexConfig]
-        _      <- ZIO.attemptBlockingIO(Files.createDirectories(Paths.get(config.indexPath)))
+        _      <- ZIO.attemptBlockingIO(Files.createDirectories(Paths.get(config.luceneIndexPath)))
         dir    <- ZIO.acquireRelease(
-                    ZIO.attemptBlockingIO(FSDirectory.open(Paths.get(config.indexPath)))
+                    ZIO.attemptBlockingIO(FSDirectory.open(Paths.get(config.luceneIndexPath)))
                   )(d => ZIO.attemptBlockingIO(d.close()).orDie)
         writer <- ZIO.acquireRelease(
                     ZIO.attemptBlockingIO:

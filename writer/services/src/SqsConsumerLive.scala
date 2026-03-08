@@ -20,13 +20,13 @@ final case class SqsConsumerLive(
 
   override def consume: Task[Unit] =
     SqsStream(
-      queueUrl = config.queueUrl,
+      queueUrl = config.sqsQueueUrl,
       settings = SqsStreamSettings.default.withMaxNumberOfMessages(10)
     )
       .mapZIO(parseMessage)
       .collectSome
       .via(batchIndexer.pipeline)
-      .run(SqsStream.deleteMessageBatchSink(config.queueUrl))
+      .run(SqsStream.deleteMessageBatchSink(config.sqsQueueUrl))
       .provide(ZLayer.succeed(sqs))
       .tapError(err => ZIO.logActivity(SqsConsumerLive.SqsStreamError(err.toString)))
       .retry(Schedule.spaced(5.seconds))

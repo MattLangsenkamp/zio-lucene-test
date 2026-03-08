@@ -1,11 +1,10 @@
 package app.writer.domain.internal
 
 import zio.*
+import zio.config.magnolia.*
 
-final case class IndexConfig(indexPath: String)
+final case class IndexConfig(luceneIndexPath: String) derives Config
 
 object IndexConfig:
-
   val layer: TaskLayer[IndexConfig] =
-    ZLayer.fromZIO:
-      System.env("LUCENE_INDEX_PATH").map(_.getOrElse("/tmp/lucene-index")).map(IndexConfig.apply)
+    ZLayer.fromZIO(ZIO.config[IndexConfig])

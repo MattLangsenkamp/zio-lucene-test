@@ -1,16 +1,10 @@
 package app.writer.domain.internal
 
 import zio.*
+import zio.config.magnolia.*
 
-final case class SqsConsumerConfig(queueUrl: String)
+final case class SqsConsumerConfig(sqsQueueUrl: String) derives Config
 
 object SqsConsumerConfig:
-
-  private def envRequired(name: String): Task[String] =
-    System
-      .env(name)
-      .someOrFail(new IllegalArgumentException(s"Missing required environment variable: $name"))
-
   val layer: TaskLayer[SqsConsumerConfig] =
-    ZLayer.fromZIO:
-      envRequired("SQS_QUEUE_URL").map(SqsConsumerConfig.apply)
+    ZLayer.fromZIO(ZIO.config[SqsConsumerConfig])
