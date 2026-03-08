@@ -1,19 +1,10 @@
 package app.writer.domain.internal
 
 import zio.*
+import zio.config.magnolia.*
 
-final case class S3Config(bucket: String, env: String)
+final case class S3Config(storageBucket: String, storageEnv: String) derives Config
 
 object S3Config:
-
-  private def envRequired(name: String): Task[String] =
-    System
-      .env(name)
-      .someOrFail(new IllegalArgumentException(s"Missing required environment variable: $name"))
-
   val layer: TaskLayer[S3Config] =
-    ZLayer.fromZIO:
-      for
-        bucket <- envRequired("S3_BUCKET")
-        env    <- envRequired("S3_ENV")
-      yield S3Config(bucket, env)
+    ZLayer.fromZIO(ZIO.config[S3Config])

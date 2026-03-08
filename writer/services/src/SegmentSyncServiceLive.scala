@@ -25,7 +25,7 @@ final case class SegmentSyncServiceLive(
 
   override def run(): ZIO[Any, Throwable, Unit] =
     SqsStream(
-      queueUrl = commitQueueConfig.queueUrl,
+      queueUrl = commitQueueConfig.commitQueueUrl,
       settings = SqsStreamSettings.default.withMaxNumberOfMessages(1)
     )
       .mapZIO { msg =>
@@ -41,14 +41,14 @@ final case class SegmentSyncServiceLive(
                        ZIO.logActivity(SegmentSyncServiceLive.IndexSyncedToS3(segmentsFile, segmentFiles.size))
           yield msg
       }
-      .run(SqsStream.deleteMessageBatchSink(commitQueueConfig.queueUrl))
+      .run(SqsStream.deleteMessageBatchSink(commitQueueConfig.commitQueueUrl))
       .provide(ZLayer.succeed(sqs))
       .tapError(err => ZIO.logActivity(SegmentSyncServiceLive.SegmentSyncError(err.toString)))
       .retry(Schedule.spaced(5.seconds))
 
   private def getCurrentIndexFiles(): Task[Option[(Set[String], String)]] =
     ZIO.attemptBlockingIO:
-      val dir = FSDirectory.open(Paths.get(indexConfig.indexPath))
+      val dir = FSDirectory.open(Paths.get(indexConfig.luceneIndexPath))
       try
         val commits = DirectoryReader.listCommits(dir).asScala
         val latest  = commits.last

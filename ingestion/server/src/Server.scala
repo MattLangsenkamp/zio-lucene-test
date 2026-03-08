@@ -23,6 +23,9 @@ import sttp.capabilities.zio.ZioStreams
 
 object Server extends ZIOAppDefault:
 
+  override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
+    Runtime.setConfigProvider(ConfigProvider.envProvider.snakeCase)
+
   private val healthServerEndpoint: ZServerEndpoint[Tracing, Any] =
     HealthEndpoint.healthEndpoint.zServerLogic[Tracing]: _ =>
       ZIO.serviceWithZIO[Tracing]: tracing =>
@@ -40,8 +43,7 @@ object Server extends ZIOAppDefault:
 
   private val resolvedRoutesLayer: URLayer[TelemetryEnv, Routes[Any, Response]] =
     ZLayer.fromZIO:
-      for
-        env <- ZIO.environment[TelemetryEnv]
+      for env <- ZIO.environment[TelemetryEnv]
       yield app.provideEnvironment(env)
 
   private val serverAfterTelemetry: ZLayer[TelemetryEnv, Throwable, ZServer] =
@@ -62,8 +64,8 @@ object Server extends ZIOAppDefault:
   def run: ZIO[ZIOAppArgs & Scope, Any, Any] =
     (for
       routes <- ZIO.service[Routes[Any, Response]]
-      _      <- backgroundStreamConsumer
-      _      <- ZServer.serve(routes)
+      _ <- backgroundStreamConsumer
+      _ <- ZServer.serve(routes)
     yield ()).provide(
       Scope.default,
       BaseTelemetry.live("ingestion-service"),
@@ -77,6 +79,6 @@ object Server extends ZIOAppDefault:
       WikipediaStreamServiceLive.layer
     )
 
-  case class HealthCheckHit()                         extends InfoLog derives JsonCodec
-  case class StreamConsumerFailed(message: String)    extends ErrorLog derives JsonCodec
-  case class ZServerStarting()                        extends InfoLog derives JsonCodec
+  case class HealthCheckHit() extends InfoLog derives JsonCodec
+  case class StreamConsumerFailed(message: String) extends ErrorLog derives JsonCodec
+  case class ZServerStarting() extends InfoLog derives JsonCodec

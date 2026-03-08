@@ -39,6 +39,10 @@ import zio.telemetry.opentelemetry.tracing.Tracing
 
 object Server extends ZIOAppDefault:
 
+  override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
+    Runtime.setConfigProvider(ConfigProvider.envProvider.snakeCase.upperCase)
+
+
   private val healthServerEndpoint: ZServerEndpoint[Tracing, Any] =
     HealthEndpoint.healthEndpoint.zServerLogic[Tracing]: _ =>
       ZIO.serviceWithZIO[Tracing]: tracing =>

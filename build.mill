@@ -76,6 +76,10 @@ val luceneDeps = Seq(
   mvn"org.apache.lucene:lucene-analysis-common:10.0.0"
 )
 
+val zioConfigDeps = Seq(
+  mvn"dev.zio::zio-config-magnolia:4.0.6"
+)
+
 object neotypeDeps:
   val core = Seq(
     mvn"io.github.kitlangton::neotype:0.3.25"
@@ -107,7 +111,7 @@ object ingestion extends Module {
 
   object domainPrivate extends AppModule {
     def moduleDeps = super.moduleDeps ++ Seq(domainPublic)
-    def mvnDeps = zioDeps ++ zioJsonDeps
+    def mvnDeps = zioDeps ++ zioJsonDeps ++ zioConfigDeps
   }
 
   object api extends AppModule {
@@ -168,7 +172,7 @@ object writer extends Module {
 
   object domainPrivate extends AppModule {
     def moduleDeps = super.moduleDeps ++ Seq(domainPublic, ingestion.domainPublic)
-    def mvnDeps = zioDeps ++ zioJsonDeps ++ luceneDeps
+    def mvnDeps = zioDeps ++ zioJsonDeps ++ luceneDeps ++ zioConfigDeps
   }
 
   object api extends AppModule {

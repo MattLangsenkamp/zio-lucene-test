@@ -25,7 +25,7 @@ final case class WikipediaStreamServiceLive(
 
   override def consumeStream: Task[Unit] =
     for
-      _                 <- ZIO.logActivity(WikipediaStreamServiceLive.StreamConfigLoaded(config.language, config.stream))
+      _                 <- ZIO.logActivity(WikipediaStreamServiceLive.StreamConfigLoaded(config.wikiLang, config.wikiStream))
       _                 <- validateStreamExists
       deserErrorCounter <- meter.counter("wikipedia.deserialization.error")
       reconnectCounter  <- meter.counter("wikipedia.reconnection.attempt")
@@ -46,11 +46,11 @@ final case class WikipediaStreamServiceLive(
           .mapError(err => new RuntimeException(s"Failed to parse Wikimedia streams spec: $err"))
         availableStreams <- ZIO.fromOption(WikimediaStreamsSpec.extractAvailableStreams(spec))
           .orElseFail(new RuntimeException("Could not extract available streams from spec"))
-        _ <- ZIO.when(!availableStreams.contains(config.stream)):
+        _ <- ZIO.when(!availableStreams.contains(config.wikiStream)):
           ZIO.fail(new RuntimeException(
-            s"Stream '${config.stream}' not found. Available: ${availableStreams.mkString(", ")}"
+            s"Stream '${config.wikiStream}' not found. Available: ${availableStreams.mkString(", ")}"
           ))
-        _ <- ZIO.logActivity(WikipediaStreamServiceLive.StreamValidated(config.stream))
+        _ <- ZIO.logActivity(WikipediaStreamServiceLive.StreamValidated(config.wikiStream))
       yield ()
 
   private def connectAndConsume(
@@ -101,9 +101,9 @@ final case class WikipediaStreamServiceLive(
         )) *> sqsPublisher.publish(WikipediaEvent.toIngestionEvent(event))
 
   private def reconnectionSchedule: Schedule[Any, Any, Any] =
-    val baseDelay = Duration.fromMillis(config.backoffStartMs)
-    val maxDelay = Duration.fromMillis(config.backoffMaxMs)
-    val increment = Duration.fromMillis(config.backoffIncrementMs)
+    val baseDelay = Duration.fromMillis(config.wikiBackoffStartMs)
+    val maxDelay = Duration.fromMillis(config.wikiBackoffMaxMs)
+    val increment = Duration.fromMillis(config.wikiBackoffIncrementMs)
 
     Schedule.recurWhile[Any](_ => true) &&
       Schedule.delayed(

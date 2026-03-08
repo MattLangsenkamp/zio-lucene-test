@@ -16,7 +16,7 @@ final case class CommitPublisherLive(
     sqs
       .sendMessage(
         SendMessageRequest(
-          queueUrl = config.queueUrl,
+          queueUrl = config.commitQueueUrl,
           messageBody = event.toJson
         )
       )

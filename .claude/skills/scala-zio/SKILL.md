@@ -24,6 +24,7 @@ This skill covers Scala 3 and ZIO ecosystem development for this project. When a
 |---|---|---|
 | Service setup | `references/SERVICE_SETUP.md` | Mill build conventions, directory structure, package naming, service/config/server patterns |
 | Domain modeling | `references/DOMAIN_MODELING.md` | Case classes, enums, newtypes (neotype), opaque types, ZIO JSON codecs, immutability conventions |
+| Configuration | `references/CONFIGURATION.md` | Config case classes, zio-config-magnolia derivation, env var naming, adding new config fields |
 
 ## How to Use This Skill
 

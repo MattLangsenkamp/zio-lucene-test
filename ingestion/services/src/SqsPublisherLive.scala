@@ -19,7 +19,7 @@ final case class SqsPublisherLive(
     sqs
       .sendMessage(
         SendMessageRequest(
-          queueUrl = config.queueUrl,
+          queueUrl = config.sqsQueueUrl,
           messageBody = event.toJson
         )
       )
