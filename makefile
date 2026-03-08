@@ -92,7 +92,7 @@ rollout-local:
 	@./bin/rollout.sh local $(NAMESPACE) "" $(K3D_CLUSTER_NAME)
 
 rollout-dev:
-	@./bin/rollout.sh dev $(NAMESPACE) $(SERVICE) $(EKS_CLUSTER_NAME) $(AWS_REGION)
+	@./bin/rollout.sh dev $(NAMESPACE) "$(SERVICE)" $(EKS_CLUSTER_NAME) $(AWS_REGION)
 
 logs:
 	@./bin/logs.sh $(SERVICE) $(NAMESPACE)

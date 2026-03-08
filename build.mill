@@ -47,6 +47,11 @@ val zioJsonDeps = Seq(
   mvn"dev.zio::zio-json:0.7.3"
 )
 
+val zioTestDeps = Seq(
+  mvn"dev.zio::zio-test:2.1.17",
+  mvn"dev.zio::zio-test-sbt:2.1.17"
+)
+
 val sttpClientDeps = Seq(
   mvn"com.softwaremill.sttp.client3::core:3.10.3",
   mvn"com.softwaremill.sttp.client3::zio:3.10.3",
@@ -197,5 +202,9 @@ object common extends Module {
   object `activity-logging` extends ScalaModule {
     def scalaVersion = VersionInfo.scalaVersion
     def mvnDeps = zioDeps ++ otelSdkDeps ++ loggingDeps ++ zioJsonDeps
+
+    object test extends ScalaTests with TestModule.ZioTest {
+      def mvnDeps = zioTestDeps
+    }
   }
 }
