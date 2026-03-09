@@ -27,21 +27,18 @@ import app.writer.services.{
   SqsConsumer,
   SqsConsumerLive
 }
-import zio.aws.core.config.AwsConfig
-import zio.aws.netty.NettyHttpClient
-import zio.aws.s3.S3
-import zio.aws.sqs.Sqs
-import common.basetelemetry.{BaseTelemetry, TelemetryEnv}
+import common.basetelemetry.BaseTelemetry
 import common.activitylogging.*
+import common.serverutils.ServerLayers
+import common.awssqs.AwsSqs
+import common.awss3.AwsS3
 import io.opentelemetry.api.trace.SpanKind
-import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.Tracing
 
 object Server extends ZIOAppDefault:
 
   override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
     Runtime.setConfigProvider(ConfigProvider.envProvider.snakeCase.upperCase)
-
 
   private val healthServerEndpoint: ZServerEndpoint[Tracing, Any] =
     HealthEndpoint.healthEndpoint.zServerLogic[Tracing]: _ =>
@@ -65,24 +62,6 @@ object Server extends ZIOAppDefault:
       .fork
       .unit
 
-  private val resolvedRoutesLayer: URLayer[TelemetryEnv, Routes[Any, Response]] =
-    ZLayer.fromZIO:
-      for env <- ZIO.environment[TelemetryEnv]
-      yield app.provideEnvironment(env)
-
-  private val serverAfterTelemetry: ZLayer[TelemetryEnv, Throwable, ZServer] =
-    ZLayer.scoped:
-      for
-        _ <- ZIO.service[Tracing]
-        _ <- ZIO.service[ContextStorage]
-        _ <- ZIO.logActivity(ZServerStarting())
-        server <- ZServer.default.build
-      yield server.get[ZServer]
-
-  private val awsBaseLayer = NettyHttpClient.default >>> AwsConfig.default
-  private val sqsLayer: TaskLayer[Sqs] = awsBaseLayer >>> Sqs.live
-  private val s3Layer: TaskLayer[S3]   = awsBaseLayer >>> S3.live
-
   def run: ZIO[ZIOAppArgs & Scope, Any, Any] =
     (for
       routes <- ZIO.service[Routes[Any, Response]]
@@ -92,8 +71,8 @@ object Server extends ZIOAppDefault:
     yield ()).provide(
       Scope.default,
       BaseTelemetry.live("writer-service"),
-      serverAfterTelemetry,
-      resolvedRoutesLayer,
+      ServerLayers.serverAfterTelemetry,
+      ServerLayers.resolvedRoutesLayer(app),
       // Config layers
       SqsConsumerConfig.layer,
       CommitQueueConfig.layer,
@@ -101,8 +80,8 @@ object Server extends ZIOAppDefault:
       IndexConfig.layer,
       S3Config.layer,
       // AWS layers
-      sqsLayer,
-      s3Layer,
+      AwsSqs.sqsLayer,
+      AwsS3.s3Layer,
       // Service layers
       IndexSegmentStoreLive.layer,
       CommitPublisherLive.layer,
@@ -112,7 +91,6 @@ object Server extends ZIOAppDefault:
       SqsConsumerLive.layer
     )
 
-  case class HealthCheckHit()                          extends InfoLog derives JsonCodec
-  case class SqsConsumerFailed(message: String)        extends ErrorLog derives JsonCodec
-  case class SegmentSyncServiceFailed(message: String) extends ErrorLog derives JsonCodec
-  case class ZServerStarting()                         extends InfoLog derives JsonCodec
+  private case class HealthCheckHit()                          extends InfoLog derives JsonCodec
+  private case class SqsConsumerFailed(message: String)        extends ErrorLog derives JsonCodec
+  private case class SegmentSyncServiceFailed(message: String) extends ErrorLog derives JsonCodec

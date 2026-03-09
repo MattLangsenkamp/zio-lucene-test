@@ -8,17 +8,14 @@ import sttp.tapir.ztapir.*
 import app.ingestion.api.HealthEndpoint
 import app.ingestion.domain.internal.{WikipediaStreamConfig, SqsPublisherConfig}
 import app.ingestion.services.{WikipediaStreamService, WikipediaStreamServiceLive, SqsPublisher, SqsPublisherLive}
-import zio.aws.core.config.AwsConfig
-import zio.aws.netty.NettyHttpClient
-import zio.aws.sqs.Sqs
-import common.basetelemetry.{BaseTelemetry, TelemetryEnv}
+import common.basetelemetry.BaseTelemetry
 import common.activitylogging.*
+import common.serverutils.ServerLayers
+import common.awssqs.AwsSqs
+import common.sttpclient.SttpClientLayer
 import io.opentelemetry.api.trace.SpanKind
-import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.Tracing
-import zio.telemetry.opentelemetry.metrics.Meter
 import sttp.client3.SttpBackend
-import sttp.client3.httpclient.zio.HttpClientZioBackend
 import sttp.capabilities.zio.ZioStreams
 
 object Server extends ZIOAppDefault:
@@ -41,26 +38,6 @@ object Server extends ZIOAppDefault:
       .fork
       .unit
 
-  private val resolvedRoutesLayer: URLayer[TelemetryEnv, Routes[Any, Response]] =
-    ZLayer.fromZIO:
-      for env <- ZIO.environment[TelemetryEnv]
-      yield app.provideEnvironment(env)
-
-  private val serverAfterTelemetry: ZLayer[TelemetryEnv, Throwable, ZServer] =
-    ZLayer.scoped:
-      for
-        _ <- ZIO.service[Tracing]
-        _ <- ZIO.service[ContextStorage]
-        _ <- ZIO.logActivity(ZServerStarting())
-        server <- ZServer.default.build
-      yield server.get[ZServer]
-
-  private val sttpBackendLayer: TaskLayer[SttpBackend[Task, ZioStreams]] =
-    ZLayer.scoped(HttpClientZioBackend.scoped())
-
-  private val sqsLayer: TaskLayer[Sqs] =
-    NettyHttpClient.default >>> AwsConfig.default >>> Sqs.live
-
   def run: ZIO[ZIOAppArgs & Scope, Any, Any] =
     (for
       routes <- ZIO.service[Routes[Any, Response]]
@@ -69,16 +46,15 @@ object Server extends ZIOAppDefault:
     yield ()).provide(
       Scope.default,
       BaseTelemetry.live("ingestion-service"),
-      serverAfterTelemetry,
-      resolvedRoutesLayer,
+      ServerLayers.serverAfterTelemetry,
+      ServerLayers.resolvedRoutesLayer(app),
       WikipediaStreamConfig.layer,
-      sttpBackendLayer,
+      SttpClientLayer.sttpBackendLayer,
       SqsPublisherConfig.layer,
-      sqsLayer,
+      AwsSqs.sqsLayer,
       SqsPublisherLive.layer,
       WikipediaStreamServiceLive.layer
     )
 
   case class HealthCheckHit() extends InfoLog derives JsonCodec
   case class StreamConsumerFailed(message: String) extends ErrorLog derives JsonCodec
-  case class ZServerStarting() extends InfoLog derives JsonCodec

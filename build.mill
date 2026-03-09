@@ -125,8 +125,8 @@ object ingestion extends Module {
   }
 
   object server extends AppModule with DockerModule {
-    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
-    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ sttpClientDeps ++ sqsDeps
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`, common.`server-utils`, common.`aws-sqs`, common.`sttp-client`)
+    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps
 
     object docker extends DockerConfig {
       def tags = List("ingestion-server:latest")
@@ -155,7 +155,7 @@ object reader extends Module {
   }
 
   object server extends AppModule with DockerModule {
-    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`, common.`server-utils`)
     def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps
 
     object docker extends DockerConfig {
@@ -186,8 +186,8 @@ object writer extends Module {
   }
 
   object server extends AppModule with DockerModule {
-    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
-    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps ++ sqsDeps ++ s3Deps
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`, common.`server-utils`, common.`aws-sqs`, common.`aws-s3`)
+    def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps
 
     object docker extends DockerConfig {
       def tags = List("writer-server:latest")
@@ -210,5 +210,32 @@ object common extends Module {
     object test extends ScalaTests with TestModule.ZioTest {
       def mvnDeps = zioTestDeps
     }
+  }
+
+  /** Shared ZIO HTTP server boilerplate: serverAfterTelemetry, resolvedRoutesLayer, ZServerStarting. */
+  object `server-utils` extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(`base-telemetry`)
+  }
+
+  /** Foundational AWS connectivity (Netty transport + AwsConfig). Extended by aws-sqs and aws-s3. */
+  object `aws-base` extends AppModule {
+    def mvnDeps = baseAwsDeps
+  }
+
+  /** AWS SQS client layer. Pull this in for services that publish/consume SQS messages. */
+  object `aws-sqs` extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(`aws-base`)
+    def mvnDeps = Seq(mvn"dev.zio::zio-sqs:0.12.2")
+  }
+
+  /** AWS S3 client layer. Pull this in for services that read/write S3 objects. */
+  object `aws-s3` extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(`aws-base`)
+    def mvnDeps = s3Deps
+  }
+
+  /** Generic sttp ZIO HTTP client layer for services that make outbound HTTP requests. */
+  object `sttp-client` extends AppModule {
+    def mvnDeps = sttpClientDeps
   }
 }
