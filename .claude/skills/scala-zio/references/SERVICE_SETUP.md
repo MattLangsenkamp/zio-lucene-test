@@ -53,18 +53,24 @@ domainPrivate  api
 - `domainPublic` depends on nothing in the service
 - `domainPrivate` and `api` depend on `domainPublic`
 - `services` depends on `domainPublic`, `domainPrivate`, and `api`
-- `server` depends on all of the above plus `common.\`base-telemetry\``
+- `server` depends on all of the above plus `common.\`base-telemetry\`` and `common.\`server-utils\``, plus any AWS/sttp common modules the service needs
 
 Cross-service dependencies (e.g. `writer.services` consuming `ingestion.domainPublic`) are declared explicitly in `moduleDeps`.
 
 ### Server Module
 
-`server` always extends `ScalaModule with DockerModule` with a nested `docker` config:
+`server` always extends `AppModule with DockerModule` with a nested `docker` config. Always include `common.\`server-utils\`` in `moduleDeps`. Add AWS common modules only for the services that actually need them — do not pull in SQS or S3 if the service doesn't use them.
 
 ```scala
-object server extends ScalaModule with DockerModule {
-  def scalaVersion = VersionInfo.scalaVersion
-  def moduleDeps = Seq(domainPublic, domainPrivate, api, services, common.`base-telemetry`)
+object server extends AppModule with DockerModule {
+  def moduleDeps = super.moduleDeps ++ Seq(
+    domainPublic, domainPrivate, api, services,
+    common.`base-telemetry`,
+    common.`server-utils`,          // always — provides serverAfterTelemetry, resolvedRoutesLayer
+    // common.`aws-sqs`,            // add if the service uses SQS
+    // common.`aws-s3`,             // add if the service uses S3
+    // common.`sttp-client`,        // add if the service makes outbound HTTP requests via sttp
+  )
   def mvnDeps = zioDeps ++ zioHttpDeps ++ otelSdkDeps
 
   object docker extends DockerConfig {
@@ -184,7 +190,19 @@ See the ZIO docs linked above for full detail on the pattern, scoped resources, 
 
 ### common/<module-name>
 
-**Cross-cutting infrastructure** not owned by any single service. Currently: `base-telemetry` for OpenTelemetry SDK setup (traces, metrics, logs via OTLP gRPC). Any service can declare `common.\`base-telemetry\`` in its `server.moduleDeps`.
+**Cross-cutting infrastructure** not owned by any single service. Each module has its own Mill target so services only pull in the deps they actually need.
+
+| Module | Package | Provides |
+|---|---|---|
+| `base-telemetry` | `common.basetelemetry` | OpenTelemetry SDK setup (traces, metrics, logs via OTLP gRPC). `TelemetryEnv` type alias. |
+| `activity-logging` | `common.activitylogging` | `ZIO.logActivity`, `InfoLog`/`ErrorLog`/etc. marker traits. Always on classpath via `AppModule`. |
+| `server-utils` | `common.serverutils` | `ServerLayers.serverAfterTelemetry`, `ServerLayers.resolvedRoutesLayer(app)`, `ZServerStarting` event. Every server should depend on this. |
+| `aws-base` | `common.awsbase` | `AwsBase.awsBaseLayer` — Netty transport + AWS SDK config. Foundation for `aws-sqs` and `aws-s3`. |
+| `aws-sqs` | `common.awssqs` | `AwsSqs.sqsLayer` — SQS client layer. Depends on `aws-base`. |
+| `aws-s3` | `common.awss3` | `AwsS3.s3Layer` — S3 client layer. Depends on `aws-base`. |
+| `sttp-client` | `common.sttpclient` | `SttpClientLayer.sttpBackendLayer` — generic sttp HTTP client layer for outbound requests. |
+
+**ZIO layer memoization**: `aws-sqs` and `aws-s3` both internally use `AwsBase.awsBaseLayer`. Because it is a stable `val`, ZIO identifies it as the same layer by reference and only instantiates the Netty event loop once, even when both are composed together in the same `provide(...)` call.
 
 ---
 
@@ -265,32 +283,42 @@ object MyConfig:
 
 ### Server Entry Point
 
+Use `ServerLayers` from `common.serverutils` — never define `serverAfterTelemetry` or `resolvedRoutesLayer` inline in a server. Pass the service-specific `app` routes to `ServerLayers.resolvedRoutesLayer`. Background jobs are forked here, not in services.
+
 ```scala
 package app.myservice.server
 
 import zio.*
+import zio.json.*
 import zio.http.{Response, Routes, Server as ZServer}
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
-import common.basetelemetry.{BaseTelemetry, TelemetryEnv}
+import sttp.tapir.ztapir.*
+import common.basetelemetry.BaseTelemetry
+import common.activitylogging.*
+import common.serverutils.ServerLayers
+import io.opentelemetry.api.trace.SpanKind
+import zio.telemetry.opentelemetry.tracing.Tracing
 
 object Server extends ZIOAppDefault:
 
-  private val healthServerEndpoint = ...
+  override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
+    Runtime.setConfigProvider(ConfigProvider.envProvider.snakeCase.upperCase)
 
-  private val app: Routes[Tracing, Response] =
-    ZioHttpInterpreter().toHttp(healthServerEndpoint)
+  private val healthServerEndpoint: ZServerEndpoint[Tracing, Any] =
+    HealthEndpoint.healthEndpoint.zServerLogic[Tracing]: _ =>
+      ZIO.serviceWithZIO[Tracing]: tracing =>
+        tracing.span("health-check", SpanKind.SERVER):
+          ZIO.logActivity(HealthCheckHit()) *> ZIO.succeed("OK")
 
-  // Background jobs are forked here, not in services
+  private val app: Routes[Tracing, Response] = ZioHttpInterpreter().toHttp(healthServerEndpoint)
+
+  // Background jobs are forked here, not inside service implementations
   private val backgroundJob: ZIO[MyService, Nothing, Unit] =
     MyService.doThing("start")
-      .tapError(err => ZIO.logError(s"Job failed: ${err.getMessage}"))
+      .tapError(err => ZIO.logActivity(BackgroundJobFailed(err.getMessage)))
       .catchAll(_ => ZIO.unit)
       .fork
       .unit
-
-  private val resolvedRoutesLayer: URLayer[TelemetryEnv, Routes[Any, Response]] =
-    ZLayer.fromZIO:
-      ZIO.environment[TelemetryEnv].map(app.provideEnvironment)
 
   def run: ZIO[ZIOAppArgs & Scope, Any, Any] =
     (for
@@ -300,12 +328,17 @@ object Server extends ZIOAppDefault:
     yield ()).provide(
       Scope.default,
       BaseTelemetry.live("my-service"),
-      // server layer that depends on TelemetryEnv...
-      resolvedRoutesLayer,
+      ServerLayers.serverAfterTelemetry,        // starts ZServer after telemetry is ready
+      ServerLayers.resolvedRoutesLayer(app),    // injects TelemetryEnv into routes
       MyConfig.layer,
       MyServiceLive.layer
     )
+
+  case class HealthCheckHit() extends InfoLog derives JsonCodec
+  case class BackgroundJobFailed(message: String) extends ErrorLog derives JsonCodec
 ```
+
+**Do not** define `ZServerStarting` in the server — it is already defined in `common.serverutils.ServerLayers` and emitted by `serverAfterTelemetry`.
 
 ### Health Endpoint (api module)
 
