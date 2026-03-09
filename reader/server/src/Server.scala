@@ -6,10 +6,10 @@ import zio.http.{Response, Routes, Server as ZServer}
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
 import sttp.tapir.ztapir.*
 import app.reader.api.HealthEndpoint
-import common.basetelemetry.{BaseTelemetry, TelemetryEnv}
+import common.basetelemetry.BaseTelemetry
 import common.activitylogging.*
+import common.serverutils.ServerLayers
 import io.opentelemetry.api.trace.SpanKind
-import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.Tracing
 import zio.telemetry.opentelemetry.metrics.Meter
 
@@ -17,7 +17,6 @@ object Server extends ZIOAppDefault:
 
   override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
     Runtime.setConfigProvider(ConfigProvider.envProvider.snakeCase.upperCase)
-
 
   private val healthServerEndpoint: ZServerEndpoint[Tracing, Any] =
     HealthEndpoint.healthEndpoint.zServerLogic[Tracing]: _ =>
@@ -43,24 +42,6 @@ object Server extends ZIOAppDefault:
         .repeat(Schedule.spaced(30.second))
     yield ()).fork.unit
 
-  private val resolvedRoutesLayer: URLayer[TelemetryEnv, Routes[Any, Response]] =
-    ZLayer.fromZIO(
-      for
-        env       <- ZIO.environment[TelemetryEnv]
-        baseRoutes = app.provideEnvironment(env)
-      yield baseRoutes
-    )
-
-  private val serverAfterTelemetry: ZLayer[TelemetryEnv, Throwable, ZServer] =
-    ZLayer.scoped {
-      for
-        _ <- ZIO.service[Tracing]
-        _ <- ZIO.service[ContextStorage]
-        _ <- ZIO.logActivity(ZServerStarting())
-        server <- ZServer.default.build
-      yield server.get[ZServer]
-    }
-
   def run: ZIO[ZIOAppArgs & Scope, Any, Any] =
     (for
       routes <- ZIO.service[Routes[Any, Response]]
@@ -69,11 +50,10 @@ object Server extends ZIOAppDefault:
     yield ()).provide(
       Scope.default,
       BaseTelemetry.live("reader-service"),
-      serverAfterTelemetry,
-      resolvedRoutesLayer
+      ServerLayers.serverAfterTelemetry,
+      ServerLayers.resolvedRoutesLayer(app)
     )
 
   case class HealthCheckHit(activeLoggers: List[String]) extends InfoLog derives JsonCodec
   case class HealthCheckSpanHit()                        extends InfoLog derives JsonCodec
   case class ReaderHeartbeat()                           extends InfoLog derives JsonCodec
-  case class ZServerStarting()                           extends InfoLog derives JsonCodec
