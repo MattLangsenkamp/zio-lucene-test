@@ -3,6 +3,7 @@
 //> using dep "org.virtuslab::besom-core:0.5.0"
 //> using dep "org.virtuslab::besom-aws:7.7.0-core.0.5"
 //> using dep "org.virtuslab::besom-kubernetes:4.19.0-core.0.5"
+//> using dep "org.virtuslab::scala-yaml:0.3.1"
 
 import besom.*
 import besom.api.aws
@@ -11,10 +12,15 @@ import platform.{AwsProvider, AwsProviderInputs, K8Provider, K8sInputs}
 import platform.{ExternalSecrets, ExternalSecretsInput}
 import platform.{IamRoles, ServiceIrsaInput}
 import platform.{ArgoCD, ArgoCDInput}
-import resources.{Queues, QueueInput, Buckets, BucketInput, AppSecrets, AppSecretsInput}
+import resources.{Queues, QueueInput, QueueOutput, Buckets, BucketInput, BucketOutput, AppSecrets, AppSecretsInput}
+import platform.IrsaRoleOutput
 import utils.*
 
 @main def main = Pulumi.run {
+  // ── Service manifest — parsed once, drives queues/buckets/IRSA/ArgoCD ────
+  val manifest = ServiceManifest.load()
+  val argoCDServices = manifest.services.map(s => (s.name, s.k8sPath))
+
   val stackName = sys.env.getOrElse(
     "PULUMI_STACK",
     throw new RuntimeException("PULUMI_STACK environment variable is not set.")
@@ -37,7 +43,19 @@ import utils.*
     // ── Cloud (EKS) ──────────────────────────────────────────────────────────
 
     val awsProvider = AwsProvider.make(AwsProviderInputs(stackName))
-    val bucket      = Buckets.make(BucketInput("segments", "segments", stackName, awsProvider))
+
+    // Create all unique SQS queues and S3 buckets declared in the manifest.
+    // De-duplication is done by uniqueSqsQueues/uniqueS3Buckets (same queue/bucket
+    // may appear in multiple services but is only created once).
+    val queues: Map[String, Output[QueueOutput]] =
+      manifest.uniqueSqsQueues.map { r =>
+        r.logicalName -> Queues.make(QueueInput(r.logicalName, r.logicalName, stackName, awsProvider))
+      }.toMap
+
+    val buckets: Map[String, Output[BucketOutput]] =
+      manifest.uniqueS3Buckets.map { r =>
+        r.logicalName -> Buckets.make(BucketInput(r.logicalName, r.logicalName, stackName, awsProvider))
+      }.toMap
 
     val vpcOutput = Vpc.make(VpcInput())
 
@@ -114,41 +132,24 @@ import utils.*
       esoHelmRelease = Some(externalSecrets.map(_.helmRelease))
     ))
 
-    val bucketArn = bucket.flatMap(_.bucket.arn)
-
-    // Phase 1: SQS is always used in cloud. Kafka mode is local-only (useKafka flag has no effect here).
-    val sqsOutput   = Queues.make(QueueInput("document-ingestion", "document-ingestion", stackName, awsProvider))
-    val commitQueue = Queues.make(QueueInput("document-commit", "document-commit", stackName, awsProvider))
-    val sqsArn      = sqsOutput.flatMap(_.queue.arn)
-    val commitArn   = commitQueue.flatMap(_.queue.arn)
-
-    val ingestionIrsa = IamRoles.makeIngestionIrsa(ServiceIrsaInput(
-      env               = stackName,
-      oidcProvider      = oidcProvider,
-      namespace         = namespaceName,
-      awsProvider       = awsProvider,
-      sqsWriteQueueArns = List(sqsArn),
-      bucketArns        = List(bucketArn)
-    ))
-
-    val readerIrsa = IamRoles.makeReaderIrsa(ServiceIrsaInput(
-      env          = stackName,
-      oidcProvider = oidcProvider,
-      namespace    = namespaceName,
-      awsProvider  = awsProvider,
-      bucketArns   = List(bucketArn)
-    ))
-
-    val writerIrsa = IamRoles.makeWriterIrsa(ServiceIrsaInput(
-      env               = stackName,
-      oidcProvider      = oidcProvider,
-      namespace         = namespaceName,
-      awsProvider       = awsProvider,
-      sqsQueueArns      = List(sqsArn),
-      sqsWriteQueueArns = List(commitArn),
-      bucketArns        = List(bucketArn),
-      allowS3Write      = true
-    ))
+    // Create one IRSA role per service, reading permissions from the manifest.
+    // sqsQueueArns/sqsWriteQueueArns/bucketArns are resolved by looking up each
+    // service's manifest resources in the queues/buckets maps created above.
+    val serviceIrsas: List[(String, Output[IrsaRoleOutput])] = manifest.services.map { svc =>
+      val sqsReadArns  = svc.sqsReadQueues.flatMap(r => queues.get(r.logicalName).map(_.flatMap(_.queue.arn)))
+      val sqsWriteArns = svc.sqsWriteQueues.flatMap(r => queues.get(r.logicalName).map(_.flatMap(_.queue.arn)))
+      val s3Arns       = svc.s3Resources.flatMap(r => buckets.get(r.logicalName).map(_.flatMap(_.bucket.arn)))
+      svc.name -> IamRoles.makeServiceIrsa(svc.name, ServiceIrsaInput(
+        env               = stackName,
+        oidcProvider      = oidcProvider,
+        namespace         = namespaceName,
+        awsProvider       = awsProvider,
+        sqsQueueArns      = sqsReadArns,
+        sqsWriteQueueArns = sqsWriteArns,
+        bucketArns        = s3Arns,
+        allowS3Write      = svc.allowS3Write
+      ))
+    }
 
     // gitRepoUrl is required for cloud stacks — set zio-lucene-infra:gitRepoUrl in stack config
     val repoUrl = config.require[String]("gitRepoUrl")
@@ -157,6 +158,7 @@ import utils.*
       k8sProvider = k8sProvider,
       repoUrl     = repoUrl,
       env         = stackName,
+      services    = argoCDServices,
       cluster     = Some(eksCluster.map(_.cluster)),
       nodeGroup   = Some(eksCluster.map(_.nodeGroup))
     ))
@@ -173,6 +175,16 @@ import utils.*
       albController        = albController
     ))
 
+    // Collect dynamic per-service resources into typed sequences for Stack registration
+    val queueResources: Seq[Output[?]] =
+      queues.values.toSeq.flatMap(q => Seq(q.map(_.queue), q.map(_.ssmParam)))
+
+    val bucketResources: Seq[Output[?]] =
+      buckets.values.toSeq.flatMap(b => Seq(b.map(_.bucket), b.map(_.ssmParam)))
+
+    val irsaResources: Seq[Output[?]] =
+      serviceIrsas.flatMap { case (_, i) => Seq(i.map(_.role), i.map(_.rolePolicy), i.map(_.ssmParam)) }
+
     // NOTE: Resources that depend on the k8s provider (which itself depends on the EKS cluster)
     // will NOT appear in `pulumi preview` when the EKS cluster is being newly created. This is
     // expected Pulumi behavior — Pulumi cannot resolve provider outputs until the upstream resource
@@ -184,13 +196,7 @@ import utils.*
     //   - All k8s resources: externalSecrets.{namespace,helmRelease,secretStore},
     //     namespace, otelCollector.*, appSecrets.datadogExternalSecret,
     //     argoCD.*, albController.{serviceAccount,helmRelease}, albIngress.ingress
-    Stack(
-      bucket.map(_.bucket),
-      bucket.map(_.ssmParam),
-      sqsOutput.map(_.queue),
-      sqsOutput.map(_.ssmParam),
-      commitQueue.map(_.queue),
-      commitQueue.map(_.ssmParam),
+    val fixedResources: Seq[Output[?]] = Seq(
       vpcOutput.map(_.vpc),
       vpcOutput.map(_.publicSubnet1),
       vpcOutput.map(_.publicSubnet2),
@@ -216,15 +222,6 @@ import utils.*
       otelCollector.map(_.namespace),
       otelCollector.map(_.grafanaSecret),
       otelCollector.map(_.helmRelease),
-      ingestionIrsa.map(_.role),
-      ingestionIrsa.map(_.rolePolicy),
-      ingestionIrsa.map(_.ssmParam),
-      readerIrsa.map(_.role),
-      readerIrsa.map(_.rolePolicy),
-      readerIrsa.map(_.ssmParam),
-      writerIrsa.map(_.role),
-      writerIrsa.map(_.rolePolicy),
-      writerIrsa.map(_.ssmParam),
       appSecrets.map(_.datadogSsmParam),
       appSecrets.map(_.datadogExternalSecret),
       argoCD.map(_.namespace),
@@ -235,11 +232,15 @@ import utils.*
       albController.map(_.serviceAccount),
       albController.map(_.helmRelease),
       albIngress.map(_.ingress)
+    )
+
+    Stack(
+      (fixedResources ++ queueResources ++ bucketResources ++ irsaResources)*
     ).exports(
-      bucketName   = bucket.flatMap(_.bucketName),
-      k8sNamespace = namespaceName,
+      bucketName     = buckets("segments").flatMap(_.bucketName),
+      k8sNamespace   = namespaceName,
       eksClusterName = clusterName,
-      esoRoleArn   = esoIrsa.map(_.roleArn)
+      esoRoleArn     = esoIrsa.map(_.roleArn)
     )
 
   } else {
@@ -248,7 +249,10 @@ import utils.*
     val awsProvider = AwsProvider.makeLocal(AwsProviderInputs(stackName))
     val k8sProvider = K8Provider.makeLocal(())
 
-    val bucket = Buckets.makeLocal(BucketInput("segments", "segments", stackName, awsProvider))
+    val buckets: Map[String, Output[BucketOutput]] =
+      manifest.uniqueS3Buckets.map { r =>
+        r.logicalName -> Buckets.makeLocal(BucketInput(r.logicalName, r.logicalName, stackName, awsProvider))
+      }.toMap
 
     val externalSecrets = ExternalSecrets.makeLocal(ExternalSecretsInput(
       k8sProvider = k8sProvider,
@@ -277,8 +281,27 @@ import utils.*
     val argoCD = ArgoCD.makeLocal(ArgoCDInput(
       k8sProvider = k8sProvider,
       repoUrl     = Output("file:///repo"),
-      env         = stackName
+      env         = stackName,
+      services    = argoCDServices
     ))
+
+    val bucketResources: Seq[Output[?]] =
+      buckets.values.toSeq.flatMap(b => Seq(b.map(_.bucket), b.map(_.ssmParam)))
+
+    val fixedResources: Seq[Output[?]] = Seq(
+      externalSecrets.map(_.namespace),
+      externalSecrets.map(_.helmRelease),
+      externalSecrets.map(_.secretStore),
+      namespace,
+      otelCollector.map(_.namespace),
+      otelCollector.map(_.grafanaSecret),
+      otelCollector.map(_.helmRelease),
+      appSecrets.map(_.datadogSsmParam),
+      appSecrets.map(_.datadogExternalSecret),
+      argoCD.map(_.namespace),
+      argoCD.map(_.helmRelease),
+      argoCD.map(_.applicationSet)
+    )
 
     if (useKafka) {
       val kafkaOutput = Kafka.makeLocal(KafkaLocalInput(
@@ -287,52 +310,25 @@ import utils.*
       ))
 
       Stack(
-        bucket.map(_.bucket),
-        bucket.map(_.ssmParam),
-        externalSecrets.map(_.namespace),
-        externalSecrets.map(_.helmRelease),
-        externalSecrets.map(_.secretStore),
-        namespace,
-        otelCollector.map(_.namespace),
-        otelCollector.map(_.grafanaSecret),
-        otelCollector.map(_.helmRelease),
-        appSecrets.map(_.datadogSsmParam),
-        appSecrets.map(_.datadogExternalSecret),
-        argoCD.map(_.namespace),
-        argoCD.map(_.helmRelease),
-        argoCD.map(_.applicationSet),
-        kafkaOutput.map(_.service),
-        kafkaOutput.map(_.statefulSet)
+        (fixedResources ++ bucketResources ++ Seq(kafkaOutput.map(_.service), kafkaOutput.map(_.statefulSet)))*
       ).exports(
-        bucketName    = bucket.flatMap(_.bucketName),
+        bucketName    = buckets("segments").flatMap(_.bucketName),
         k8sNamespace  = namespaceName,
         messagingMode = "kafka"
       )
     } else {
-      val sqsOutput   = Queues.makeLocal(QueueInput("document-ingestion", "document-ingestion", stackName, awsProvider))
-      val commitQueue = Queues.makeLocal(QueueInput("document-commit", "document-commit", stackName, awsProvider))
+      val queues: Map[String, Output[QueueOutput]] =
+        manifest.uniqueSqsQueues.map { r =>
+          r.logicalName -> Queues.makeLocal(QueueInput(r.logicalName, r.logicalName, stackName, awsProvider))
+        }.toMap
+
+      val queueResources: Seq[Output[?]] =
+        queues.values.toSeq.flatMap(q => Seq(q.map(_.queue), q.map(_.ssmParam)))
 
       Stack(
-        bucket.map(_.bucket),
-        bucket.map(_.ssmParam),
-        sqsOutput.map(_.queue),
-        sqsOutput.map(_.ssmParam),
-        commitQueue.map(_.queue),
-        commitQueue.map(_.ssmParam),
-        externalSecrets.map(_.namespace),
-        externalSecrets.map(_.helmRelease),
-        externalSecrets.map(_.secretStore),
-        namespace,
-        otelCollector.map(_.namespace),
-        otelCollector.map(_.grafanaSecret),
-        otelCollector.map(_.helmRelease),
-        appSecrets.map(_.datadogSsmParam),
-        appSecrets.map(_.datadogExternalSecret),
-        argoCD.map(_.namespace),
-        argoCD.map(_.helmRelease),
-        argoCD.map(_.applicationSet)
+        (fixedResources ++ bucketResources ++ queueResources)*
       ).exports(
-        bucketName    = bucket.flatMap(_.bucketName),
+        bucketName    = buckets("segments").flatMap(_.bucketName),
         k8sNamespace  = namespaceName,
         messagingMode = "sqs"
       )

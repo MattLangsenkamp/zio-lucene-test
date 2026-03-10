@@ -1,10 +1,9 @@
 apiVersion: v1
 # Single registry of all services. Read by:
 #   - ArgoCD ApplicationSet (templates one Application per entry)
-#   - Pulumi/Besom IamRoles.scala (creates IRSA roles per entry)
-#   - Makefile (service targeting)
+#   - Pulumi/Besom (creates IRSA roles, SQS queues, S3 buckets per entry)
 #
-# irsaRoles vocabulary → IAM policy actions:
+# roles per resource specify IAM permissions granted to the service pod:
 #   sqs:read  → sqs:ReceiveMessage, sqs:DeleteMessage, sqs:ChangeMessageVisibility, sqs:GetQueueAttributes
 #   sqs:write → sqs:SendMessage, sqs:GetQueueUrl, sqs:GetQueueAttributes
 #   s3:read   → s3:GetObject, s3:ListBucket
@@ -15,42 +14,45 @@ apiVersion: v1
 services:
   - name: ingestion
     k8sPath: ingestion/k8s
-    irsaRoles:
-      - sqs:write
-      - s3:read
     awsResources:
       sqs:
         - logicalName: document-ingestion
           ssmPath: /zio-lucene/{env}/sqs/document-ingestion
+          roles:
+            - sqs:write
       s3:
         - logicalName: segments
           ssmPath: /zio-lucene/{env}/s3/segments
+          roles:
+            - s3:read
 
   - name: reader
     k8sPath: reader/k8s
-    irsaRoles:
-      - s3:read
     awsResources:
       s3:
         - logicalName: segments
           ssmPath: /zio-lucene/{env}/s3/segments
+          roles:
+            - s3:read
 
   - name: writer
     k8sPath: writer/k8s
-    irsaRoles:
-      - sqs:read
-      - sqs:write
-      - s3:read
-      - s3:write
     awsResources:
       sqs:
         - logicalName: document-ingestion
           ssmPath: /zio-lucene/{env}/sqs/document-ingestion
+          roles:
+            - sqs:read
         - logicalName: document-commit
           ssmPath: /zio-lucene/{env}/sqs/document-commit
+          roles:
+            - sqs:write
       s3:
         - logicalName: segments
           ssmPath: /zio-lucene/{env}/s3/segments
+          roles:
+            - s3:read
+            - s3:write
       secrets:
         - logicalName: datadog-api-key
           ssmPath: /zio-lucene/{env}/secrets/datadog-api-key

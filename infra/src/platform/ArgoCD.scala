@@ -15,8 +15,9 @@ import besom.json.*
 
 case class ArgoCDInput(
   k8sProvider: Output[k8s.Provider],
-  repoUrl: Output[String], // file:///repo for local; git remote URL for cloud
-  env: String,             // stack name passed as helm value → selects values.{env}.yaml
+  repoUrl: Output[String],              // file:///repo for local; git remote URL for cloud
+  env: String,                          // stack name passed as helm value → selects values.{env}.yaml
+  services: List[(String, String)],     // (name, k8sPath) — parsed from service-manifest.yaml
   gitRevision: String = "HEAD",
   namespace: String = "zio-lucene",
   cluster: Option[Output[besom.api.aws.eks.Cluster]] = None,
@@ -30,13 +31,6 @@ case class ArgoCDOutput(
 )
 
 object ArgoCD:
-
-  // Services derived from service-manifest.yaml (kept in sync manually for Phase 1)
-  private val services = List(
-    ("ingestion", "ingestion/k8s"),
-    ("reader",    "reader/k8s"),
-    ("writer",    "writer/k8s")
-  )
 
   def make(params: ArgoCDInput)(using Context): Output[ArgoCDOutput] =
     install(params)
@@ -104,7 +98,7 @@ object ArgoCD:
     params.k8sProvider.flatMap { prov =>
       // Build list generator elements — one entry per service from service-manifest.yaml
       val elements: JsValue = JsArray(
-        services.map { case (name, k8sPath) =>
+        params.services.map { case (name, k8sPath) =>
           JsObject(
             "name"    -> JsString(name),
             "k8sPath" -> JsString(k8sPath),

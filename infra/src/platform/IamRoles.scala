@@ -46,14 +46,10 @@ case class EsoIrsaOutput(
 
 object IamRoles:
 
-  def makeIngestionIrsa(params: ServiceIrsaInput)(using Context): Output[IrsaRoleOutput] =
-    makeServiceIrsa("ingestion", params)
-
-  def makeReaderIrsa(params: ServiceIrsaInput)(using Context): Output[IrsaRoleOutput] =
-    makeServiceIrsa("reader", params)
-
-  def makeWriterIrsa(params: ServiceIrsaInput)(using Context): Output[IrsaRoleOutput] =
-    makeServiceIrsa("writer", params)
+  /** Create an IRSA role for a single application service. serviceName must be unique
+   *  within the stack (it's used as the Pulumi resource name prefix and SSM path segment). */
+  def makeServiceIrsa(serviceName: String, params: ServiceIrsaInput)(using Context): Output[IrsaRoleOutput] =
+    makeServiceIrsaImpl(serviceName, params)
 
   def makeExternalSecretsIrsa(
     env: String,
@@ -119,7 +115,7 @@ object IamRoles:
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
-  private def makeServiceIrsa(
+  private def makeServiceIrsaImpl(
     serviceName: String,
     params: ServiceIrsaInput
   )(using Context): Output[IrsaRoleOutput] =
