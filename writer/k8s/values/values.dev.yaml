@@ -1,0 +1,13 @@
+env: dev
+
+image:
+  repository: mattlangsenkamp/writer-server
+  tag: latest
+  pullPolicy: Always
+
+storageClassName: gp2
+
+serviceAccount:
+  irsaRoleArn: ""  # run 'make update-irsa-values STACK=dev' after pulumi up
+
+replicaCount: 1

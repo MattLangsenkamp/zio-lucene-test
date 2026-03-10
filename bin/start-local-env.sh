@@ -34,7 +34,7 @@ if docker ps -a | grep -q localstack; then
       --name localstack \
       -p 4566:4566 \
       -v "${LOCALSTACK_VOLUME}:/var/lib/localstack" \
-      -e SERVICES=s3,kafka,iam,secretsmanager,ec2,sqs \
+      -e SERVICES=s3,kafka,iam,secretsmanager,ssm,ec2,sqs \
       -e PERSISTENCE=1 \
       localstack/localstack
     echo "Waiting for LocalStack to be ready..."
@@ -46,7 +46,7 @@ else
     --name localstack \
     -p 4566:4566 \
     -v "${LOCALSTACK_VOLUME}:/var/lib/localstack" \
-    -e SERVICES=s3,kafka,iam,secretsmanager,ec2,sqs \
+    -e SERVICES=s3,kafka,iam,secretsmanager,ssm,ec2,sqs \
     -e PERSISTENCE=1 \
     localstack/localstack
   echo "Waiting for LocalStack to be ready..."
@@ -55,12 +55,17 @@ fi
 
 if ! k3d cluster list | grep -q "${K3D_CLUSTER_NAME}"; then
   echo "Creating k3d cluster..."
+  # Mount the repo root at /repo so ArgoCD can use repoURL: file:///repo
+  REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
   k3d cluster create "${K3D_CLUSTER_NAME}" \
     --api-port 6550 \
     --port "8080:80@loadbalancer" \
-    --port "8443:443@loadbalancer"
+    --port "8443:443@loadbalancer" \
+    --volume "${REPO_ROOT}:/repo@all"
+  echo "   Repo mounted at /repo inside cluster (required for ArgoCD file:///repo)"
 else
   echo "✅ k3d cluster '${K3D_CLUSTER_NAME}' already exists"
+  echo "   NOTE: if ArgoCD cannot find /repo, run 'make local-clean' to recreate with the volume mount"
 fi
 
 echo "Connecting LocalStack to k3d network..."

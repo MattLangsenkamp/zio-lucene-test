@@ -1,0 +1,11 @@
+env: dev
+
+image:
+  repository: mattlangsenkamp/ingestion-server
+  tag: latest
+  pullPolicy: Always
+
+serviceAccount:
+  irsaRoleArn: ""  # run 'make update-irsa-values STACK=dev' after pulumi up
+
+replicaCount: 1

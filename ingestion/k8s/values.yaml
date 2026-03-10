@@ -1,0 +1,27 @@
+replicaCount: 1
+
+image:
+  repository: ""      # set per environment in values/values.{env}.yaml
+  tag: latest
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  irsaRoleArn: ""     # populated by 'make update-irsa-values STACK=<env>' after pulumi up
+
+env: local            # overridden per environment
+
+awsRegion: us-east-1
+
+messagingMode: sqs
+
+wikiConfig:
+  lang: en
+  stream: recentchange
+  backoffStartMs: "1000"
+  backoffIncrementMs: "1000"
+  backoffMaxMs: "30000"
+
+# Additional env vars injected into the container (e.g. LocalStack overrides)
+extraEnv: []
+
+resources: {}

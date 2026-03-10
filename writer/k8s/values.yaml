@@ -1,0 +1,29 @@
+replicaCount: 1
+
+image:
+  repository: ""      # set per environment in values/values.{env}.yaml
+  tag: latest
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  irsaRoleArn: ""     # populated by 'make update-irsa-values STACK=<env>' after pulumi up
+
+env: local            # overridden per environment
+
+awsRegion: us-east-1
+
+messagingMode: sqs
+
+writerConfig:
+  luceneIndexPath: /tmp/lucene-index
+  batchSize: "100"
+  flushThreshold: "5"
+  commitThreshold: "25"
+
+storageClassName: local-path
+storageSize: 1Gi
+
+# Additional env vars injected into the container (e.g. LocalStack overrides)
+extraEnv: []
+
+resources: {}

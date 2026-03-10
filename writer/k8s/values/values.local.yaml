@@ -1,0 +1,23 @@
+env: local
+
+image:
+  repository: localhost:5000/writer
+  pullPolicy: IfNotPresent
+
+storageClassName: local-path
+
+# LocalStack AWS endpoint overrides — pods reach LocalStack via host.k3d.internal
+extraEnv:
+  - name: AWS_ENDPOINT_URL_SQS
+    value: http://host.k3d.internal:4566
+  - name: AWS_ENDPOINT_URL_S3
+    value: http://host.k3d.internal:4566
+  - name: AWS_ACCESS_KEY_ID
+    value: test
+  - name: AWS_SECRET_ACCESS_KEY
+    value: test
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
