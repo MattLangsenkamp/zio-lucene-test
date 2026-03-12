@@ -20,11 +20,6 @@ services:
           ssmPath: /zio-lucene/{env}/sqs/document-ingestion
           roles:
             - sqs:write
-      s3:
-        - logicalName: segments
-          ssmPath: /zio-lucene/{env}/s3/segments
-          roles:
-            - s3:read
 
   - name: reader
     k8sPath: reader/k8s

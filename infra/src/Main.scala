@@ -12,7 +12,7 @@ import platform.{AwsProvider, AwsProviderInputs, K8Provider, K8sInputs}
 import platform.{ExternalSecrets, ExternalSecretsInput}
 import platform.{IamRoles, ServiceIrsaInput}
 import platform.{ArgoCD, ArgoCDInput}
-import resources.{Queues, QueueInput, QueueOutput, Buckets, BucketInput, BucketOutput, AppSecrets, AppSecretsInput}
+import resources.{Queues, QueueInput, QueueOutput, Buckets, BucketInput, BucketOutput}
 import platform.IrsaRoleOutput
 import utils.*
 
@@ -31,7 +31,6 @@ import utils.*
   val hostedZoneId   = config.get[String]("hostedZoneId")
   val baseDomain     = config.get[String]("domain")
   val certificateArn = config.get[String]("certificateArn")
-  val datadogApiKey  = config.require[String]("datadogApiKey")
   val grafanaConfig = GrafanaCloudConfig(
     instanceId   = config.require[String]("grafanaCloudInstanceId"),
     apiKey       = config.require[String]("grafanaCloudApiKey"),
@@ -123,15 +122,6 @@ import utils.*
       albControllerHelmRelease = Some(albController.map(_.helmRelease))
     ))
 
-    val appSecrets = AppSecrets.make(AppSecretsInput(
-      datadogApiKey  = datadogApiKey,
-      env            = stackName,
-      namespace      = namespaceName,
-      awsProvider    = awsProvider,
-      k8sProvider    = k8sProvider,
-      esoHelmRelease = Some(externalSecrets.map(_.helmRelease))
-    ))
-
     // Create one IRSA role per service, reading permissions from the manifest.
     // sqsQueueArns/sqsWriteQueueArns/bucketArns are resolved by looking up each
     // service's manifest resources in the queues/buckets maps created above.
@@ -194,7 +184,7 @@ import utils.*
     //   - eksCluster.nodeGroup (depends on awsAuthConfigMap → k8s provider → EKS cluster)
     //   - eksCluster.awsAuthConfigMap (depends on k8s provider → EKS cluster)
     //   - All k8s resources: externalSecrets.{namespace,helmRelease,secretStore},
-    //     namespace, otelCollector.*, appSecrets.datadogExternalSecret,
+    //     namespace, otelCollector.*,
     //     argoCD.*, albController.{serviceAccount,helmRelease}, albIngress.ingress
     val fixedResources: Seq[Output[?]] = Seq(
       vpcOutput.map(_.vpc),
@@ -222,8 +212,6 @@ import utils.*
       otelCollector.map(_.namespace),
       otelCollector.map(_.grafanaSecret),
       otelCollector.map(_.helmRelease),
-      appSecrets.map(_.datadogSsmParam),
-      appSecrets.map(_.datadogExternalSecret),
       argoCD.map(_.namespace),
       argoCD.map(_.helmRelease),
       argoCD.map(_.applicationSet),
@@ -269,15 +257,6 @@ import utils.*
       grafanaCloudConfig = grafanaConfig
     ))
 
-    val appSecrets = AppSecrets.makeLocal(AppSecretsInput(
-      datadogApiKey  = datadogApiKey,
-      env            = stackName,
-      namespace      = namespaceName,
-      awsProvider    = awsProvider,
-      k8sProvider    = k8sProvider,
-      esoHelmRelease = Some(externalSecrets.map(_.helmRelease))
-    ))
-
     val argoCD = ArgoCD.makeLocal(ArgoCDInput(
       k8sProvider = k8sProvider,
       repoUrl     = Output("file:///repo"),
@@ -296,8 +275,6 @@ import utils.*
       otelCollector.map(_.namespace),
       otelCollector.map(_.grafanaSecret),
       otelCollector.map(_.helmRelease),
-      appSecrets.map(_.datadogSsmParam),
-      appSecrets.map(_.datadogExternalSecret),
       argoCD.map(_.namespace),
       argoCD.map(_.helmRelease),
       argoCD.map(_.applicationSet)

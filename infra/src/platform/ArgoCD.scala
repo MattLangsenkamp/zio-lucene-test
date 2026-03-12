@@ -7,7 +7,7 @@ import besom.json.*
 // Installs ArgoCD via helm and creates an ApplicationSet that templates one
 // ArgoCD Application per service in service-manifest.yaml.
 //
-// Generator: list (hardcoded from service-manifest.yaml — avoids a runtime YAML parser dep)
+// Generator: list (dynamically loaded from service-manifest.yaml via scala-yaml)
 // syncPolicy: {} (manual sync only — no automated GitOps promotion in Phase 1)
 //
 // Local: repoURL = file:///repo  (requires k3d cluster created with --volume <repo>:/repo@all)

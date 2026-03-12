@@ -603,4 +603,4 @@ This phase is complete when:
    S3 bucket names, and secrets — all sourced from SSM via ESO, none hardcoded
 4. `make env-down STACK=local` cleanly tears everything down
 5. ArgoCD UI is accessible and shows all services as synced
-6. No service deployment logic remains inside Besom source files
+
