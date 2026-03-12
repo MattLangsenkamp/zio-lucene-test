@@ -13,6 +13,25 @@
         local-dev local-dev-up local-down dev dev-down prod prod-down dev-preview
 
 # ---------------------------------------------------------------------------
+# Functions
+# ---------------------------------------------------------------------------
+
+# Patch IRSA ARNs from SSM into values.{stack}.yaml for all services.
+# Usage: $(call update_irsa_values,dev)
+define update_irsa_values
+for svc in ingestion reader writer; do \
+  ARN=$$(aws ssm get-parameter --name /zio-lucene/$(1)/irsa/$$svc \
+    --query 'Parameter.Value' --output text 2>/dev/null); \
+  if [ -n "$$ARN" ]; then \
+    echo "Patching $$svc IRSA ARN: $$ARN"; \
+    sed -i "s|irsaRoleArn:.*|irsaRoleArn: $$ARN|" $$svc/k8s/values/values.$(1).yaml; \
+  else \
+    echo "WARNING: no SSM param found for /zio-lucene/$(1)/irsa/$$svc — skipping"; \
+  fi; \
+done
+endef
+
+# ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 STACK            ?= local
@@ -41,6 +60,7 @@ check-prereqs:
 # Usage: make infra-up STACK=local
 infra-up: check-prereqs
 	cd infra && pulumi up --stack $(STACK) --yes
+	@if [ "$(STACK)" != "local" ]; then $(call update_irsa_values,$(STACK)); fi
 
 # Tear down all infrastructure for a given stack
 infra-down:
@@ -120,16 +140,7 @@ ssm-list:
 # Usage: make update-irsa-values STACK=dev
 update-irsa-values:
 	@test -n "$(STACK)" || (echo "ERROR: STACK is required. Usage: make update-irsa-values STACK=dev" && exit 1)
-	@for svc in ingestion reader writer; do \
-	  ARN=$$(aws ssm get-parameter --name /zio-lucene/$(STACK)/irsa/$$svc \
-	    --query 'Parameter.Value' --output text 2>/dev/null) && \
-	  if [ -n "$$ARN" ]; then \
-	    echo "Patching $$svc IRSA ARN: $$ARN"; \
-	    sed -i "s|irsaRoleArn:.*|irsaRoleArn: $$ARN|" $$svc/k8s/values/values.$(STACK).yaml; \
-	  else \
-	    echo "WARNING: no SSM param found for /zio-lucene/$(STACK)/irsa/$$svc — skipping"; \
-	  fi; \
-	done
+	@$(call update_irsa_values,$(STACK))
 
 # ---------------------------------------------------------------------------
 # ArgoCD utilities
