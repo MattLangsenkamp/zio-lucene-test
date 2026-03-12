@@ -1,7 +1,7 @@
 env: local
 
 image:
-  repository: localhost:5000/reader
+  repository: reader-server
   pullPolicy: IfNotPresent
 
 # LocalStack AWS endpoint overrides — pods reach LocalStack via host.k3d.internal
