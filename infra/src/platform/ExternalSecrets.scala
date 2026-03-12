@@ -34,13 +34,22 @@ object ExternalSecrets:
   case class AwsSsmProvider(
     service: String,
     region: String,
-    endpoint: Option[String] = None, // LocalStack only
-    auth: Option[SsmAuth] = None      // Cloud only (IRSA JWT)
+    auth: Option[SsmAuth] = None
   ) derives Encoder, Decoder
 
-  case class SsmAuth(jwt: Option[JwtAuth] = None) derives Encoder, Decoder
+  // auth.jwt  — used for IRSA (cloud)
+  // auth.secretRef — used for static credentials (local/LocalStack)
+  case class SsmAuth(
+    jwt: Option[JwtAuth] = None,
+    secretRef: Option[SecretRefAuth] = None
+  ) derives Encoder, Decoder
   case class JwtAuth(serviceAccountRef: Option[ServiceAccountRef] = None) derives Encoder, Decoder
   case class ServiceAccountRef(name: String, namespace: String) derives Encoder, Decoder
+  case class SecretRefAuth(
+    accessKeyIDSecretRef: SecretKeyRef,
+    secretAccessKeySecretRef: SecretKeyRef
+  ) derives Encoder, Decoder
+  case class SecretKeyRef(name: String, key: String, namespace: String) derives Encoder, Decoder
 
   // ── Public API ────────────────────────────────────────────────────────────
 
@@ -100,9 +109,13 @@ object ExternalSecrets:
       val extraValues: Map[String, JsValue] =
         if (localMode)
           Map(
-            // In local mode ESO calls LocalStack for SSM — override the AWS endpoint
-            "env" -> JsObject(
-              "AWS_ENDPOINT_URL_SSM" -> JsString("http://host.k3d.internal:4566")
+            // In local mode ESO calls LocalStack.
+            // Use extraEnv (list format) — more reliable than the env map for arbitrary keys.
+            // AWS_ENDPOINT_URL routes ALL AWS SDK calls (including SSM) to LocalStack.
+            "extraEnv" -> JsArray(
+              JsObject("name" -> JsString("AWS_ENDPOINT_URL"),     "value" -> JsString("http://host.k3d.internal:4566")),
+              JsObject("name" -> JsString("AWS_ACCESS_KEY_ID"),    "value" -> JsString("test")),
+              JsObject("name" -> JsString("AWS_SECRET_ACCESS_KEY"),"value" -> JsString("test"))
             )
           )
         else
@@ -115,6 +128,7 @@ object ExternalSecrets:
           chart = "external-secrets",
           version = "0.11.0",
           namespace = ns.metadata.name,
+          timeout = 300,
           repositoryOpts = k8s.helm.v3.inputs.RepositoryOptsArgs(
             repo = "https://charts.external-secrets.io"
           ),
@@ -147,14 +161,17 @@ object ExternalSecrets:
             )
           }
         case _ =>
-          // Local: explicit static credentials (eso-localstack-credentials secret)
+          // Local: static credentials from eso-localstack-credentials Secret.
+          // Endpoint routing to LocalStack is via AWS_ENDPOINT_URL env var on ESO pods.
           Output(ClusterSecretStoreSpec(
             provider = StoreProvider(
               aws = AwsSsmProvider(
                 service = "ParameterStore",
                 region = "us-east-1",
-                endpoint = Some("http://host.k3d.internal:4566"),
-                auth = None // LocalStack ignores auth — ESO accesses via env AWS creds set in helm values
+                auth = Some(SsmAuth(secretRef = Some(SecretRefAuth(
+                  accessKeyIDSecretRef     = SecretKeyRef("eso-localstack-credentials", "access-key", "external-secrets"),
+                  secretAccessKeySecretRef = SecretKeyRef("eso-localstack-credentials", "secret-key", "external-secrets")
+                ))))
               )
             )
           ))

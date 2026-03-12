@@ -34,7 +34,7 @@ if docker ps -a | grep -q localstack; then
       --name localstack \
       -p 4566:4566 \
       -v "${LOCALSTACK_VOLUME}:/var/lib/localstack" \
-      -e SERVICES=s3,kafka,iam,secretsmanager,ssm,ec2,sqs \
+      -e SERVICES=s3,kafka,iam,secretsmanager,ssm,ec2,sqs,ssm \
       -e PERSISTENCE=1 \
       localstack/localstack
     echo "Waiting for LocalStack to be ready..."
@@ -46,7 +46,7 @@ else
     --name localstack \
     -p 4566:4566 \
     -v "${LOCALSTACK_VOLUME}:/var/lib/localstack" \
-    -e SERVICES=s3,kafka,iam,secretsmanager,ssm,ec2,sqs \
+    -e SERVICES=s3,kafka,iam,secretsmanager,ssm,ec2,sqs,ssm \
     -e PERSISTENCE=1 \
     localstack/localstack
   echo "Waiting for LocalStack to be ready..."

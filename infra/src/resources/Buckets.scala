@@ -47,6 +47,7 @@ object Buckets:
             name = s"/zio-lucene/${params.env}/s3/${params.logicalName}",
             `type` = "String",
             value = b.id,
+            overwrite = true,
             description = s"S3 bucket name for ${params.name} (${params.env})"
           ),
           opts(provider = awsProv, dependsOn = b)

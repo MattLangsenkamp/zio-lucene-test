@@ -49,6 +49,7 @@ object Queues:
             name = s"/zio-lucene/${params.env}/sqs/${params.logicalName}",
             `type` = "String",
             value = q.url,
+            overwrite = true,
             description = s"SQS queue URL for ${params.name} (${params.env})"
           ),
           opts(provider = awsProv, dependsOn = q)

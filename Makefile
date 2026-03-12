@@ -44,6 +44,9 @@ DOCKERHUB_USER    = mattlangsenkamp
 TAG              ?= latest
 EKS_CLUSTER_NAME  = zio-lucene-cluster
 AWS_REGION        = us-east-1
+# ArgoCD server address — override for cloud: make services-sync-all ARGOCD_SERVER=argocd.example.com
+ARGOCD_SERVER    ?= localhost:8080
+ARGOCD_OPTS       = --server $(ARGOCD_SERVER) --plaintext --insecure
 
 # ---------------------------------------------------------------------------
 # Prerequisites
@@ -56,37 +59,70 @@ check-prereqs:
 # Infrastructure (Pulumi/Besom)
 # ---------------------------------------------------------------------------
 
+# LocalStack env vars for local Pulumi runs.
+# AWS_ENDPOINT_URL routes all SDK calls (SQS, SSM, S3, …) to LocalStack.
+# Besom's ProviderEndpointArgs (aws 7.7+) no longer has sqs/ssm fields,
+# so environment-variable injection is the only reliable override.
+LOCALSTACK_ENDPOINT    = http://localhost:4566
+LOCALSTACK_AWS_ENV     = AWS_ENDPOINT_URL=$(LOCALSTACK_ENDPOINT) \
+                         AWS_ACCESS_KEY_ID=test \
+                         AWS_SECRET_ACCESS_KEY=test \
+                         AWS_REGION=us-east-1
+
 # Provision all infrastructure for a given stack
 # Usage: make infra-up STACK=local
 infra-up: check-prereqs
-	cd infra && pulumi up --stack $(STACK) --yes
+	@if [ "$(STACK)" = "local" ]; then \
+	  cd infra && $(LOCALSTACK_AWS_ENV) pulumi up --stack $(STACK) --yes; \
+	else \
+	  cd infra && pulumi up --stack $(STACK) --yes; \
+	fi
 	@if [ "$(STACK)" != "local" ]; then $(call update_irsa_values,$(STACK)); fi
 
 # Tear down all infrastructure for a given stack
 infra-down:
-	cd infra && pulumi destroy --stack $(STACK) --yes
+	@if [ "$(STACK)" = "local" ]; then \
+	  cd infra && $(LOCALSTACK_AWS_ENV) pulumi destroy --stack $(STACK) --yes; \
+	else \
+	  cd infra && pulumi destroy --stack $(STACK) --yes; \
+	fi
 
 # Preview infra changes without applying
 infra-preview:
-	cd infra && pulumi preview --stack $(STACK)
+	@if [ "$(STACK)" = "local" ]; then \
+	  cd infra && $(LOCALSTACK_AWS_ENV) pulumi preview --stack $(STACK); \
+	else \
+	  cd infra && pulumi preview --stack $(STACK); \
+	fi
 
 # ---------------------------------------------------------------------------
 # Service Deployment (ArgoCD)
 # ---------------------------------------------------------------------------
 
-# Deploy ALL services via ArgoCD manual sync
+# Force an immediate sync of ALL services.
+# Local: annotates ArgoCD Application resources directly (no argocd server connection needed).
+# Cloud: uses argocd CLI — set ARGOCD_SERVER=<host> and ensure argocd is logged in.
 services-sync-all:
-	argocd app sync --all --wait
+	@if [ "$(STACK)" = "local" ]; then \
+	  kubectl get applications -n argocd -o name | \
+	    xargs -I{} kubectl annotate {} -n argocd argocd.argoproj.io/refresh=hard --overwrite; \
+	else \
+	  argocd app list -o name $(ARGOCD_OPTS) | xargs argocd app sync $(ARGOCD_OPTS); \
+	fi
 
-# Deploy a SINGLE service via ArgoCD
+# Force an immediate sync of a SINGLE service.
 # Usage: make service-sync SERVICE=ingestion
 service-sync:
 	@test -n "$(SERVICE)" || (echo "ERROR: SERVICE is required. Usage: make service-sync SERVICE=ingestion" && exit 1)
-	argocd app sync $(SERVICE) --wait
+	@if [ "$(STACK)" = "local" ]; then \
+	  kubectl annotate application $(SERVICE) -n argocd argocd.argoproj.io/refresh=hard --overwrite; \
+	else \
+	  argocd app sync $(SERVICE) $(ARGOCD_OPTS); \
+	fi
 
 # Show status of all ArgoCD-managed services
 services-status:
-	argocd app list
+	argocd app list $(ARGOCD_OPTS)
 
 # ---------------------------------------------------------------------------
 # Full Environment
@@ -245,7 +281,7 @@ local-clean:
 
 # Legacy aliases for infra operations
 local-dev-up: infra-up              ## alias → make infra-up STACK=local
-local-destroy: infra-down           ## alias → make infra-down STACK=local
+local-destroy: start-local-env infra-down stop-local-env  ## start LocalStack → pulumi destroy → stop
 local-down: local-destroy           ## alias
 
 dev: infra-up                       ## alias → make infra-up STACK=dev (set STACK=dev first)

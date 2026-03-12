@@ -261,7 +261,8 @@ import utils.*
       k8sProvider = k8sProvider,
       repoUrl     = Output("file:///repo"),
       env         = stackName,
-      services    = argoCDServices
+      services    = argoCDServices,
+      autoSync    = true
     ))
 
     val bucketResources: Seq[Output[?]] =
@@ -302,8 +303,50 @@ import utils.*
       val queueResources: Seq[Output[?]] =
         queues.values.toSeq.flatMap(q => Seq(q.map(_.queue), q.map(_.ssmParam)))
 
+      // ── Local-only: create k8s Secrets directly (ESO cannot reach LocalStack) ──
+      // In cloud mode, ExternalSecrets pull these from SSM.  In local mode, ESO
+      // cannot resolve AWS_ENDPOINT_URL overrides and hits real AWS, so we bypass it
+      // entirely and create the k8s Secrets ourselves.
+      val ingestUrl  = queues("document-ingestion").flatMap(_.queueUrl)
+      val commitUrl  = queues("document-commit").flatMap(_.queueUrl)
+      val bucketName = buckets("segments").flatMap(_.bucketName)
+
+      val ingestionSecret = k8sProvider.flatMap { prov =>
+        k8s.core.v1.Secret(
+          "ingestion-secrets",
+          k8s.core.v1.SecretArgs(
+            metadata   = k8s.meta.v1.inputs.ObjectMetaArgs(name = "ingestion-secrets", namespace = "zio-lucene"),
+            stringData = ingestUrl.map(u => Map("SQS_QUEUE_URL" -> u))
+          ),
+          opts(provider = prov, dependsOn = namespace)
+        )
+      }
+
+      val writerSecret = k8sProvider.flatMap { prov =>
+        k8s.core.v1.Secret(
+          "writer-secrets",
+          k8s.core.v1.SecretArgs(
+            metadata   = k8s.meta.v1.inputs.ObjectMetaArgs(name = "writer-secrets", namespace = "zio-lucene"),
+            stringData = for (sq <- ingestUrl; cq <- commitUrl; bk <- bucketName)
+                         yield Map("SQS_QUEUE_URL" -> sq, "COMMIT_QUEUE_URL" -> cq, "STORAGE_BUCKET" -> bk)
+          ),
+          opts(provider = prov, dependsOn = namespace)
+        )
+      }
+
+      val readerSecret = k8sProvider.flatMap { prov =>
+        k8s.core.v1.Secret(
+          "reader-secrets",
+          k8s.core.v1.SecretArgs(
+            metadata   = k8s.meta.v1.inputs.ObjectMetaArgs(name = "reader-secrets", namespace = "zio-lucene"),
+            stringData = bucketName.map(bk => Map("S3_BUCKET_NAME" -> bk))
+          ),
+          opts(provider = prov, dependsOn = namespace)
+        )
+      }
+
       Stack(
-        (fixedResources ++ bucketResources ++ queueResources)*
+        (fixedResources ++ bucketResources ++ queueResources ++ Seq(ingestionSecret, writerSecret, readerSecret))*
       ).exports(
         bucketName    = buckets("segments").flatMap(_.bucketName),
         k8sNamespace  = namespaceName,

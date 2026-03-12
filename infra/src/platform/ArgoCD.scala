@@ -8,7 +8,7 @@ import besom.json.*
 // ArgoCD Application per service in service-manifest.yaml.
 //
 // Generator: list (dynamically loaded from service-manifest.yaml via scala-yaml)
-// syncPolicy: {} (manual sync only — no automated GitOps promotion in Phase 1)
+// syncPolicy: automated for local (self-heals on every pulumi up), manual for cloud
 //
 // Local: repoURL = file:///repo  (requires k3d cluster created with --volume <repo>:/repo@all)
 // Cloud: repoURL = config value gitRepoUrl
@@ -18,6 +18,7 @@ case class ArgoCDInput(
   repoUrl: Output[String],              // file:///repo for local; git remote URL for cloud
   env: String,                          // stack name passed as helm value → selects values.{env}.yaml
   services: List[(String, String)],     // (name, k8sPath) — parsed from service-manifest.yaml
+  autoSync: Boolean = false,            // true for local; false for cloud (manual promotion)
   gitRevision: String = "HEAD",
   namespace: String = "zio-lucene",
   cluster: Option[Output[besom.api.aws.eks.Cluster]] = None,
@@ -62,6 +63,43 @@ object ArgoCD:
     params: ArgoCDInput
   )(using Context): Output[k8s.helm.v3.Release] =
     params.k8sProvider.flatMap { prov =>
+      // In local mode, mount /repo from the k3d node and override GIT_CONFIG_GLOBAL so
+      // git's file:// subprocess transport trusts /repo regardless of UID ownership.
+      // GIT_CONFIG_COUNT env vars are NOT inherited by git's upload-pack subprocess —
+      // only a file-based config (via GIT_CONFIG_GLOBAL) works reliably.
+      val repoServerValues: Output[Map[String, JsValue]] =
+        if (params.autoSync)
+          k8s.core.v1.ConfigMap(
+            "argocd-repo-gitconfig",
+            k8s.core.v1.ConfigMapArgs(
+              metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+                name      = "argocd-repo-gitconfig",
+                namespace = "argocd"
+              ),
+              data = Map(".gitconfig" -> "[safe]\n\tdirectory = *\n")
+            ),
+            opts(provider = prov, dependsOn = ns)
+          ).map { _ =>
+            Map("repoServer" -> JsObject(
+              "volumes" -> JsArray(
+                JsObject("name" -> JsString("repo"),
+                  "hostPath" -> JsObject("path" -> JsString("/repo"))),
+                JsObject("name" -> JsString("gitconfig"),
+                  "configMap" -> JsObject("name" -> JsString("argocd-repo-gitconfig")))
+              ),
+              "volumeMounts" -> JsArray(
+                JsObject("name" -> JsString("repo"),      "mountPath" -> JsString("/repo")),
+                JsObject("name" -> JsString("gitconfig"), "mountPath" -> JsString("/app/git-config"),
+                  "readOnly" -> JsBoolean(true))
+              ),
+              "env" -> JsArray(
+                JsObject("name" -> JsString("GIT_CONFIG_GLOBAL"), "value" -> JsString("/app/git-config/.gitconfig"))
+              )
+            ))
+          }
+        else Output(Map.empty)
+
+      repoServerValues.flatMap { extraValues =>
       k8s.helm.v3.Release(
         "argocd",
         k8s.helm.v3.ReleaseArgs(
@@ -69,6 +107,8 @@ object ArgoCD:
           chart = "argo-cd",
           version = "7.7.3",
           namespace = ns.metadata.name,
+          timeout = 1800,
+          skipAwait = params.autoSync, // local: don't block pulumi on ArgoCD pod rollout
           repositoryOpts = k8s.helm.v3.inputs.RepositoryOptsArgs(
             repo = "https://argoproj.github.io/argo-helm"
           ),
@@ -76,7 +116,6 @@ object ArgoCD:
             "server" -> JsObject(
               "service" -> JsObject("type" -> JsString("LoadBalancer"))
             ),
-            // Allow file:// repos for local dev
             "configs" -> JsObject(
               "cm" -> JsObject(
                 "application.resourceTrackingMethod" -> JsString("annotation")
@@ -85,10 +124,11 @@ object ArgoCD:
                 "server.insecure" -> JsBoolean(true)
               )
             )
-          )
+          ) ++ extraValues
         ),
         opts(provider = prov, dependsOn = ns)
       )
+      }
     }
 
   private def createApplicationSet(
@@ -133,8 +173,15 @@ object ArgoCD:
                 "server"    -> JsString("https://kubernetes.default.svc"),
                 "namespace" -> JsString(params.namespace)
               ),
-              // Empty syncPolicy = manual sync only (no automated GitOps in Phase 1)
-              "syncPolicy" -> JsObject()
+              "syncPolicy" -> (
+                if (params.autoSync)
+                  JsObject("automated" -> JsObject(
+                    "prune"    -> JsBoolean(false),
+                    "selfHeal" -> JsBoolean(true)
+                  ))
+                else
+                  JsObject() // manual sync for cloud
+              )
             )
           )
         )
