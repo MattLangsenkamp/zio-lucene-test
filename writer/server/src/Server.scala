@@ -82,7 +82,7 @@ object Server extends ZIOAppDefault:
       // AWS layers
       AwsSqs.sqsLayer,
       ZLayer.fromZIO(ZIO.service[S3Config]).flatMap { env =>
-        val url = env.get[S3Config].s3EndpointUrl
+        val url = env.get[S3Config].storageEndpointUrl
         if url.nonEmpty then AwsS3.s3LayerWithEndpoint(url) else AwsS3.s3Layer
       },
       // Service layers

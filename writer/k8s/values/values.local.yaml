@@ -6,7 +6,7 @@ image:
 
 storageClassName: local-path
 
-s3EndpointUrl: "http://host.k3d.internal:4566"
+storageEndpointUrl: "http://host.k3d.internal:4566"
 
 # LocalStack AWS endpoint overrides — pods reach LocalStack via host.k3d.internal
 extraEnv:
