@@ -14,6 +14,8 @@ awsRegion: us-east-1
 
 messagingMode: sqs
 
+s3EndpointUrl: ""   # custom S3 endpoint; empty = use AWS default (set in values.local.yaml for LocalStack)
+
 writerConfig:
   luceneIndexPath: /tmp/lucene-index
   batchSize: "100"

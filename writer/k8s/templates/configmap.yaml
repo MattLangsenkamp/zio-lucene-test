@@ -10,3 +10,4 @@ data:
   BATCH_SIZE: {{ .Values.writerConfig.batchSize | quote }}
   FLUSH_THRESHOLD: {{ .Values.writerConfig.flushThreshold | quote }}
   COMMIT_THRESHOLD: {{ .Values.writerConfig.commitThreshold | quote }}
+  S3_ENDPOINT_URL: {{ .Values.s3EndpointUrl | quote }}
