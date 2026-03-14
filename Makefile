@@ -61,22 +61,13 @@ infra-preview:
 # Local: annotates ArgoCD Application resources directly (no argocd server connection needed).
 # Cloud: uses argocd CLI — set ARGOCD_SERVER=<host> and ensure argocd is logged in.
 services-sync-all:
-	@if [ "$(STACK)" = "local" ]; then \
-	  kubectl get applications -n argocd -o name | \
-	    xargs -I{} kubectl annotate {} -n argocd argocd.argoproj.io/refresh=hard --overwrite; \
-	else \
-	  argocd app list -o name $(ARGOCD_OPTS) | xargs argocd app sync $(ARGOCD_OPTS); \
-	fi
+	@./bin/services-sync-all.sh $(STACK) $(ARGOCD_SERVER)
 
 # Force an immediate sync of a SINGLE service.
 # Usage: make service-sync SERVICE=ingestion
 service-sync:
 	@test -n "$(SERVICE)" || (echo "ERROR: SERVICE is required. Usage: make service-sync SERVICE=ingestion" && exit 1)
-	@if [ "$(STACK)" = "local" ]; then \
-	  kubectl annotate application $(SERVICE) -n argocd argocd.argoproj.io/refresh=hard --overwrite; \
-	else \
-	  argocd app sync $(SERVICE) $(ARGOCD_OPTS); \
-	fi
+	@./bin/service-sync.sh $(STACK) $(SERVICE) $(ARGOCD_SERVER)
 
 # Show status of all ArgoCD-managed services
 services-status:
@@ -118,17 +109,7 @@ helm-upgrade:
 # List all SSM parameters for a given stack
 # Usage: make ssm-list STACK=local
 ssm-list:
-	@if [ "$(STACK)" = "local" ]; then \
-	  aws ssm get-parameters-by-path \
-	    --path /zio-lucene/$(STACK) \
-	    --recursive \
-	    --endpoint-url http://localhost:4566; \
-	else \
-	  aws ssm get-parameters-by-path \
-	    --path /zio-lucene/$(STACK) \
-	    --recursive \
-	    --region $(AWS_REGION); \
-	fi
+	@./bin/ssm-list.sh $(STACK)
 
 # Patch IRSA ARNs into values.{STACK}.yaml for all services after pulumi up
 # Usage: make update-irsa-values STACK=dev
