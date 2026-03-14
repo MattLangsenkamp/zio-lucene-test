@@ -6,7 +6,7 @@ image:
   pullPolicy: IfNotPresent
 
 serviceAccount:
-  irsaRoleArn: ""     # populated by 'make update-irsa-values STACK=<env>' after pulumi up
+  irsaRoleArn: ""     # auto-populated by `make infra-up STACK=<env>`
 
 env: local            # overridden per environment
 

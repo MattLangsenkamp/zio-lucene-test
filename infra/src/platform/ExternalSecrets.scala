@@ -4,9 +4,14 @@ import besom.*
 import besom.api.kubernetes as k8s
 import besom.json.*
 
-// Replaces utils.ExternalSecretsOperator.
-// Installs ESO via helm AND creates the ClusterSecretStore pointing to SSM ParameterStore
-// (switched from SecretsManager). One ClusterSecretStore serves all services.
+/**
+ * Installs the External Secrets Operator (ESO) via Helm and creates a ClusterSecretStore
+ * backed by AWS SSM ParameterStore. The single ClusterSecretStore is shared across all
+ * services; each service's ExternalSecret objects reference it by name ("aws-ssm-store").
+ *
+ * Cloud: ESO uses IRSA for AWS authentication.
+ * Local: ESO is bypassed — Pulumi creates k8s Secrets directly (see Main.scala).
+ */
 
 case class ExternalSecretsInput(
   k8sProvider: Output[k8s.Provider],

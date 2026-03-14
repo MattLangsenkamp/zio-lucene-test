@@ -8,6 +8,6 @@ image:
 storageClassName: gp2
 
 serviceAccount:
-  irsaRoleArn: ""  # run 'make update-irsa-values STACK=prod' after pulumi up
+  irsaRoleArn: ""  # auto-populated by `make infra-up STACK=<env>`
 
 replicaCount: 1

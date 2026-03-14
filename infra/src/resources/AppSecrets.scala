@@ -4,7 +4,7 @@ import besom.*
 import besom.api.aws.Provider as AwsProvider
 import besom.api.kubernetes as k8s
 
-// Placeholder module — application secrets (Datadog, etc.) are provisioned outside Pulumi.
+// Placeholder module — application secrets are provisioned outside Pulumi.
 // The ClusterSecretStore (pointing to SSM ParameterStore) is managed by platform.ExternalSecrets.
 // Per-service ExternalSecrets live in each service's helm chart under templates/external-secret.yaml.
 

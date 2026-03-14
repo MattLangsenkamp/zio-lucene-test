@@ -13,25 +13,6 @@
         local-dev local-dev-up local-down dev dev-down prod prod-down dev-preview
 
 # ---------------------------------------------------------------------------
-# Functions
-# ---------------------------------------------------------------------------
-
-# Patch IRSA ARNs from SSM into values.{stack}.yaml for all services.
-# Usage: $(call update_irsa_values,dev)
-define update_irsa_values
-for svc in ingestion reader writer; do \
-  ARN=$$(aws ssm get-parameter --name /zio-lucene/$(1)/irsa/$$svc \
-    --query 'Parameter.Value' --output text 2>/dev/null); \
-  if [ -n "$$ARN" ]; then \
-    echo "Patching $$svc IRSA ARN: $$ARN"; \
-    sed -i "s|irsaRoleArn:.*|irsaRoleArn: $$ARN|" $$svc/k8s/values/values.$(1).yaml; \
-  else \
-    echo "WARNING: no SSM param found for /zio-lucene/$(1)/irsa/$$svc — skipping"; \
-  fi; \
-done
-endef
-
-# ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 STACK            ?= local
@@ -59,41 +40,18 @@ check-prereqs:
 # Infrastructure (Pulumi/Besom)
 # ---------------------------------------------------------------------------
 
-# LocalStack env vars for local Pulumi runs.
-# AWS_ENDPOINT_URL routes all SDK calls (SQS, SSM, S3, …) to LocalStack.
-# Besom's ProviderEndpointArgs (aws 7.7+) no longer has sqs/ssm fields,
-# so environment-variable injection is the only reliable override.
-LOCALSTACK_ENDPOINT    = http://localhost:4566
-LOCALSTACK_AWS_ENV     = AWS_ENDPOINT_URL=$(LOCALSTACK_ENDPOINT) \
-                         AWS_ACCESS_KEY_ID=test \
-                         AWS_SECRET_ACCESS_KEY=test \
-                         AWS_REGION=us-east-1
-
 # Provision all infrastructure for a given stack
 # Usage: make infra-up STACK=local
 infra-up: check-prereqs
-	@if [ "$(STACK)" = "local" ]; then \
-	  cd infra && $(LOCALSTACK_AWS_ENV) pulumi up --stack $(STACK) --yes; \
-	else \
-	  cd infra && pulumi up --stack $(STACK) --yes; \
-	fi
-	@if [ "$(STACK)" != "local" ]; then $(call update_irsa_values,$(STACK)); fi
+	@cd $(REPO_ROOT) && ./bin/pulumi-infra.sh up $(STACK)
 
 # Tear down all infrastructure for a given stack
 infra-down:
-	@if [ "$(STACK)" = "local" ]; then \
-	  cd infra && $(LOCALSTACK_AWS_ENV) pulumi destroy --stack $(STACK) --yes; \
-	else \
-	  cd infra && pulumi destroy --stack $(STACK) --yes; \
-	fi
+	@cd $(REPO_ROOT) && ./bin/pulumi-infra.sh down $(STACK)
 
 # Preview infra changes without applying
 infra-preview:
-	@if [ "$(STACK)" = "local" ]; then \
-	  cd infra && $(LOCALSTACK_AWS_ENV) pulumi preview --stack $(STACK); \
-	else \
-	  cd infra && pulumi preview --stack $(STACK); \
-	fi
+	@cd $(REPO_ROOT) && ./bin/pulumi-infra.sh preview $(STACK)
 
 # ---------------------------------------------------------------------------
 # Service Deployment (ArgoCD)
@@ -176,7 +134,7 @@ ssm-list:
 # Usage: make update-irsa-values STACK=dev
 update-irsa-values:
 	@test -n "$(STACK)" || (echo "ERROR: STACK is required. Usage: make update-irsa-values STACK=dev" && exit 1)
-	@$(call update_irsa_values,$(STACK))
+	@./bin/update-irsa-values.sh $(STACK)
 
 # ---------------------------------------------------------------------------
 # ArgoCD utilities

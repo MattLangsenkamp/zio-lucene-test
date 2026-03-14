@@ -81,10 +81,7 @@ object Server extends ZIOAppDefault:
       S3Config.layer,
       // AWS layers
       AwsSqs.sqsLayer,
-      ZLayer.fromZIO(ZIO.service[S3Config]).flatMap { env =>
-        val url = env.get[S3Config].storageEndpointUrl
-        if url.nonEmpty then AwsS3.s3LayerWithEndpoint(url) else AwsS3.s3Layer
-      },
+      AwsS3.s3LayerFromConfig[S3Config](_.storageEndpointUrl),
       // Service layers
       IndexSegmentStoreLive.layer,
       CommitPublisherLive.layer,

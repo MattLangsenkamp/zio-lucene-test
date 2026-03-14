@@ -15,11 +15,16 @@ object AwsS3:
   /** S3 client layer, ready to inject into any ZIO service that requires `S3`. */
   val s3Layer: TaskLayer[S3] = AwsBase.awsBaseLayer >>> S3.live
 
-  /** S3 client layer with an explicit endpoint override and path-style access enabled.
-    * Required for LocalStack and other S3-compatible stores that don't support virtual-hosted-style
-    * URLs. Supply the endpoint URL (e.g. `http://host.k3d.internal:4566`).
+  /** S3 client layer backed by a config. Reads the endpoint URL from `C` via `getUrl`:
+    * - if non-empty, enables path-style access and overrides the endpoint (for LocalStack etc.)
+    * - if empty, falls back to the standard AWS endpoint
     */
-  def s3LayerWithEndpoint(endpointUrl: String): TaskLayer[S3] =
-    AwsBase.awsBaseLayer >>> S3.customized(
-      _.endpointOverride(java.net.URI.create(endpointUrl)).forcePathStyle(true)
-    )
+  def s3LayerFromConfig[C: Tag](getUrl: C => String): ZLayer[C, Throwable, S3] =
+    ZLayer.service[C].flatMap { env =>
+      val url = getUrl(env.get[C])
+      if url.nonEmpty then
+        AwsBase.awsBaseLayer >>> S3.customized(
+          _.endpointOverride(java.net.URI.create(url)).forcePathStyle(true)
+        )
+      else s3Layer
+    }

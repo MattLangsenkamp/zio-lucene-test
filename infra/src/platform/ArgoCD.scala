@@ -4,14 +4,16 @@ import besom.*
 import besom.api.kubernetes as k8s
 import besom.json.*
 
-// Installs ArgoCD via helm and creates an ApplicationSet that templates one
-// ArgoCD Application per service in service-manifest.yaml.
-//
-// Generator: list (dynamically loaded from service-manifest.yaml via scala-yaml)
-// syncPolicy: automated for local (self-heals on every pulumi up), manual for cloud
-//
-// Local: repoURL = file:///repo  (requires k3d cluster created with --volume <repo>:/repo@all)
-// Cloud: repoURL = config value gitRepoUrl
+/**
+ * Installs ArgoCD via Helm and creates an ApplicationSet that templates one ArgoCD Application
+ * per service defined in service-manifest.yaml.
+ *
+ * Generator: list (entries loaded from service-manifest.yaml via scala-yaml)
+ * syncPolicy: automated for local (self-heals on every pulumi up), manual for cloud
+ *
+ * Local: repoURL = file:///repo  (requires k3d cluster created with --volume <repo>:/repo@all)
+ * Cloud: repoURL = gitRepoUrl config value
+ */
 
 case class ArgoCDInput(
   k8sProvider: Output[k8s.Provider],
