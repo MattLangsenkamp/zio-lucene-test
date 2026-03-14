@@ -1,4 +1,5 @@
 ./out/**
+**/scala-doc/
 **/.bsp
 **/.scala-build
 **/.idea

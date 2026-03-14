@@ -33,6 +33,7 @@ object Buckets:
           throw new IllegalArgumentException(s"Bucket logical name cannot be empty: '${params.logicalName}'")
         },
         s3.BucketArgs(
+          forceDestroy = true,
           tags = Map("Name" -> params.name, "env" -> params.env)
         ),
         opts(provider = awsProv)
