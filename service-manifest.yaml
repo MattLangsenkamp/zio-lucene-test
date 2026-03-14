@@ -1,0 +1,53 @@
+apiVersion: v1
+# Single registry of all services. Read by:
+#   - ArgoCD ApplicationSet (templates one Application per entry)
+#   - Pulumi/Besom (creates IRSA roles, SQS queues, S3 buckets per entry)
+#
+# roles per resource specify IAM permissions granted to the service pod:
+#   sqs:read  → sqs:ReceiveMessage, sqs:DeleteMessage, sqs:ChangeMessageVisibility, sqs:GetQueueAttributes
+#   sqs:write → sqs:SendMessage, sqs:GetQueueUrl, sqs:GetQueueAttributes
+#   s3:read   → s3:GetObject, s3:ListBucket
+#   s3:write  → s3:PutObject, s3:DeleteObject
+#
+# ssmPath: {env} is substituted at deploy/sync time with the stack name (local/dev/prod)
+
+services:
+  - name: ingestion
+    k8sPath: ingestion/k8s
+    awsResources:
+      sqs:
+        - logicalName: document-ingestion
+          ssmPath: /zio-lucene/{env}/sqs/document-ingestion
+          roles:
+            - sqs:write
+
+  - name: reader
+    k8sPath: reader/k8s
+    awsResources:
+      s3:
+        - logicalName: segments
+          ssmPath: /zio-lucene/{env}/s3/segments
+          roles:
+            - s3:read
+
+  - name: writer
+    k8sPath: writer/k8s
+    awsResources:
+      sqs:
+        - logicalName: document-ingestion
+          ssmPath: /zio-lucene/{env}/sqs/document-ingestion
+          roles:
+            - sqs:read
+        - logicalName: document-commit
+          ssmPath: /zio-lucene/{env}/sqs/document-commit
+          roles:
+            - sqs:write
+      s3:
+        - logicalName: segments
+          ssmPath: /zio-lucene/{env}/s3/segments
+          roles:
+            - s3:read
+            - s3:write
+      secrets:
+        - logicalName: datadog-api-key
+          ssmPath: /zio-lucene/{env}/secrets/datadog-api-key

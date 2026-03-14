@@ -81,7 +81,7 @@ object Server extends ZIOAppDefault:
       S3Config.layer,
       // AWS layers
       AwsSqs.sqsLayer,
-      AwsS3.s3Layer,
+      AwsS3.s3LayerFromConfig[S3Config](_.storageEndpointUrl),
       // Service layers
       IndexSegmentStoreLive.layer,
       CommitPublisherLive.layer,

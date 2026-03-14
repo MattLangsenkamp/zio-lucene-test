@@ -1,0 +1,5 @@
+apiVersion: v2
+name: writer
+version: 0.1.0
+appVersion: "latest"
+description: Lucene index writer service — consumes SQS and writes segments to S3

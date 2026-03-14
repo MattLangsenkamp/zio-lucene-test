@@ -1,0 +1,21 @@
+env: local
+
+image:
+  repository: ingestion-server
+  pullPolicy: IfNotPresent
+
+# LocalStack AWS endpoint overrides — pods reach LocalStack via host.k3d.internal
+extraEnv:
+  - name: AWS_ENDPOINT_URL_SQS
+    value: http://host.k3d.internal:4566
+  - name: AWS_ENDPOINT_URL_S3
+    value: http://host.k3d.internal:4566
+  - name: AWS_ACCESS_KEY_ID
+    value: test
+  - name: AWS_SECRET_ACCESS_KEY
+    value: test
+
+resources:
+  limits:
+    memory: "256Mi"
+    cpu: "250m"

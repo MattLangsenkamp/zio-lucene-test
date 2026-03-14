@@ -1,0 +1,31 @@
+replicaCount: 1
+
+image:
+  repository: ""      # set per environment in values/values.{env}.yaml
+  tag: latest
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  irsaRoleArn: ""     # auto-populated by `make infra-up STACK=<env>`
+
+env: local            # overridden per environment
+
+awsRegion: us-east-1
+
+messagingMode: sqs
+
+storageEndpointUrl: ""   # custom S3 endpoint; empty = use AWS default (set in values.local.yaml for LocalStack)
+
+writerConfig:
+  luceneIndexPath: /tmp/lucene-index
+  batchSize: "100"
+  flushThreshold: "5"
+  commitThreshold: "25"
+
+storageClassName: local-path
+storageSize: 1Gi
+
+# Additional env vars injected into the container (e.g. LocalStack overrides)
+extraEnv: []
+
+resources: {}

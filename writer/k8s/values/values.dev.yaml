@@ -1,0 +1,13 @@
+env: dev
+
+image:
+  repository: mattlangsenkamp/writer-server
+  tag: latest
+  pullPolicy: Always
+
+storageClassName: gp2
+
+serviceAccount:
+  irsaRoleArn: ""  # auto-populated by `make infra-up STACK=<env>`
+
+replicaCount: 1
