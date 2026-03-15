@@ -1,0 +1,5 @@
+apiVersion: v2
+name: reader
+version: 0.1.0
+appVersion: "latest"
+description: Lucene search reader service — serves HTTP search queries against the index

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+data:
+  MESSAGING_MODE: {{ .Values.messagingMode | quote }}
+  AWS_REGION: {{ .Values.awsRegion | quote }}
+  WIKI_LANG: {{ .Values.wikiConfig.lang | quote }}
+  WIKI_STREAM: {{ .Values.wikiConfig.stream | quote }}
+  WIKI_BACKOFF_START_MS: {{ .Values.wikiConfig.backoffStartMs | quote }}
+  WIKI_BACKOFF_INCREMENT_MS: {{ .Values.wikiConfig.backoffIncrementMs | quote }}
+  WIKI_BACKOFF_MAX_MS: {{ .Values.wikiConfig.backoffMaxMs | quote }}

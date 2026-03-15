@@ -1,0 +1,11 @@
+env: dev
+
+image:
+  repository: mattlangsenkamp/reader-server
+  tag: latest
+  pullPolicy: Always
+
+serviceAccount:
+  irsaRoleArn: arn:aws:iam::853236864732:role/reader-irsa-role-8addae0
+
+replicaCount: 1

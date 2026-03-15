@@ -1,0 +1,11 @@
+env: dev
+
+image:
+  repository: mattlangsenkamp/ingestion-server
+  tag: latest
+  pullPolicy: Always
+
+serviceAccount:
+  irsaRoleArn: arn:aws:iam::853236864732:role/ingestion-irsa-role-9238bdd
+
+replicaCount: 1

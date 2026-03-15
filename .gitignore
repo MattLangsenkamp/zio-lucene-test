@@ -1,8 +1,10 @@
 ./out/**
+**/scala-doc/
 **/.bsp
 **/.scala-build
 **/.idea
 out/
 mill-ivy/
+zio-lucene.iml
 
 .idea/scala_compiler.xml

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: ingestion
+version: 0.1.0
+appVersion: "latest"
+description: Wikipedia stream ingestion service — reads recent changes and writes to SQS
