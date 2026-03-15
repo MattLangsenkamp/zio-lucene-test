@@ -48,12 +48,12 @@ import utils.*
     // may appear in multiple services but is only created once).
     val queues: Map[String, Output[QueueOutput]] =
       manifest.uniqueSqsQueues.map { r =>
-        r.logicalName -> Queues.make(QueueInput(r.logicalName, r.logicalName, stackName, awsProvider))
+        r.logicalName -> Queues.make(QueueInput(r.logicalName, r.logicalName, stackName, Some(awsProvider)))
       }.toMap
 
     val buckets: Map[String, Output[BucketOutput]] =
       manifest.uniqueS3Buckets.map { r =>
-        r.logicalName -> Buckets.make(BucketInput(r.logicalName, r.logicalName, stackName, awsProvider))
+        r.logicalName -> Buckets.make(BucketInput(r.logicalName, r.logicalName, stackName, Some(awsProvider)))
       }.toMap
 
     val vpcOutput = Vpc.make(VpcInput())
@@ -234,12 +234,11 @@ import utils.*
   } else {
     // ── Local (k3d + LocalStack) ──────────────────────────────────────────────
 
-    val awsProvider = AwsProvider.makeLocal(AwsProviderInputs(stackName))
     val k8sProvider = K8Provider.makeLocal(())
 
     val buckets: Map[String, Output[BucketOutput]] =
       manifest.uniqueS3Buckets.map { r =>
-        r.logicalName -> Buckets.makeLocal(BucketInput(r.logicalName, r.logicalName, stackName, awsProvider))
+        r.logicalName -> Buckets.makeLocal(BucketInput(r.logicalName, r.logicalName, stackName))
       }.toMap
 
     val externalSecrets = ExternalSecrets.makeLocal(ExternalSecretsInput(
@@ -297,7 +296,7 @@ import utils.*
     } else {
       val queues: Map[String, Output[QueueOutput]] =
         manifest.uniqueSqsQueues.map { r =>
-          r.logicalName -> Queues.makeLocal(QueueInput(r.logicalName, r.logicalName, stackName, awsProvider))
+          r.logicalName -> Queues.makeLocal(QueueInput(r.logicalName, r.logicalName, stackName))
         }.toMap
 
       val queueResources: Seq[Output[?]] =

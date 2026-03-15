@@ -9,7 +9,7 @@ case class QueueInput(
   name: String,        // SQS queue name
   logicalName: String, // kebab-case identifier used in SSM path and Pulumi resource names
   env: String,         // stack name: local | dev | prod
-  awsProvider: Output[AwsProvider]
+  awsProvider: Option[Output[AwsProvider]] = None
 )
 
 case class QueueOutput(
@@ -27,7 +27,10 @@ object Queues:
     createQueue(params)
 
   private def createQueue(params: QueueInput)(using Context): Output[QueueOutput] =
-    params.awsProvider.flatMap { awsProv =>
+    val providerOutput: Output[Option[AwsProvider]] =
+      params.awsProvider.fold(Output(None))(_.map(Some(_)))
+
+    providerOutput.flatMap { maybeProvider =>
       val queue = sqs.Queue(
         NonEmptyString(params.logicalName).getOrElse {
           throw new IllegalArgumentException(s"Queue logical name cannot be empty: '${params.logicalName}'")
@@ -38,7 +41,7 @@ object Queues:
           messageRetentionSeconds = 86400,
           tags = Map("Name" -> params.name, "env" -> params.env)
         ),
-        opts(provider = awsProv)
+        maybeProvider.fold(opts())(p => opts(provider = p))
       )
 
       queue.flatMap { q =>
@@ -52,7 +55,7 @@ object Queues:
             overwrite = true,
             description = s"SQS queue URL for ${params.name} (${params.env})"
           ),
-          opts(provider = awsProv, dependsOn = q)
+          maybeProvider.fold(opts(dependsOn = q))(p => opts(provider = p, dependsOn = q))
         )
         param.map { p =>
           QueueOutput(queue = q, queueUrl = q.url, ssmParam = p)

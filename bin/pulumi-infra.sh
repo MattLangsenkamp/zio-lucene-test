@@ -34,13 +34,21 @@ cd "$INFRA_DIR"
 
 case "$CMD" in
   up)
-    run_pulumi up --stack "$STACK" --yes
+    if [ "$STACK" = "local" ]; then
+      run_pulumi up --stack "$STACK" --yes
+    else
+      run_pulumi up --stack "$STACK"
+    fi
     if [ "$STACK" != "local" ]; then
-      "$(dirname "$0")/update-irsa-values.sh" "$STACK"
+      "$SCRIPT_DIR/update-irsa-values.sh" "$STACK"
     fi
     ;;
   down)
-    run_pulumi destroy --stack "$STACK" --yes
+    if [ "$STACK" = "local" ]; then
+      run_pulumi destroy --stack "$STACK" --yes
+    else
+      run_pulumi destroy --stack "$STACK"
+    fi
     ;;
   preview)
     run_pulumi preview --stack "$STACK"

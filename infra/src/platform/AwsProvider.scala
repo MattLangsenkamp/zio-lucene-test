@@ -37,6 +37,9 @@ object AwsProvider extends Resource[AwsProviderInputs, aws.Provider, AwsProvider
         skipMetadataApiCheck = true,
         skipRequestingAccountId = true,
         s3UsePathStyle = true,
+        // Route S3 to LocalStack. SQS/SSM have no dedicated endpoint field in v7.7.0
+        // (removed in Terraform AWS v5) so they fall back to AWS_ENDPOINT_URL env var.
+        endpoints = List(aws.inputs.ProviderEndpointArgs(s3 = "http://localhost:4566")),
         defaultTags = Some(
           aws.inputs.ProviderDefaultTagsArgs(
             Output(Some(Map("env_name" -> inputParams.envName)))

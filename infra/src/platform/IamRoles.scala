@@ -72,7 +72,7 @@ object IamRoles:
         "external-secrets-irsa-role",
         iam.RoleArgs(
           assumeRolePolicy = assumeRolePolicy,
-          description = "IRSA role for External Secrets Operator — SSM ParameterStore read access"
+          description = "IRSA role for External Secrets Operator - SSM ParameterStore read access"
         ),
         opts(provider = awsProv)
       )

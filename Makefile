@@ -223,9 +223,13 @@ local-dev-up: infra-up              ## alias → make infra-up STACK=local
 local-destroy: start-local-env infra-down stop-local-env  ## start LocalStack → pulumi destroy → stop
 local-down: local-destroy           ## alias
 
-dev: infra-up                       ## alias → make infra-up STACK=dev (set STACK=dev first)
-dev-down: infra-down                ## alias
+dev:
+	$(MAKE) infra-up STACK=dev
+dev-down:
+	$(MAKE) infra-down STACK=dev
 dev-preview:
-	$(MAKE) infra-preview STACK=dev  ## alias → make infra-preview STACK=dev
-prod: infra-up                      ## alias → make infra-up STACK=prod (set STACK=prod first)
-prod-down: infra-down               ## alias
+	$(MAKE) infra-preview STACK=dev
+prod:
+	$(MAKE) infra-up STACK=prod
+prod-down:
+	$(MAKE) infra-down STACK=prod

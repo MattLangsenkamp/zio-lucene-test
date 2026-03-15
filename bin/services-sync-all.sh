@@ -13,12 +13,22 @@
 set -e
 
 STACK="${1:?Usage: $0 <stack> [argocd_server]}"
-ARGOCD_SERVER="${2:-localhost:8080}"
-ARGOCD_OPTS="--server ${ARGOCD_SERVER} --plaintext --insecure"
 
 if [ "$STACK" = "local" ]; then
   kubectl get applications -n argocd -o name | \
     xargs -I{} kubectl annotate {} -n argocd argocd.argoproj.io/refresh=hard --overwrite
 else
+  if [ -n "${2:-}" ]; then
+    ARGOCD_SERVER="$2"
+  else
+    ARGOCD_SERVER=$(kubectl get svc argocd-server -n argocd \
+      -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null)
+    if [ -z "$ARGOCD_SERVER" ]; then
+      echo "ERROR: could not detect ArgoCD server address. Pass it explicitly: $0 $STACK <argocd_server>" >&2
+      exit 1
+    fi
+    echo "Detected ArgoCD server: ${ARGOCD_SERVER}"
+  fi
+  ARGOCD_OPTS="--server ${ARGOCD_SERVER} --plaintext --insecure"
   argocd app list -o name $ARGOCD_OPTS | xargs argocd app sync $ARGOCD_OPTS
 fi

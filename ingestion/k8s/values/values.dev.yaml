@@ -6,6 +6,6 @@ image:
   pullPolicy: Always
 
 serviceAccount:
-  irsaRoleArn: ""  # auto-populated by `make infra-up STACK=<env>`
+  irsaRoleArn: arn:aws:iam::853236864732:role/ingestion-irsa-role-9238bdd
 
 replicaCount: 1

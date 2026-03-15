@@ -9,7 +9,7 @@ case class BucketInput(
   name: String,        // S3 bucket name prefix
   logicalName: String, // kebab-case identifier used in SSM path and Pulumi resource names
   env: String,         // stack name: local | dev | prod
-  awsProvider: Output[AwsProvider]
+  awsProvider: Option[Output[AwsProvider]] = None
 )
 
 case class BucketOutput(
@@ -27,7 +27,10 @@ object Buckets:
     createBucket(params)
 
   private def createBucket(params: BucketInput)(using Context): Output[BucketOutput] =
-    params.awsProvider.flatMap { awsProv =>
+    val providerOutput: Output[Option[AwsProvider]] =
+      params.awsProvider.fold(Output(None))(_.map(Some(_)))
+
+    providerOutput.flatMap { maybeProvider =>
       val bucket = s3.Bucket(
         NonEmptyString(params.logicalName).getOrElse {
           throw new IllegalArgumentException(s"Bucket logical name cannot be empty: '${params.logicalName}'")
@@ -36,7 +39,7 @@ object Buckets:
           forceDestroy = true,
           tags = Map("Name" -> params.name, "env" -> params.env)
         ),
-        opts(provider = awsProv)
+        maybeProvider.fold(opts())(p => opts(provider = p))
       )
 
       bucket.flatMap { b =>
@@ -51,7 +54,7 @@ object Buckets:
             overwrite = true,
             description = s"S3 bucket name for ${params.name} (${params.env})"
           ),
-          opts(provider = awsProv, dependsOn = b)
+          maybeProvider.fold(opts(dependsOn = b))(p => opts(provider = p, dependsOn = b))
         )
         param.map { p =>
           BucketOutput(bucket = b, bucketName = b.id, ssmParam = p)
