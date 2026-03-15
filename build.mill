@@ -120,7 +120,7 @@ object ingestion extends Module {
   }
 
   object services extends AppModule {
-    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api)
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, common.`sqs-tracing`)
     def mvnDeps = zioDeps ++ sttpClientDeps ++ zioJsonDeps ++ sqsDeps
   }
 
@@ -181,7 +181,7 @@ object writer extends Module {
   }
 
   object services extends AppModule {
-    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, ingestion.domainPublic)
+    def moduleDeps = super.moduleDeps ++ Seq(domainPublic, domainPrivate, api, ingestion.domainPublic, common.`sqs-tracing`)
     def mvnDeps = zioDeps ++ zioJsonDeps ++ sqsDeps ++ luceneDeps ++ s3Deps
   }
 
@@ -237,5 +237,15 @@ object common extends Module {
   /** Generic sttp ZIO HTTP client layer for services that make outbound HTTP requests. */
   object `sttp-client` extends AppModule {
     def mvnDeps = sttpClientDeps
+  }
+
+  /** W3C TraceContext propagation for SQS producers and consumers. */
+  object `sqs-tracing` extends AppModule {
+    def moduleDeps = super.moduleDeps ++ Seq(`aws-sqs`, `base-telemetry`)
+    def mvnDeps    = zioDeps ++ otelSdkDeps ++ Seq(mvn"dev.zio::zio-sqs:0.12.2")
+
+    object test extends ScalaTests with TestModule.ZioTest {
+      def mvnDeps = zioTestDeps
+    }
   }
 }

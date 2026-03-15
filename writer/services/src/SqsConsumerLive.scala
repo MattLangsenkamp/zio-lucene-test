@@ -8,8 +8,8 @@ import zio.aws.sqs.Sqs
 import zio.aws.sqs.model.Message
 import zio.sqs.{SqsStream, SqsStreamSettings}
 import zio.telemetry.opentelemetry.tracing.Tracing
-import io.opentelemetry.api.trace.SpanKind
 import common.activitylogging.*
+import common.sqstracing.SqsTracing
 
 final case class SqsConsumerLive(
     sqs: Sqs,
@@ -21,7 +21,7 @@ final case class SqsConsumerLive(
   override def consume: Task[Unit] =
     SqsStream(
       queueUrl = config.sqsQueueUrl,
-      settings = SqsStreamSettings.default.withMaxNumberOfMessages(10)
+      settings = SqsTracing.tracingSettings(SqsStreamSettings.default.withMaxNumberOfMessages(10))
     )
       .mapZIO(parseMessage)
       .collectSome
@@ -32,7 +32,7 @@ final case class SqsConsumerLive(
       .retry(Schedule.spaced(5.seconds))
 
   private def parseMessage(msg: Message.ReadOnly): Task[Option[(Message.ReadOnly, IngestionEvent)]] =
-    tracing.span("sqs-message-received", SpanKind.CONSUMER):
+    SqsTracing.withConsumerSpan(tracing, msg, config.sqsQueueUrl):
       msg.body.toOption match
         case None =>
           ZIO.logActivity(SqsConsumerLive.SqsMessageNoBody()).as(None)
@@ -48,10 +48,10 @@ final case class SqsConsumerLive(
               )) *> ZIO.succeed(Some((msg, event)))
 
 object SqsConsumerLive:
-  case class SqsStreamError(message: String)                             extends ErrorLog derives JsonCodec
-  case class SqsMessageNoBody()                                           extends WarnLog derives JsonCodec
-  case class SqsDeserializationError(error: String, body: String)        extends WarnLog derives JsonCodec
-  case class SqsEventReceived(eventType: String, title: String, user: String) extends InfoLog derives JsonCodec
+  case class SqsStreamError(message: String)                                 extends ErrorLog derives JsonCodec
+  case class SqsMessageNoBody()                                               extends WarnLog  derives JsonCodec
+  case class SqsDeserializationError(error: String, body: String)            extends WarnLog  derives JsonCodec
+  case class SqsEventReceived(eventType: String, title: String, user: String) extends InfoLog  derives JsonCodec
 
   val layer: URLayer[Sqs & SqsConsumerConfig & BatchIndexer & Tracing, SqsConsumer] =
     ZLayer.fromFunction(SqsConsumerLive.apply)
