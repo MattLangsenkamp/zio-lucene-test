@@ -30,6 +30,6 @@ else
     fi
     echo "Detected ArgoCD server: ${ARGOCD_SERVER}"
   fi
-  ARGOCD_OPTS="--server ${ARGOCD_SERVER} --plaintext --insecure"
+  ARGOCD_OPTS="--server ${ARGOCD_SERVER} --insecure"
   argocd app sync "$SERVICE" $ARGOCD_OPTS
 fi

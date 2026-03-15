@@ -16,8 +16,8 @@ import besom.json.*
 case class ExternalSecretsInput(
   k8sProvider: Output[k8s.Provider],
   env: String,
-  // EKS only — IRSA service account name for the ESO pods
-  irsaServiceAccountName: Option[Output[String]] = None,
+  // EKS only — IRSA role ARN to annotate the ESO ServiceAccount
+  irsaRoleArn: Option[Output[String]] = None,
   // Wait for cluster/nodegroup before installing
   cluster: Option[Output[besom.api.aws.eks.Cluster]] = None,
   nodeGroup: Option[Output[besom.api.aws.eks.NodeGroup]] = None
@@ -110,22 +110,26 @@ object ExternalSecrets:
     params: ExternalSecretsInput,
     localMode: Boolean
   )(using Context): Output[k8s.helm.v3.Release] =
-    params.k8sProvider.flatMap { prov =>
-      val extraValues: Map[String, JsValue] =
-        if (localMode)
-          Map(
-            // In local mode ESO calls LocalStack.
-            // Use extraEnv (list format) — more reliable than the env map for arbitrary keys.
-            // AWS_ENDPOINT_URL routes ALL AWS SDK calls (including SSM) to LocalStack.
-            "extraEnv" -> JsArray(
-              JsObject("name" -> JsString("AWS_ENDPOINT_URL"),     "value" -> JsString("http://host.k3d.internal:4566")),
-              JsObject("name" -> JsString("AWS_ACCESS_KEY_ID"),    "value" -> JsString("test")),
-              JsObject("name" -> JsString("AWS_SECRET_ACCESS_KEY"),"value" -> JsString("test"))
-            )
+    val extraValuesOut: Output[Map[String, JsValue]] =
+      if (localMode)
+        Output(Map(
+          "extraEnv" -> JsArray(
+            JsObject("name" -> JsString("AWS_ENDPOINT_URL"),      "value" -> JsString("http://host.k3d.internal:4566")),
+            JsObject("name" -> JsString("AWS_ACCESS_KEY_ID"),     "value" -> JsString("test")),
+            JsObject("name" -> JsString("AWS_SECRET_ACCESS_KEY"), "value" -> JsString("test"))
           )
-        else
-          Map.empty
+        ))
+      else
+        params.irsaRoleArn match
+          case Some(arnOut) => arnOut.map { arn =>
+            Map("serviceAccount" -> JsObject(
+              "annotations" -> JsObject("eks.amazonaws.com/role-arn" -> JsString(arn))
+            ))
+          }
+          case None => Output(Map.empty)
 
+    params.k8sProvider.flatMap { prov =>
+      extraValuesOut.flatMap { extraValues =>
       k8s.helm.v3.Release(
         "external-secrets-operator",
         k8s.helm.v3.ReleaseArgs(
@@ -141,6 +145,7 @@ object ExternalSecrets:
         ),
         opts(provider = prov, dependsOn = ns)
       )
+      }
     }
 
   private def createClusterSecretStore(
@@ -150,22 +155,20 @@ object ExternalSecrets:
   )(using Context): Output[k8s.apiextensions.CustomResource[ClusterSecretStoreSpec]] =
     params.k8sProvider.flatMap { prov =>
       // specOutput resolves the IRSA service account name (Output[String]) before building the spec
-      val specOutput: Output[ClusterSecretStoreSpec] = params.irsaServiceAccountName match
-        case Some(saNameOut) if !localMode =>
-          saNameOut.map { saName =>
-            ClusterSecretStoreSpec(
-              provider = StoreProvider(
-                aws = AwsSsmProvider(
-                  service = "ParameterStore",
-                  region = "us-east-1",
-                  auth = Some(SsmAuth(jwt = Some(JwtAuth(
-                    serviceAccountRef = Some(ServiceAccountRef(name = saName, namespace = "external-secrets"))
-                  ))))
-                )
-              )
+      val specOutput: Output[ClusterSecretStoreSpec] = if (!localMode)
+        Output(ClusterSecretStoreSpec(
+          provider = StoreProvider(
+            aws = AwsSsmProvider(
+              service = "ParameterStore",
+              region = "us-east-1",
+              auth = Some(SsmAuth(jwt = Some(JwtAuth(
+                // ESO Helm chart creates a ServiceAccount named "external-secrets" by default
+                serviceAccountRef = Some(ServiceAccountRef(name = "external-secrets", namespace = "external-secrets"))
+              ))))
             )
-          }
-        case _ =>
+          )
+        ))
+      else
           // Local: static credentials from eso-localstack-credentials Secret.
           // Endpoint routing to LocalStack is via AWS_ENDPOINT_URL env var on ESO pods.
           Output(ClusterSecretStoreSpec(

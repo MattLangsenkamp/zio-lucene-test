@@ -90,19 +90,20 @@ import utils.*
       k8sProvider  = k8sProvider
     ))
 
-    val externalSecrets = ExternalSecrets.make(ExternalSecretsInput(
-      k8sProvider = k8sProvider,
-      env         = stackName,
-      cluster     = Some(eksCluster.map(_.cluster)),
-      nodeGroup   = Some(eksCluster.map(_.nodeGroup))
-    ))
-
     val esoIrsa = IamRoles.makeExternalSecretsIrsa(
       env          = stackName,
-      esoNamespace = externalSecrets.flatMap(_.namespace.metadata.name).map(_.getOrElse("external-secrets")),
+      esoNamespace = Output("external-secrets"),
       oidcProvider = oidcProvider,
       awsProvider  = awsProvider
     )
+
+    val externalSecrets = ExternalSecrets.make(ExternalSecretsInput(
+      k8sProvider = k8sProvider,
+      env         = stackName,
+      irsaRoleArn = Some(esoIrsa.flatMap(_.roleArn)),
+      cluster     = Some(eksCluster.map(_.cluster)),
+      nodeGroup   = Some(eksCluster.map(_.nodeGroup))
+    ))
 
     val namespace = K8s.createNamespace(
       "zio-lucene",
@@ -149,6 +150,7 @@ import utils.*
       repoUrl     = repoUrl,
       env         = stackName,
       services    = argoCDServices,
+      autoSync    = stackName == "dev",
       cluster     = Some(eksCluster.map(_.cluster)),
       nodeGroup   = Some(eksCluster.map(_.nodeGroup))
     ))

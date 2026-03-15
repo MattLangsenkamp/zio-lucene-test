@@ -26,8 +26,8 @@ TAG              ?= latest
 EKS_CLUSTER_NAME  = zio-lucene-cluster
 AWS_REGION        = us-east-1
 # ArgoCD server address — override for cloud: make services-sync-all ARGOCD_SERVER=argocd.example.com
-ARGOCD_SERVER    ?= localhost:8080
-ARGOCD_OPTS       = --server $(ARGOCD_SERVER) --plaintext --insecure
+ARGOCD_SERVER    ?=
+ARGOCD_OPTS       = --server $(ARGOCD_SERVER) --insecure
 
 # ---------------------------------------------------------------------------
 # Prerequisites

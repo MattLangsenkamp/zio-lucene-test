@@ -29,6 +29,10 @@ else
     fi
     echo "Detected ArgoCD server: ${ARGOCD_SERVER}"
   fi
-  ARGOCD_OPTS="--server ${ARGOCD_SERVER} --plaintext --insecure"
-  argocd app list -o name $ARGOCD_OPTS | xargs argocd app sync $ARGOCD_OPTS
+  ARGOCD_OPTS="--server ${ARGOCD_SERVER} --insecure"
+  echo "Running: argocd app list -o name $ARGOCD_OPTS"
+  APPS=$(argocd app list -o name $ARGOCD_OPTS)
+  echo "Apps: $APPS"
+  echo "Running: argocd app sync $ARGOCD_OPTS $APPS"
+  echo "$APPS" | xargs argocd app sync $ARGOCD_OPTS
 fi
