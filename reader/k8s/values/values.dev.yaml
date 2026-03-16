@@ -6,6 +6,6 @@ image:
   pullPolicy: Always
 
 serviceAccount:
-  irsaRoleArn: arn:aws:iam::853236864732:role/reader-irsa-role-8addae0
+  irsaRoleArn: arn:aws:iam::853236864732:role/reader-irsa-role-8af890c
 
 replicaCount: 1
