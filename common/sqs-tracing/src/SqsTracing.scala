@@ -106,7 +106,7 @@ object SqsTracing:
   /** Creates a PRODUCER span as a child of the current active span (or a root span if none),
     * injects the trace context into the request's MessageAttributes as `traceparent`/`tracestate`,
     * then calls `send` with the enriched request.
-    *
+    *batchIndexer.pipeline
     * @param tracing
     *   the Tracing service instance
     * @param request

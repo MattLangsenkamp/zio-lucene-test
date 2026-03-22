@@ -5,8 +5,6 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
-serviceAccount:
-  irsaRoleArn: ""     # auto-populated by `make infra-up STACK=<env>`
 
 env: local            # overridden per environment
 

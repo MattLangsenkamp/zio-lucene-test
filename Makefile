@@ -3,7 +3,7 @@
         services-sync-all service-sync services-status \
         env-up env-down \
         helm-template helm-upgrade \
-        ssm-list update-irsa-values \
+        ssm-list \
         argocd-ui argocd-password \
         check-local-deps start-local-env stop-local-env delete-local-volume \
         import-images logs health build-apps dockerhub-push dockerhub-full \
@@ -110,12 +110,6 @@ helm-upgrade:
 # Usage: make ssm-list STACK=local
 ssm-list:
 	@./bin/ssm-list.sh $(STACK)
-
-# Patch IRSA ARNs into values.{STACK}.yaml for all services after pulumi up
-# Usage: make update-irsa-values STACK=dev
-update-irsa-values:
-	@test -n "$(STACK)" || (echo "ERROR: STACK is required. Usage: make update-irsa-values STACK=dev" && exit 1)
-	@./bin/update-irsa-values.sh $(STACK)
 
 # ---------------------------------------------------------------------------
 # ArgoCD utilities
