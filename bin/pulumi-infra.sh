@@ -3,7 +3,6 @@
 #
 # Wrapper around pulumi up/preview/destroy that:
 #   - injects LocalStack AWS env vars when STACK=local
-#   - auto-patches IRSA ARNs after `up` on non-local stacks
 #
 # Usage: ./bin/pulumi-infra.sh <command> <stack>
 #   command — up | down | preview
@@ -38,9 +37,6 @@ case "$CMD" in
       run_pulumi up --stack "$STACK" --yes
     else
       run_pulumi up --stack "$STACK"
-    fi
-    if [ "$STACK" != "local" ]; then
-      "$SCRIPT_DIR/update-irsa-values.sh" "$STACK"
     fi
     ;;
   down)

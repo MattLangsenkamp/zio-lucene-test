@@ -5,7 +5,4 @@ image:
   tag: latest
   pullPolicy: Always
 
-serviceAccount:
-  irsaRoleArn: ""  # auto-populated by `make infra-up STACK=<env>`
-
 replicaCount: 1

@@ -8,11 +8,19 @@
 import besom.*
 import besom.api.aws
 import besom.api.kubernetes as k8s
+import besom.api.kubernetes.core.v1.ServiceAccount
 import platform.{AwsProvider, AwsProviderInputs, K8Provider, K8sInputs}
 import platform.{ExternalSecrets, ExternalSecretsInput}
 import platform.{IamRoles, ServiceIrsaInput}
 import platform.{ArgoCD, ArgoCDInput}
-import resources.{Queues, QueueInput, QueueOutput, Buckets, BucketInput, BucketOutput}
+import resources.{
+  BucketInput,
+  BucketOutput,
+  Buckets,
+  QueueInput,
+  QueueOutput,
+  Queues
+}
 import platform.IrsaRoleOutput
 import utils.*
 
@@ -27,13 +35,13 @@ import utils.*
   )
   val isLocal = stackName == "local"
 
-  val config         = Config("zio-lucene-infra")
-  val hostedZoneId   = config.get[String]("hostedZoneId")
-  val baseDomain     = config.get[String]("domain")
+  val config = Config("zio-lucene-infra")
+  val hostedZoneId = config.get[String]("hostedZoneId")
+  val baseDomain = config.get[String]("domain")
   val certificateArn = config.get[String]("certificateArn")
   val grafanaConfig = GrafanaCloudConfig(
-    instanceId   = config.require[String]("grafanaCloudInstanceId"),
-    apiKey       = config.require[String]("grafanaCloudApiKey"),
+    instanceId = config.require[String]("grafanaCloudInstanceId"),
+    apiKey = config.require[String]("grafanaCloudApiKey"),
     otlpEndpoint = config.require[String]("grafanaCloudOtlpEndpoint")
   )
   val useKafka = sys.env.get("KAFKA_MODE").exists(_.toLowerCase == "true")
@@ -48,62 +56,81 @@ import utils.*
     // may appear in multiple services but is only created once).
     val queues: Map[String, Output[QueueOutput]] =
       manifest.uniqueSqsQueues.map { r =>
-        r.logicalName -> Queues.make(QueueInput(r.logicalName, r.logicalName, stackName, Some(awsProvider)))
+        r.logicalName -> Queues.make(
+          QueueInput(r.logicalName, r.logicalName, stackName, Some(awsProvider))
+        )
       }.toMap
 
     val buckets: Map[String, Output[BucketOutput]] =
       manifest.uniqueS3Buckets.map { r =>
-        r.logicalName -> Buckets.make(BucketInput(r.logicalName, r.logicalName, stackName, Some(awsProvider)))
+        r.logicalName -> Buckets.make(
+          BucketInput(
+            r.logicalName,
+            r.logicalName,
+            stackName,
+            Some(awsProvider)
+          )
+        )
       }.toMap
 
     val vpcOutput = Vpc.make(VpcInput())
 
-    val eksCluster = EKS.make(EksInput(
-      namePrefix = "zio-lucene",
-      vpcId      = vpcOutput.flatMap(_.vpc.id),
-      subnetIds  = List(
-        vpcOutput.flatMap(_.publicSubnet1.id),
-        vpcOutput.flatMap(_.publicSubnet2.id)
+    val eksCluster = EKS.make(
+      EksInput(
+        namePrefix = "zio-lucene",
+        vpcId = vpcOutput.flatMap(_.vpc.id),
+        subnetIds = List(
+          vpcOutput.flatMap(_.publicSubnet1.id),
+          vpcOutput.flatMap(_.publicSubnet2.id)
+        )
       )
-    ))
+    )
     val clusterName = eksCluster.map(_.clusterName)
     val k8sProvider = eksCluster.map(_.k8sProvider)
 
-    val oidcProvider = OidcProvider.make(OidcProviderInput(
-      clusterOidcIssuer = eksCluster.flatMap(_.oidcProviderUrl),
-      cluster           = eksCluster.map(_.cluster)
-    ))
-
-    val albController = AlbController.make(AlbControllerInput(
-      eksCluster   = eksCluster.map(_.cluster),
-      nodeGroup    = eksCluster.map(_.nodeGroup),
-      vpcId        = vpcOutput.flatMap(_.vpc.id),
-      clusterName  = eksCluster.flatMap(_.clusterName),
-      oidcProvider = oidcProvider,
-      stackName    = stackName,
-      k8sProvider  = k8sProvider
-    ))
-
-    val ebsCsiDriver = EbsCsiDriver.make(EbsCsiDriverInput(
-      eksCluster   = eksCluster.map(_.cluster),
-      oidcProvider = oidcProvider,
-      k8sProvider  = k8sProvider
-    ))
-
-    val esoIrsa = IamRoles.makeExternalSecretsIrsa(
-      env          = stackName,
-      esoNamespace = Output("external-secrets"),
-      oidcProvider = oidcProvider,
-      awsProvider  = awsProvider
+    val oidcProvider = OidcProvider.make(
+      OidcProviderInput(
+        clusterOidcIssuer = eksCluster.flatMap(_.oidcProviderUrl),
+        cluster = eksCluster.map(_.cluster)
+      )
     )
 
-    val externalSecrets = ExternalSecrets.make(ExternalSecretsInput(
-      k8sProvider = k8sProvider,
-      env         = stackName,
-      irsaRoleArn = Some(esoIrsa.flatMap(_.roleArn)),
-      cluster     = Some(eksCluster.map(_.cluster)),
-      nodeGroup   = Some(eksCluster.map(_.nodeGroup))
-    ))
+    val albController = AlbController.make(
+      AlbControllerInput(
+        eksCluster = eksCluster.map(_.cluster),
+        nodeGroup = eksCluster.map(_.nodeGroup),
+        vpcId = vpcOutput.flatMap(_.vpc.id),
+        clusterName = eksCluster.flatMap(_.clusterName),
+        oidcProvider = oidcProvider,
+        stackName = stackName,
+        k8sProvider = k8sProvider
+      )
+    )
+
+    val ebsCsiDriver = EbsCsiDriver.make(
+      EbsCsiDriverInput(
+        eksCluster = eksCluster.map(_.cluster),
+        oidcProvider = oidcProvider,
+        k8sProvider = k8sProvider
+      )
+    )
+
+    val esoIrsa = IamRoles.makeExternalSecretsIrsa(
+      env = stackName,
+      esoNamespace = Output("external-secrets"),
+      oidcProvider = oidcProvider,
+      awsProvider = awsProvider
+    )
+
+    val externalSecrets = ExternalSecrets.make(
+      ExternalSecretsInput(
+        k8sProvider = k8sProvider,
+        env = stackName,
+        irsaRoleArn = Some(esoIrsa.flatMap(_.roleArn)),
+        cluster = Some(eksCluster.map(_.cluster)),
+        nodeGroup = Some(eksCluster.map(_.nodeGroup))
+      )
+    )
 
     val namespace = K8s.createNamespace(
       "zio-lucene",
@@ -111,61 +138,90 @@ import utils.*
       eksCluster.map(_.nodeGroup),
       k8sProvider
     )
-    val namespaceName = namespace.flatMap(_.metadata.flatMap(_.name)).map(_.getOrElse {
-      throw new RuntimeException("Failed to get namespace name")
-    })
+    val namespaceName = namespace
+      .flatMap(_.metadata.flatMap(_.name))
+      .map(_.getOrElse {
+        throw new RuntimeException("Failed to get namespace name")
+      })
 
-    val otelCollector = OtelCollector.make(OtelCollectorInput(
-      k8sProvider              = k8sProvider,
-      grafanaCloudConfig       = grafanaConfig,
-      cluster                  = Some(eksCluster.map(_.cluster)),
-      nodeGroup                = Some(eksCluster.map(_.nodeGroup)),
-      albControllerHelmRelease = Some(albController.map(_.helmRelease))
-    ))
+    val otelCollector = OtelCollector.make(
+      OtelCollectorInput(
+        k8sProvider = k8sProvider,
+        grafanaCloudConfig = grafanaConfig,
+        cluster = Some(eksCluster.map(_.cluster)),
+        nodeGroup = Some(eksCluster.map(_.nodeGroup)),
+        albControllerHelmRelease = Some(albController.map(_.helmRelease))
+      )
+    )
 
     // Create one IRSA role per service, reading permissions from the manifest.
     // sqsQueueArns/sqsWriteQueueArns/bucketArns are resolved by looking up each
     // service's manifest resources in the queues/buckets maps created above.
-    val serviceIrsas: List[(String, Output[IrsaRoleOutput])] = manifest.services.map { svc =>
-      val sqsReadArns  = svc.sqsReadQueues.flatMap(r => queues.get(r.logicalName).map(_.flatMap(_.queue.arn)))
-      val sqsWriteArns = svc.sqsWriteQueues.flatMap(r => queues.get(r.logicalName).map(_.flatMap(_.queue.arn)))
-      val s3Arns       = svc.s3Resources.flatMap(r => buckets.get(r.logicalName).map(_.flatMap(_.bucket.arn)))
-      svc.name -> IamRoles.makeServiceIrsa(svc.name, ServiceIrsaInput(
-        env               = stackName,
-        oidcProvider      = oidcProvider,
-        namespace         = namespaceName,
-        awsProvider       = awsProvider,
-        sqsQueueArns      = sqsReadArns,
-        sqsWriteQueueArns = sqsWriteArns,
-        bucketArns        = s3Arns,
-        allowS3Write      = svc.allowS3Write
-      ))
-    }
+    val serviceIrsas: List[(String, Output[IrsaRoleOutput])] =
+      manifest.services.map { svc =>
+        val sqsReadArns = svc.sqsReadQueues.flatMap(r =>
+          queues.get(r.logicalName).map(_.flatMap(_.queue.arn))
+        )
+        val sqsWriteArns = svc.sqsWriteQueues.flatMap(r =>
+          queues.get(r.logicalName).map(_.flatMap(_.queue.arn))
+        )
+        val s3Arns = svc.s3Resources.flatMap(r =>
+          buckets.get(r.logicalName).map(_.flatMap(_.bucket.arn))
+        )
+        svc.name -> IamRoles.makeServiceIrsa(
+          svc.name,
+          ServiceIrsaInput(
+            env = stackName,
+            oidcProvider = oidcProvider,
+            namespace = namespaceName,
+            awsProvider = awsProvider,
+            sqsQueueArns = sqsReadArns,
+            sqsWriteQueueArns = sqsWriteArns,
+            bucketArns = s3Arns,
+            allowS3Write = svc.allowS3Write
+          )
+        )
+      }
+
+    val serviceAccounts: Seq[Output[ServiceAccount]] = serviceIrsas.map {
+      (svc, role) =>
+        K8ServiceAccount.make(
+          svc,
+          role.flatMap(_.role.arn),
+          "zio-lucene",
+          namespace,
+          k8sProvider
+        )
+    }.toSeq
 
     // gitRepoUrl is required for cloud stacks — set zio-lucene-infra:gitRepoUrl in stack config
     val repoUrl = config.require[String]("gitRepoUrl")
 
-    val argoCD = ArgoCD.make(ArgoCDInput(
-      k8sProvider = k8sProvider,
-      repoUrl     = repoUrl,
-      env         = stackName,
-      services    = argoCDServices,
-      autoSync    = stackName == "dev",
-      cluster     = Some(eksCluster.map(_.cluster)),
-      nodeGroup   = Some(eksCluster.map(_.nodeGroup))
-    ))
+    val argoCD = ArgoCD.make(
+      ArgoCDInput(
+        k8sProvider = k8sProvider,
+        repoUrl = repoUrl,
+        env = stackName,
+        services = argoCDServices,
+        autoSync = stackName == "dev",
+        cluster = Some(eksCluster.map(_.cluster)),
+        nodeGroup = Some(eksCluster.map(_.nodeGroup))
+      )
+    )
 
-    val albIngress = AlbIngress.make(AlbIngressInput(
-      eksCluster           = eksCluster.map(_.cluster),
-      namespace            = namespaceName,
-      readerServiceName    = Output("reader"),
-      stackName            = stackName,
-      hostedZoneIdConfig   = hostedZoneId,
-      baseDomainConfig     = baseDomain,
-      certificateArnConfig = certificateArn,
-      k8sProvider          = k8sProvider,
-      albController        = albController
-    ))
+    val albIngress = AlbIngress.make(
+      AlbIngressInput(
+        eksCluster = eksCluster.map(_.cluster),
+        namespace = namespaceName,
+        readerServiceName = Output("reader"),
+        stackName = stackName,
+        hostedZoneIdConfig = hostedZoneId,
+        baseDomainConfig = baseDomain,
+        certificateArnConfig = certificateArn,
+        k8sProvider = k8sProvider,
+        albController = albController
+      )
+    )
 
     // Collect dynamic per-service resources into typed sequences for Stack registration
     val queueResources: Seq[Output[?]] =
@@ -175,7 +231,9 @@ import utils.*
       buckets.values.toSeq.flatMap(b => Seq(b.map(_.bucket), b.map(_.ssmParam)))
 
     val irsaResources: Seq[Output[?]] =
-      serviceIrsas.flatMap { case (_, i) => Seq(i.map(_.role), i.map(_.rolePolicy), i.map(_.ssmParam)) }
+      serviceIrsas.flatMap { case (_, i) =>
+        Seq(i.map(_.role), i.map(_.rolePolicy), i.map(_.ssmParam))
+      }
 
     // NOTE: Resources that depend on the k8s provider (which itself depends on the EKS cluster)
     // will NOT appear in `pulumi preview` when the EKS cluster is being newly created. This is
@@ -225,12 +283,12 @@ import utils.*
     )
 
     Stack(
-      (fixedResources ++ queueResources ++ bucketResources ++ irsaResources)*
+      (fixedResources ++ queueResources ++ bucketResources ++ irsaResources ++ serviceAccounts)*
     ).exports(
-      bucketName     = buckets("segments").flatMap(_.bucketName),
-      k8sNamespace   = namespaceName,
+      bucketName = buckets("segments").flatMap(_.bucketName),
+      k8sNamespace = namespaceName,
       eksClusterName = clusterName,
-      esoRoleArn     = esoIrsa.map(_.roleArn)
+      esoRoleArn = esoIrsa.map(_.roleArn)
     )
 
   } else {
@@ -240,31 +298,43 @@ import utils.*
 
     val buckets: Map[String, Output[BucketOutput]] =
       manifest.uniqueS3Buckets.map { r =>
-        r.logicalName -> Buckets.makeLocal(BucketInput(r.logicalName, r.logicalName, stackName))
+        r.logicalName -> Buckets.makeLocal(
+          BucketInput(r.logicalName, r.logicalName, stackName)
+        )
       }.toMap
 
-    val externalSecrets = ExternalSecrets.makeLocal(ExternalSecretsInput(
-      k8sProvider = k8sProvider,
-      env         = stackName
-    ))
+    val externalSecrets = ExternalSecrets.makeLocal(
+      ExternalSecretsInput(
+        k8sProvider = k8sProvider,
+        env = stackName
+      )
+    )
 
     val namespace = K8s.createNamespace("zio-lucene", None, None, k8sProvider)
     val namespaceName = namespace.metadata.name.map(_.getOrElse {
       throw new RuntimeException("Failed to get namespace name")
     })
 
-    val otelCollector = OtelCollector.makeLocal(OtelCollectorInput(
-      k8sProvider        = k8sProvider,
-      grafanaCloudConfig = grafanaConfig
-    ))
+    val otelCollector = OtelCollector.makeLocal(
+      OtelCollectorInput(
+        k8sProvider = k8sProvider,
+        grafanaCloudConfig = grafanaConfig
+      )
+    )
 
-    val argoCD = ArgoCD.makeLocal(ArgoCDInput(
-      k8sProvider = k8sProvider,
-      repoUrl     = Output("file:///repo"),
-      env         = stackName,
-      services    = argoCDServices,
-      autoSync    = true
-    ))
+    val argoCD = ArgoCD.makeLocal(
+      ArgoCDInput(
+        k8sProvider = k8sProvider,
+        repoUrl = Output("file:///repo"),
+        env = stackName,
+        services = argoCDServices,
+        autoSync = true
+      )
+    )
+
+    val serviceAccounts: Seq[Output[ServiceAccount]] = manifest.services.map { svc =>
+      K8ServiceAccount.makeLocal(svc.name, "zio-lucene", namespace, k8sProvider)
+    }.toSeq
 
     val bucketResources: Seq[Output[?]] =
       buckets.values.toSeq.flatMap(b => Seq(b.map(_.bucket), b.map(_.ssmParam)))
@@ -283,22 +353,29 @@ import utils.*
     )
 
     if (useKafka) {
-      val kafkaOutput = Kafka.makeLocal(KafkaLocalInput(
-        namespace = namespaceName,
-        provider  = k8sProvider
-      ))
+      val kafkaOutput = Kafka.makeLocal(
+        KafkaLocalInput(
+          namespace = namespaceName,
+          provider = k8sProvider
+        )
+      )
 
       Stack(
-        (fixedResources ++ bucketResources ++ Seq(kafkaOutput.map(_.service), kafkaOutput.map(_.statefulSet)))*
+        (fixedResources ++ bucketResources ++ serviceAccounts ++ Seq(
+          kafkaOutput.map(_.service),
+          kafkaOutput.map(_.statefulSet)
+        ))*
       ).exports(
-        bucketName    = buckets("segments").flatMap(_.bucketName),
-        k8sNamespace  = namespaceName,
+        bucketName = buckets("segments").flatMap(_.bucketName),
+        k8sNamespace = namespaceName,
         messagingMode = "kafka"
       )
     } else {
       val queues: Map[String, Output[QueueOutput]] =
         manifest.uniqueSqsQueues.map { r =>
-          r.logicalName -> Queues.makeLocal(QueueInput(r.logicalName, r.logicalName, stackName))
+          r.logicalName -> Queues.makeLocal(
+            QueueInput(r.logicalName, r.logicalName, stackName)
+          )
         }.toMap
 
       val queueResources: Seq[Output[?]] =
@@ -308,15 +385,18 @@ import utils.*
       // In cloud mode, ExternalSecrets pull these from SSM.  In local mode, ESO
       // cannot resolve AWS_ENDPOINT_URL overrides and hits real AWS, so we bypass it
       // entirely and create the k8s Secrets ourselves.
-      val ingestUrl  = queues("document-ingestion").flatMap(_.queueUrl)
-      val commitUrl  = queues("document-commit").flatMap(_.queueUrl)
+      val ingestUrl = queues("document-ingestion").flatMap(_.queueUrl)
+      val commitUrl = queues("document-commit").flatMap(_.queueUrl)
       val bucketName = buckets("segments").flatMap(_.bucketName)
 
       val ingestionSecret = k8sProvider.flatMap { prov =>
         k8s.core.v1.Secret(
           "ingestion-secrets",
           k8s.core.v1.SecretArgs(
-            metadata   = k8s.meta.v1.inputs.ObjectMetaArgs(name = "ingestion-secrets", namespace = "zio-lucene"),
+            metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+              name = "ingestion-secrets",
+              namespace = "zio-lucene"
+            ),
             stringData = ingestUrl.map(u => Map("SQS_QUEUE_URL" -> u))
           ),
           opts(provider = prov, dependsOn = namespace)
@@ -327,9 +407,17 @@ import utils.*
         k8s.core.v1.Secret(
           "writer-secrets",
           k8s.core.v1.SecretArgs(
-            metadata   = k8s.meta.v1.inputs.ObjectMetaArgs(name = "writer-secrets", namespace = "zio-lucene"),
-            stringData = for (sq <- ingestUrl; cq <- commitUrl; bk <- bucketName)
-                         yield Map("SQS_QUEUE_URL" -> sq, "COMMIT_QUEUE_URL" -> cq, "STORAGE_BUCKET" -> bk)
+            metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+              name = "writer-secrets",
+              namespace = "zio-lucene"
+            ),
+            stringData =
+              for (sq <- ingestUrl; cq <- commitUrl; bk <- bucketName)
+                yield Map(
+                  "SQS_QUEUE_URL" -> sq,
+                  "COMMIT_QUEUE_URL" -> cq,
+                  "STORAGE_BUCKET" -> bk
+                )
           ),
           opts(provider = prov, dependsOn = namespace)
         )
@@ -339,7 +427,10 @@ import utils.*
         k8s.core.v1.Secret(
           "reader-secrets",
           k8s.core.v1.SecretArgs(
-            metadata   = k8s.meta.v1.inputs.ObjectMetaArgs(name = "reader-secrets", namespace = "zio-lucene"),
+            metadata = k8s.meta.v1.inputs.ObjectMetaArgs(
+              name = "reader-secrets",
+              namespace = "zio-lucene"
+            ),
             stringData = bucketName.map(bk => Map("S3_BUCKET_NAME" -> bk))
           ),
           opts(provider = prov, dependsOn = namespace)
@@ -347,10 +438,14 @@ import utils.*
       }
 
       Stack(
-        (fixedResources ++ bucketResources ++ queueResources ++ Seq(ingestionSecret, writerSecret, readerSecret))*
+        (fixedResources ++ bucketResources ++ queueResources ++ serviceAccounts ++ Seq(
+          ingestionSecret,
+          writerSecret,
+          readerSecret
+        ))*
       ).exports(
-        bucketName    = buckets("segments").flatMap(_.bucketName),
-        k8sNamespace  = namespaceName,
+        bucketName = buckets("segments").flatMap(_.bucketName),
+        k8sNamespace = namespaceName,
         messagingMode = "sqs"
       )
     }

@@ -7,7 +7,4 @@ image:
 
 storageClassName: gp2
 
-serviceAccount:
-  irsaRoleArn: arn:aws:iam::853236864732:role/writer-irsa-role-9278299
-
 replicaCount: 1
