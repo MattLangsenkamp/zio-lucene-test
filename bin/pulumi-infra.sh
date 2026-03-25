@@ -43,7 +43,18 @@ case "$CMD" in
     if [ "$STACK" = "local" ]; then
       run_pulumi destroy --stack "$STACK" --yes
     else
-      run_pulumi destroy --stack "$STACK"
+      PULUMI_K8S_DELETE_UNREACHABLE=true run_pulumi destroy --stack "$STACK"
+      echo "Force-deleting ArgoCD namespace..."
+      for resource_type in applications services; do
+        kubectl get "$resource_type" -n argocd -o name 2>/dev/null | \
+          xargs -I{} kubectl patch {} -n argocd --type=json \
+          -p='[{"op":"remove","path":"/metadata/finalizers"}]' 2>/dev/null || true
+      done
+      kubectl delete namespace argocd --ignore-not-found 2>/dev/null || true
+      sleep 3
+      kubectl get namespace argocd -o json 2>/dev/null \
+        | jq '.spec.finalizers = []' \
+        | kubectl replace --raw /api/v1/namespaces/argocd/finalize -f - 2>/dev/null || true
     fi
     ;;
   preview)

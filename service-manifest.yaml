@@ -41,6 +41,7 @@ services:
         - logicalName: document-commit
           ssmPath: /zio-lucene/{env}/sqs/document-commit
           roles:
+            - sqs:read
             - sqs:write
       s3:
         - logicalName: segments
