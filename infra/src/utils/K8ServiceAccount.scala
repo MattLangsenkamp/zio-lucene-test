@@ -24,6 +24,7 @@ object K8ServiceAccount {
       args = ServiceAccountArgs(
         metadata = Some(
           ObjectMetaArgs(
+            name = name,
             namespace = namespace,
             annotations = Some(
               Map(
@@ -54,7 +55,7 @@ object K8ServiceAccount {
       ServiceAccount(
         name = saName,
         args = ServiceAccountArgs(
-          metadata = Some(ObjectMetaArgs(namespace = namespace))
+          metadata = Some(ObjectMetaArgs(name = name, namespace = namespace))
         ),
         opts(provider = prov, dependsOn = namespaceResource)
       )

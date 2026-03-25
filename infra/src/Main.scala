@@ -205,7 +205,8 @@ import utils.*
         services = argoCDServices,
         autoSync = stackName == "dev",
         cluster = Some(eksCluster.map(_.cluster)),
-        nodeGroup = Some(eksCluster.map(_.nodeGroup))
+        nodeGroup = Some(eksCluster.map(_.nodeGroup)),
+        serviceAccounts = serviceAccounts
       )
     )
 

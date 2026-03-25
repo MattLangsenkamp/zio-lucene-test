@@ -24,7 +24,8 @@ case class ArgoCDInput(
   gitRevision: String = "HEAD",
   namespace: String = "zio-lucene",
   cluster: Option[Output[besom.api.aws.eks.Cluster]] = None,
-  nodeGroup: Option[Output[besom.api.aws.eks.NodeGroup]] = None
+  nodeGroup: Option[Output[besom.api.aws.eks.NodeGroup]] = None,
+  serviceAccounts: Seq[Output[k8s.core.v1.ServiceAccount]] = Seq.empty
 )
 
 case class ArgoCDOutput(
@@ -56,7 +57,7 @@ object ArgoCD:
         k8s.core.v1.NamespaceArgs(
           metadata = k8s.meta.v1.inputs.ObjectMetaArgs(name = "argocd")
         ),
-        opts(provider = prov, dependsOn = deps)
+        opts(provider = prov, dependsOn = deps, retainOnDelete = true)
       )
     }
 
@@ -157,7 +158,8 @@ object ArgoCD:
           "template" -> JsObject(
             "metadata" -> JsObject(
               "name"      -> JsString("{{name}}"),
-              "namespace" -> JsString("argocd")
+              "namespace" -> JsString("argocd"),
+              "finalizers" -> JsArray()
             ),
             "spec" -> JsObject(
               "project" -> JsString("default"),
@@ -198,7 +200,7 @@ object ArgoCD:
           ),
           ComponentResourceOptions(
             providers = List(prov),
-            dependsOn = List(helmRelease)
+            dependsOn = helmRelease +: params.serviceAccounts.toList
           )
         )
       }
